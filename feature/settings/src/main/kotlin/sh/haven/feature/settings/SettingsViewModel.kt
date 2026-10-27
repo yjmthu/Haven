@@ -430,12 +430,6 @@ class SettingsViewModel @Inject constructor(
     val screenSecurity: StateFlow<Boolean> = preferencesRepository.screenSecurity
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    val showLinuxVmCard: StateFlow<Boolean> = preferencesRepository.showLinuxVmCard
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
-
-    val showDesktopsCard: StateFlow<Boolean> = preferencesRepository.showDesktopsCard
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
-
     val showSearchButton: StateFlow<Boolean> = preferencesRepository.showSearchButton
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
@@ -476,19 +470,10 @@ class SettingsViewModel @Inject constructor(
     val tabVisibility: StateFlow<Map<String, TabVisibility>> = preferencesRepository.tabVisibility
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
-    val usbGuestExposureEnabled: StateFlow<Boolean> = preferencesRepository.usbGuestExposureEnabled
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
-    val gpsGuestExposureEnabled: StateFlow<Boolean> = preferencesRepository.gpsGuestExposureEnabled
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
     val tailscaleDiscoveryEnabled: StateFlow<Boolean> = preferencesRepository.tailscaleDiscoveryEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     val remoteClipboardToLocalEnabled: StateFlow<Boolean> = preferencesRepository.remoteClipboardToLocalEnabled
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
-    val audioBridgeEnabled: StateFlow<Boolean> = preferencesRepository.audioBridgeEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     val verboseLoggingEnabled: StateFlow<Boolean> = preferencesRepository.verboseLoggingEnabled
@@ -511,12 +496,6 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { preferencesRepository.setRdpDesktopSize(width, height) }
     }
 
-    val gpuUseVenus: StateFlow<Boolean> = preferencesRepository.gpuUseVenus
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
-    fun setGpuUseVenus(enabled: Boolean) {
-        viewModelScope.launch { preferencesRepository.setGpuUseVenus(enabled) }
-    }
 
     val bandwidthAutoSuggest: StateFlow<Boolean> = preferencesRepository.bandwidthAutoSuggest
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
@@ -786,17 +765,7 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun setShowLinuxVmCard(enabled: Boolean) {
-        viewModelScope.launch {
-            preferencesRepository.setShowLinuxVmCard(enabled)
-        }
-    }
 
-    fun setShowDesktopsCard(enabled: Boolean) {
-        viewModelScope.launch {
-            preferencesRepository.setShowDesktopsCard(enabled)
-        }
-    }
 
     fun setShowSearchButton(enabled: Boolean) {
         viewModelScope.launch {
@@ -840,17 +809,7 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun setUsbGuestExposureEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            preferencesRepository.setUsbGuestExposureEnabled(enabled)
-        }
-    }
 
-    fun setGpsGuestExposureEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            preferencesRepository.setGpsGuestExposureEnabled(enabled)
-        }
-    }
 
     fun setTailscaleDiscoveryEnabled(enabled: Boolean) {
         viewModelScope.launch {
@@ -861,12 +820,6 @@ class SettingsViewModel @Inject constructor(
     fun setRemoteClipboardToLocalEnabled(enabled: Boolean) {
         viewModelScope.launch {
             preferencesRepository.setRemoteClipboardToLocalEnabled(enabled)
-        }
-    }
-
-    fun setAudioBridgeEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            preferencesRepository.setAudioBridgeEnabled(enabled)
         }
     }
 
@@ -1029,15 +982,6 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    val prootIdleTimeoutMinutes: StateFlow<Int> = preferencesRepository.prootIdleTimeoutMinutes
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
-
-    fun setProotIdleTimeoutMinutes(minutes: Int) {
-        viewModelScope.launch {
-            preferencesRepository.setProotIdleTimeoutMinutes(minutes)
-        }
-    }
-
     fun setTheme(mode: UserPreferencesRepository.ThemeMode) {
         viewModelScope.launch {
             preferencesRepository.setTheme(mode)
@@ -1165,15 +1109,6 @@ class SettingsViewModel @Inject constructor(
     fun setNavigationTabs(order: List<String>, visibility: Map<String, TabVisibility>) {
         viewModelScope.launch {
             preferencesRepository.setNavigationTabs(order, visibility)
-        }
-    }
-
-    val waylandShellCommand: StateFlow<String> = preferencesRepository.waylandShellCommand
-        .stateIn(viewModelScope, SharingStarted.Eagerly, "/bin/sh -l")
-
-    fun setWaylandShellCommand(command: String) {
-        viewModelScope.launch {
-            preferencesRepository.setWaylandShellCommand(command)
         }
     }
 

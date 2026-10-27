@@ -17,7 +17,6 @@ import sh.haven.core.data.repository.WorkspaceRepository
 import sh.haven.core.ssh.SessionManagerRegistry
 import sh.haven.core.ssh.SessionStatus
 import sh.haven.core.ssh.Transport
-import sh.haven.core.wayland.WaylandBridge
 import javax.inject.Inject
 
 private const val TAG = "WorkspaceViewModel"
@@ -29,7 +28,7 @@ private const val TAG = "WorkspaceViewModel"
  *
  * The "save current" flow snapshots state visible from app-singleton
  * sources only — [SessionManagerRegistry] for live transport sessions
- * and [WaylandBridge] for the compositor. VNC tabs and SFTP active
+ * VNC tabs and SFTP active
  * profile/path live in page-scoped ViewModels and are intentionally
  * out of scope for v1's automatic capture; users can add those items
  * manually in the save dialog (Stage 4).
@@ -115,7 +114,7 @@ class WorkspaceViewModel @Inject constructor(
 
     /**
      * Snapshot the live state visible to app singletons — every
-     * connected transport session and the Wayland compositor running
+     * connected transport session
      * flag — into a draft list. The dialog renders each as a checkable
      * row (see [CapturedDraft.host]/[CapturedDraft.sessionType] for its
      * "&lt;host&gt; tmux &lt;name&gt;" label), so the user picks which to
@@ -148,31 +147,10 @@ class WorkspaceViewModel @Inject constructor(
                 )
             }
 
-            if (waylandIsRunning()) {
-                drafts += CapturedDraft(
-                    item = WorkspaceItem(
-                        workspaceId = workspaceId,
-                        kind = WorkspaceItem.Kind.WAYLAND,
-                        connectionProfileId = null,
-                        sortOrder = drafts.size,
-                    ),
-                    host = null,
-                    sessionType = null,
-                )
-            }
-
             Log.d(TAG, "captureFromSingletons → ${drafts.size} draft items")
             drafts
         }
 
-    private fun waylandIsRunning(): Boolean = try {
-        WaylandBridge.isCompositorRunning()
-    } catch (e: UnsatisfiedLinkError) {
-        // The Wayland native lib isn't loaded under unit tests. Treat
-        // as "not running" rather than failing the whole capture.
-        Log.d(TAG, "Wayland native lib unavailable; treating as not running: ${e.message}")
-        false
-    }
 }
 
 /**
@@ -201,7 +179,7 @@ data class CapturedDraft(
  * transport into a workspace item.
  */
 private fun Transport.toWorkspaceKind(): WorkspaceItem.Kind? = when (this) {
-    Transport.SSH, Transport.MOSH, Transport.ET, Transport.LOCAL, Transport.GUEST,
+    Transport.SSH, Transport.MOSH, Transport.ET,
     Transport.BTSERIAL, Transport.BLESERIAL, Transport.USBSERIAL ->
         WorkspaceItem.Kind.TERMINAL
     Transport.SMB -> WorkspaceItem.Kind.FILE_BROWSER

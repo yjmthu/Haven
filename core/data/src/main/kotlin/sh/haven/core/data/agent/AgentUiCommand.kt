@@ -93,37 +93,13 @@ sealed class AgentUiCommand {
 
     /**
      * Open a new remote-desktop tab for [profileId]. The kind (VNC /
-     * RDP) derives from the profile's `connectionType`. Wayland tabs go
-     * through [OpenWaylandDesktop] instead since they have no profile.
+     * RDP) derives from the profile's `connectionType`.
      *
      * Collector is `DesktopViewModel`, which is nav-scoped, so emissions
      * always land regardless of which tab the user is currently viewing.
      */
     data class OpenRemoteDesktop(
         val profileId: String,
-    ) : AgentUiCommand()
-
-    /**
-     * Add a Wayland desktop tab. The compositor lifecycle stays lazy —
-     * the tab is added but the compositor only starts on user
-     * interaction, matching how `addWaylandTab` works for direct user
-     * taps.
-     */
-    data object OpenWaylandDesktop : AgentUiCommand()
-
-    /**
-     * Open a phone-attached USB drive in an on-device VM and surface its files
-     * (#287). Posted by `MainActivity` when the user taps the "USB drive
-     * detected" notification ([HavenApp] raises it on a mass-storage attach).
-     * HavenNavHost switches to the Desktop tab; `DesktopViewModel` collects the
-     * same bus and calls `openUsbDrive(deviceName)` — the same flow as the
-     * Desktop → Manage menu and the Files-tab entry. [deviceName] null = the
-     * sole attached drive.
-     *
-     * Tap-equivalent: same effect as tapping "Open USB drive…" in the UI.
-     */
-    data class OpenUsbDrive(
-        val deviceName: String? = null,
     ) : AgentUiCommand()
 
     /**

@@ -318,8 +318,6 @@ class TerminalViewModel @Inject constructor(
     private val bleSerialSessionManager: sh.haven.core.bleserial.BleSerialSessionManager,
     private val usbSerialSessionManager: sh.haven.core.usbserial.UsbSerialSessionManager,
     private val usbBroker: sh.haven.core.usb.UsbBroker,
-    private val localSessionManager: sh.haven.core.local.LocalSessionManager,
-    private val umlGuestManager: sh.haven.core.local.uml.UmlGuestManager,
     private val hostKeyVerifier: HostKeyVerifier,
     /**
      * Security-key (FIDO2/SK) authenticator, wired onto the SshClients built
@@ -508,8 +506,6 @@ class TerminalViewModel @Inject constructor(
                             Log.w(TAG, "OpenTerminalSession: profile ${command.profileId} not found")
                         } else {
                             when {
-                                profile.isLocal ->
-                                    addLocalTabForProfile(profile.id, profile.label)
                                 profile.isBtSerial ->
                                     addBtSerialTabForProfile(profile.id, profile.label)
                                 profile.isBleSerial ->
@@ -564,37 +560,6 @@ class TerminalViewModel @Inject constructor(
                 "BTSERIAL" -> btSerialSessionManager.detachTerminalSession(tab.sessionId)
                 "BLESERIAL" -> bleSerialSessionManager.detachTerminalSession(tab.sessionId)
                 "USBSERIAL" -> usbSerialSessionManager.detachTerminalSession(tab.sessionId)
-                "LOCAL" -> {
-                    localSessionManager.detachTerminalSession(tab.sessionId)
-                    // Two teardown shapes (#555): a tab the agent opened
-                    // headless hands the registry entry back to its retained
-                    // agent shell — the session stays registered, so the
-                    // structured tools keep working while no UI exists, the
-                    // LOCAL/GUEST counterpart of the SSH resetSinks branch.
-                    // A UI-opened session has no agent shell behind it; drop
-                    // the stale emulator so a recreated ViewModel reattaches
-                    // (fresh emulator + scrollback replay + live rewire)
-                    // instead of re-adopting this torn-down emulator (#272).
-                    // Because the registry is @Singleton and every tab
-                    // registers into it, the adoption path always found an
-                    // entry and short-circuited the reattach path — leaving
-                    // the proot terminal blank on return-from-background
-                    // despite the shell staying alive.
-                    if (!terminalSessionRegistry.restoreAgentHandles(tab.sessionId)) {
-                        terminalSessionRegistry.unregister(tab.sessionId)
-                    }
-                }
-                "GUEST" -> {
-                    umlGuestManager.detachTerminalSession(tab.sessionId)
-                    // Same reasoning as LOCAL: restore the agent shell if one
-                    // is behind this tab, otherwise drop the stale emulator
-                    // so the recreated ViewModel reattaches with a fresh
-                    // emulator and a scrollback replay instead of adopting
-                    // the dead grid.
-                    if (!terminalSessionRegistry.restoreAgentHandles(tab.sessionId)) {
-                        terminalSessionRegistry.unregister(tab.sessionId)
-                    }
-                }
             }
         }
         trackedSessionIds.clear()
@@ -966,27 +931,6 @@ class TerminalViewModel @Inject constructor(
         }
     }
 
-    /** True when any PRoot desktop environment is installed. */
-    val isLocalDesktopInstalled: Boolean
-        get() = localSessionManager.prootManager.hasAnyDesktopInstalled
-
-    /** Start the first installed desktop via DesktopManager. */
-    suspend fun startLocalVncServer() {
-        val de = localSessionManager.prootManager.installedDesktop ?: return
-        withContext(Dispatchers.IO) {
-            localSessionManager.desktopManager.startDesktop(de)
-        }
-    }
-
-    /** No-op — VNC profiles are no longer needed for local desktops. */
-    suspend fun ensureLocalVncProfile() { }
-
-    /** Get the stored VNC password for local desktop (localhost:5901). */
-    suspend fun getLocalVncPassword(): String? =
-        connectionRepository.getAll()
-            .find { it.connectionType == "VNC" && it.host == "localhost" && it.vncPort == 5901 }
-            ?.vncPassword
-
     /** Get VNC connection info for the active terminal tab's SSH host. */
     suspend fun getActiveVncInfo(): VncInfo? {
         val tab = _tabs.value.getOrNull(_activeTabIndex.value) ?: return null
@@ -1188,335 +1132,6 @@ class TerminalViewModel @Inject constructor(
                 }
             }
         }
-        viewModelScope.launch {
-            localSessionManager.sessions.collect { syncSessions() }
-        }
-        viewModelScope.launch {
-            umlGuestManager.sessions.collect { syncSessions() }
-        }
-    }
-
-    /** The per-transport facts the shared LOCAL/GUEST tab loop needs. */
-    private class PtyTabSource(
-        val transportType: String,
-        val activeIds: Set<String>,
-        val sessionOf: (String) -> PtyTabSession?,
-        val getActive: (String) -> sh.haven.core.local.LocalSession?,
-        val isReady: (String) -> Boolean,
-        /** `plain` is only meaningful for LOCAL; GUEST has no plain-shell mode. */
-        val create: (String, (ByteArray, Int, Int) -> Unit, Boolean) -> sh.haven.core.local.LocalSession?,
-        val reattach: (String, (ByteArray, Int, Int) -> Unit) -> sh.haven.core.local.LocalSession?,
-        val snapshot: (String) -> ByteArray?,
-    )
-
-    private class PtyTabSession(
-        val sessionId: String,
-        val profileId: String,
-        val label: String,
-    )
-
-    private fun buildPtyTabSources(
-        localStates: Map<String, sh.haven.core.local.LocalSessionManager.SessionState>,
-        guestStates: Map<String, sh.haven.core.local.uml.UmlGuestManager.SessionState>,
-        activeLocalIds: Set<String>,
-        activeGuestIds: Set<String>,
-    ): List<PtyTabSource> = listOf(
-        PtyTabSource(
-            transportType = "LOCAL",
-            activeIds = activeLocalIds,
-            sessionOf = { id -> localStates[id]?.let { PtyTabSession(it.sessionId, it.profileId, it.label) } },
-            getActive = { localSessionManager.getActiveSession(it) },
-            isReady = { localSessionManager.isReadyForTerminal(it) },
-            create = { id, onData, plain ->
-                localSessionManager.createTerminalSession(id, onData, plain = plain)
-            },
-            reattach = { id, onData -> localSessionManager.reattachTerminalSession(id, onData) },
-            snapshot = { localSessionManager.snapshotScrollback(it) },
-        ),
-        PtyTabSource(
-            transportType = "GUEST",
-            activeIds = activeGuestIds,
-            sessionOf = { id -> guestStates[id]?.let { PtyTabSession(it.sessionId, it.profileId, it.label) } },
-            getActive = { umlGuestManager.getActiveSession(it) },
-            isReady = { umlGuestManager.isReadyForTerminal(it) },
-            create = { id, onData, _ -> umlGuestManager.createTerminalSession(id, onData) },
-            reattach = { id, onData -> umlGuestManager.reattachTerminalSession(id, onData) },
-            snapshot = { umlGuestManager.snapshotScrollback(it) },
-        ),
-    )
-
-    /**
-     * The shared tab builder for the two PTY-backed transports (LOCAL and GUEST).
-     * One loop, three attach branches (agent adoption, UI reattach, fresh),
-     * driven entirely by the [PtyTabSource] adapter.
-     */
-    private fun buildPtyTabs(
-        source: PtyTabSource,
-        currentTabs: MutableList<TerminalTab>,
-        trackedSessionIds: MutableSet<String>,
-        profilesById: Map<String, ConnectionProfile?>,
-    ) {
-        for (sessionId in source.activeIds) {
-            if (sessionId in trackedSessionIds) continue
-            // Adoption path: the MCP agent's `open_local_shell` may already
-            // have started a headless LocalSession and registered its
-            // TerminalEmulator with [terminalSessionRegistry]. In that case
-            // [isReadyForTerminal] is false (a PTY is attached) and we
-            // can't legally re-create the session. Reuse the existing
-            // emulator + LocalSession so the UI tab presents the same byte
-            // stream the agent sees, and so this tab's HavenTerminal mounts
-            // the SelectionController / ScrollController the agent transport
-            // needs for `start_selection` / `drag_selection_to` to operate.
-            //
-            // OSC 7 / OSC 8 tracking is not retroactively wired — the
-            // LocalSession's onDataReceived callback was set when the agent
-            // started it headlessly and can't be teed into additional
-            // handlers here. Mouse / bracketed-paste modes ARE live: the
-            // agent's own MouseModeTracker sits on the PTY tee (#336) and
-            // its flows are reused below. libvterm's native OSC 133 dispatch
-            // still works because that runs inside the adopted emulator.
-            val existingHeadless = source.getActive(sessionId)
-            val agentRegistryEntry = if (existingHeadless != null) terminalSessionRegistry.get(sessionId) else null
-            if (existingHeadless != null && agentRegistryEntry != null) {
-                val session = source.sessionOf(sessionId) ?: continue
-                val tabLabel = generateTabLabel(session.label, session.profileId, currentTabs)
-                val localProfile = profilesById[session.profileId]
-                val localScheme = effectiveColorScheme(localProfile)
-                // The adopted headless session's real onDataReceived belongs
-                // to the agent transport and can't be teed here, so OSC /
-                // mouse tracking aren't wired to the live stream. These
-                // handlers exist only so the agent's feed_terminal_output
-                // test tool still has a working pipeline on this tab.
-                val adoptedOscHandler = OscHandler()
-                val adoptedWriteBuffer = EmulatorWriteBuffer({ agentRegistryEntry.emulator })
-                val adoptedFeedOutput: (ByteArray, Int, Int) -> Unit = { data, offset, length ->
-                    synchronized(adoptedOscHandler) {
-                        adoptedOscHandler.process(data, offset, length)
-                        val len = adoptedOscHandler.outputLen
-                        if (len > 0) {
-                            adoptedWriteBuffer.append(adoptedOscHandler.outputBuf, 0, len)
-                        }
-                    }
-                }
-                currentTabs.add(
-                    TerminalTab(
-                        sessionId = session.sessionId,
-                        profileId = session.profileId,
-                        colorTag = localProfile?.colorTag ?: 0,
-                        label = tabLabel,
-                        transportType = source.transportType,
-                        emulator = agentRegistryEntry.emulator,
-                        // The agent's headless shell runs its own MouseModeTracker
-                        // on the PTY tee (#336) — reuse those flows so the tab's
-                        // paste-wrapping / mouse routing track the live stream.
-                        // Dead stubs only when the entry predates mode tracking.
-                        mouseMode = agentRegistryEntry.mouseMode ?: MutableStateFlow(false),
-                        activeMouseMode = agentRegistryEntry.activeMouseMode ?: MutableStateFlow<Int?>(null),
-                        bracketPasteMode = agentRegistryEntry.bracketPasteMode ?: MutableStateFlow(false),
-                        altScreen = agentRegistryEntry.altScreen ?: MutableStateFlow(false),
-                        cursorKeyAppMode = agentRegistryEntry.cursorKeyAppMode ?: MutableStateFlow(false),
-                        oscHandler = adoptedOscHandler,
-                        feedOutput = adoptedFeedOutput,
-                        cwd = MutableStateFlow(null),
-                        hyperlinkUri = MutableStateFlow(null),
-                        isReconnecting = MutableStateFlow(false),
-                        stallSeconds = NEVER_STALLS,
-                        sendInput = { data -> existingHeadless.sendInput(data) },
-                        resize = { cols, rows -> existingHeadless.resize(cols, rows) },
-                        close = { existingHeadless.close() },
-                        colorScheme = localScheme,
-                        backgroundOpacity = effectiveOpacity(localProfile),
-                    )
-                )
-                trackedSessionIds.add(sessionId)
-                continue
-            }
-
-            // UI reattach: the proot PTY survived a ViewModel teardown (Activity
-            // destroyed while the process stayed alive). The shell is still
-            // running but its old emulator died with the previous ViewModel.
-            // Build a fresh emulator, replay the buffered output so the screen +
-            // scrollback are restored, and rewire the live stream to it — instead
-            // of killing the shell and starting a blank one (#272). Detected by a
-            // live LocalSession with no agent-registry entry (handled above) and
-            // isReadyForTerminal == false (a PTY is still attached).
-            if (source.getActive(sessionId) != null &&
-                !source.isReady(sessionId)
-            ) {
-                val session = source.sessionOf(sessionId) ?: continue
-                val tabLabel = generateTabLabel(session.label, session.profileId, currentTabs)
-
-                lateinit var reEmulator: TerminalEmulator
-                val reWriteBuffer = EmulatorWriteBuffer({ reEmulator }, createRecorderIfEnabled(sessionId))
-                val reMouseTracker = MouseModeTracker()
-                val reOscHandler = OscHandler()
-                val reCwdFlow = MutableStateFlow<String?>(null)
-                val reHyperlinkFlow = MutableStateFlow<String?>(null)
-                reOscHandler.onCwdChanged = { reCwdFlow.value = it }
-                reOscHandler.onHyperlink = { uri -> reHyperlinkFlow.value = uri }
-                val reFeedOutput: (ByteArray, Int, Int) -> Unit = { data, offset, length ->
-                    synchronized(reOscHandler) {
-                        reOscHandler.process(data, offset, length)
-                        reMouseTracker.process(reOscHandler.outputBuf, 0, reOscHandler.outputLen)
-                        val len = reOscHandler.outputLen
-                        if (len > 0) reWriteBuffer.append(reOscHandler.outputBuf, 0, len)
-                    }
-                }
-                val localProfile = profilesById[session.profileId]
-                val localScheme = effectiveColorScheme(localProfile)
-                val reInitialScheme = initialEmulatorScheme(localScheme)
-                val reCoalescer = InputCoalescer { data -> source.getActive(sessionId)?.sendInput(data) }
-                reEmulator = TerminalEmulatorFactory.create(
-                    autoDetectUrls = true,
-                    initialRows = 24,
-                    initialCols = 80,
-                    defaultForeground = Color(reInitialScheme.foreground),
-                    defaultBackground = Color(reInitialScheme.background),
-                    enableAltScreen = localProfile?.disableAltScreen != true && localProfile?.sessionManager != "screen",
-                    onKeyboardInput = { data -> reCoalescer.send(applyModifiers(data)) },
-                    onResize = { dims ->
-                        source.getActive(sessionId)?.resize(dims.columns, dims.rows)
-                    },
-                    maxScrollbackLines = terminalScrollbackRows.value,
-                inlineImages = inlineImagesPolicy(terminalInlineImages.value, inlineImageConsent.state(sessionId)),
-                ambiwidthMode = currentTermlibAmbiwidthMode(),
-                onBell = bellCallback(tabLabel),
-                xtversion = XtversionIdentity.of(appContext),
-                )
-                // The guest console runs opencode, whose Ink renderer diffs
-                // line-by-line against its own model; a backfilling grow
-                // reflows content under it and every skipped line strands
-                // popped scrollback (see GrowBackfillDiffRenderTest). Anchor
-                // grows at the top instead — the app's WINCH repaint fills
-                // the new rows.
-                if (source.transportType == "GUEST") {
-                    reEmulator.backfillScrollbackOnGrow = false
-                }
-                // Replay buffered output into the fresh emulator BEFORE wiring the
-                // live stream, so the restore and new output don't interleave.
-                source.snapshot(sessionId)?.let { buffered ->
-                    reFeedOutput(buffered, 0, buffered.size)
-                }
-                val reattached = source.reattach(sessionId) { data, offset, length ->
-                    reFeedOutput(data, offset, length)
-                } ?: continue
-                currentTabs.add(
-                    TerminalTab(
-                        sessionId = session.sessionId,
-                        profileId = session.profileId,
-                        colorTag = localProfile?.colorTag ?: 0,
-                        label = tabLabel,
-                        transportType = source.transportType,
-                        emulator = reEmulator,
-                        mouseMode = reMouseTracker.mouseMode,
-                        activeMouseMode = reMouseTracker.activeMouseMode,
-                        bracketPasteMode = reMouseTracker.bracketPasteMode,
-                        altScreen = reMouseTracker.altScreen,
-                        cursorKeyAppMode = reMouseTracker.cursorKeyAppMode,
-                        oscHandler = reOscHandler,
-                        feedOutput = reFeedOutput,
-                        cwd = reCwdFlow,
-                        hyperlinkUri = reHyperlinkFlow,
-                        isReconnecting = MutableStateFlow(false),
-                        stallSeconds = NEVER_STALLS,
-                        sendInput = { data -> reattached.sendInput(data) },
-                        resize = { cols, rows -> reattached.resize(cols, rows) },
-                        close = { reattached.close() },
-                        colorScheme = localScheme,
-                        backgroundOpacity = effectiveOpacity(localProfile),
-                    )
-                )
-                Log.d(TAG, "Reattached to existing local session $sessionId")
-                trackedSessionIds.add(session.sessionId)
-                continue
-            }
-
-            if (!source.isReady(sessionId)) continue
-
-            val session = source.sessionOf(sessionId) ?: continue
-            val tabLabel = generateTabLabel(session.label, session.profileId, currentTabs)
-
-            lateinit var emulator: TerminalEmulator
-            val localWriteBuffer = EmulatorWriteBuffer({ emulator }, createRecorderIfEnabled(sessionId))
-            val localMouseTracker = MouseModeTracker()
-            val localOscHandler = OscHandler()
-            val localCwdFlow = MutableStateFlow<String?>(null)
-            val localHyperlinkFlow = MutableStateFlow<String?>(null)
-            localOscHandler.onCwdChanged = { localCwdFlow.value = it }
-            localOscHandler.onHyperlink = { uri -> localHyperlinkFlow.value = uri }
-            val localFeedOutput: (ByteArray, Int, Int) -> Unit = { data, offset, length ->
-                synchronized(localOscHandler) {
-                    localOscHandler.process(data, offset, length)
-                    localMouseTracker.process(localOscHandler.outputBuf, 0, localOscHandler.outputLen)
-                    val len = localOscHandler.outputLen
-                    if (len > 0) {
-                        localWriteBuffer.append(localOscHandler.outputBuf, 0, len)
-                    }
-                }
-            }
-            val localSession = source.create(
-                sessionId,
-                { data, offset, length -> localFeedOutput(data, offset, length) },
-                plainSessionIds.remove(sessionId),
-            ) ?: continue
-
-            val localCoalescer = InputCoalescer { data -> localSession.sendInput(data) }
-            val localProfile = profilesById[session.profileId]
-            val localScheme = effectiveColorScheme(localProfile)
-            val localInitialScheme = initialEmulatorScheme(localScheme)
-            emulator = TerminalEmulatorFactory.create(
-                autoDetectUrls = true,
-                initialRows = 24,
-                initialCols = 80,
-                defaultForeground = Color(localInitialScheme.foreground),
-                defaultBackground = Color(localInitialScheme.background),
-                enableAltScreen = localProfile?.disableAltScreen != true && localProfile?.sessionManager != "screen",
-                onKeyboardInput = { data -> localCoalescer.send(applyModifiers(data)) },
-                onResize = { dims ->
-                    Log.d(TAG, "LOCAL onResize: ${dims.columns}x${dims.rows}")
-                    localSession.resize(dims.columns, dims.rows)
-                },
-                maxScrollbackLines = terminalScrollbackRows.value,
-                inlineImages = inlineImagesPolicy(terminalInlineImages.value, inlineImageConsent.state(sessionId)),
-                ambiwidthMode = currentTermlibAmbiwidthMode(),
-                onBell = bellCallback(tabLabel),
-            )
-            // Guest console: disable grow backfill — Ink's line-diff repaint
-            // strands popped scrollback in skipped rows (GrowBackfillDiffRenderTest).
-            if (source.transportType == "GUEST") {
-                emulator.backfillScrollbackOnGrow = false
-            }
-
-            localSession.start()
-
-            currentTabs.add(
-                TerminalTab(
-                    sessionId = session.sessionId,
-                    profileId = session.profileId,
-                    colorTag = localProfile?.colorTag ?: 0,
-                    label = tabLabel,
-                    transportType = source.transportType,
-                    emulator = emulator,
-                    mouseMode = localMouseTracker.mouseMode,
-                    activeMouseMode = localMouseTracker.activeMouseMode,
-                    bracketPasteMode = localMouseTracker.bracketPasteMode,
-                    altScreen = localMouseTracker.altScreen,
-                    cursorKeyAppMode = localMouseTracker.cursorKeyAppMode,
-                    oscHandler = localOscHandler,
-                    feedOutput = localFeedOutput,
-                    cwd = localCwdFlow,
-                    hyperlinkUri = localHyperlinkFlow,
-                    isReconnecting = MutableStateFlow(false),
-                    stallSeconds = NEVER_STALLS,
-                    sendInput = { data -> localSession.sendInput(data) },
-                    resize = { cols, rows -> localSession.resize(cols, rows) },
-                    close = { localSession.close() },
-                    colorScheme = localScheme,
-                    backgroundOpacity = effectiveOpacity(localProfile),
-                )
-            )
-            trackedSessionIds.add(session.sessionId)
-        }
     }
 
     /**
@@ -1532,8 +1147,6 @@ class TerminalViewModel @Inject constructor(
         val btSerialSessions = btSerialSessionManager.sessions.value
         val bleSerialSessions = bleSerialSessionManager.sessions.value
         val usbSerialSessions = usbSerialSessionManager.sessions.value
-        val localSessions = localSessionManager.sessions.value
-        val guestSessions = umlGuestManager.sessions.value
 
         // Resolve the display config (color scheme, alt-screen, color tag) for
         // every active session's profile in one off-main batch. The per-branch
@@ -1548,8 +1161,6 @@ class TerminalViewModel @Inject constructor(
                 btSerialSessions.values.forEach { add(it.profileId) }
                 bleSerialSessions.values.forEach { add(it.profileId) }
                 usbSerialSessions.values.forEach { add(it.profileId) }
-                localSessions.values.forEach { add(it.profileId) }
-                guestSessions.values.forEach { add(it.profileId) }
             }.associateWith { connectionRepository.getById(it) }
         }
 
@@ -1601,26 +1212,7 @@ class TerminalViewModel @Inject constructor(
             .map { it.sessionId }
             .toSet()
 
-        // Find Local sessions that are connected
-        val activeLocalIds = localSessions.values
-            .filter {
-                it.status == sh.haven.core.local.LocalSessionManager.SessionState.Status.CONNECTED
-            }
-            .map { it.sessionId }
-            .toSet()
-
-        // Find UML guest sessions that are connected (excluding internal
-        // headless desktop/cage boots driven by UmlDesktopManager, which pass
-        // `haven.desktop=1` and have no ConnectionProfile row).
-        val activeGuestIds = guestSessions.values
-            .filter {
-                it.status == sh.haven.core.local.uml.UmlGuestManager.SessionState.Status.CONNECTED &&
-                    sh.haven.core.local.uml.UmlDesktopManager.DESKTOP_KERNEL_ARG !in it.extraKernelArgs
-            }
-            .map { it.sessionId }
-            .toSet()
-
-        val allActiveIds = activeSshIds + activeMoshIds + activeEtIds + activeBtIds + activeBleIds + activeUsbIds + activeLocalIds + activeGuestIds
+        val allActiveIds = activeSshIds + activeMoshIds + activeEtIds + activeBtIds + activeBleIds + activeUsbIds
 
         val currentTabs = _tabs.value.toMutableList()
 
@@ -1633,10 +1225,6 @@ class TerminalViewModel @Inject constructor(
                     moshSessions[tab.sessionId]?.moshSession == null
                 "ET" -> tab.sessionId !in activeEtIds ||
                     etSessions[tab.sessionId]?.etSession == null
-                "LOCAL" -> tab.sessionId !in activeLocalIds ||
-                    localSessions[tab.sessionId]?.localSession == null
-                "GUEST" -> tab.sessionId !in activeGuestIds ||
-                    guestSessions[tab.sessionId]?.localSession == null
                 "BTSERIAL" -> tab.sessionId !in activeBtIds ||
                     btSerialSessions[tab.sessionId]?.session == null
                 "BLESERIAL" -> tab.sessionId !in activeBleIds ||
@@ -2166,14 +1754,6 @@ class TerminalViewModel @Inject constructor(
             trackedSessionIds.add(session.sessionId)
         }
 
-        // Create tabs for new Local + UML-guest sessions. Both transports run
-        // a LocalSession-backed PTY (a real pty owned by PtyBridge), so one
-        // loop serves both through a per-transport [PtyTabSource]; only the
-        // manager behind the adapter and the tab's transportType differ.
-        for (source in buildPtyTabSources(localSessions, guestSessions, activeLocalIds, activeGuestIds)) {
-            buildPtyTabs(source, currentTabs, trackedSessionIds, profilesById)
-        }
-
         // Refresh SSH tab labels when the underlying session's chosenSessionName changes
         // (e.g. after a remote rename). Only updates label-shaped tabs; leaves bespoke
         // labels alone. multiplexerName tracks the same value so the tab strip can tell
@@ -2292,8 +1872,7 @@ class TerminalViewModel @Inject constructor(
         // tab presence alone tore those out immediately and broke
         // every snapshot-style MCP tool against agent-owned shells.
         val knownSessionIds = sshSessions.keys +
-            moshSessions.keys + etSessions.keys + btSerialSessions.keys + bleSerialSessions.keys + usbSerialSessions.keys +
-            localSessions.keys + guestSessions.keys
+            moshSessions.keys + etSessions.keys + btSerialSessions.keys + bleSerialSessions.keys + usbSerialSessions.keys
         for (id in terminalSessionRegistry.sessions.value.keys.toList()) {
             if (id !in knownSessionIds) terminalSessionRegistry.unregister(id)
         }
@@ -2424,22 +2003,12 @@ class TerminalViewModel @Inject constructor(
             moshSessionManager.removeSession(sessionId)
         } else if (etSessionManager.sessions.value.containsKey(sessionId)) {
             etSessionManager.removeSession(sessionId)
-        } else if (localSessionManager.sessions.value.containsKey(sessionId)) {
-            localSessionManager.removeSession(sessionId)
         } else if (btSerialSessionManager.sessions.value.containsKey(sessionId)) {
             btSerialSessionManager.removeSession(sessionId)
         } else if (bleSerialSessionManager.sessions.value.containsKey(sessionId)) {
             bleSerialSessionManager.removeSession(sessionId)
         } else if (usbSerialSessionManager.sessions.value.containsKey(sessionId)) {
             usbSerialSessionManager.removeSession(sessionId)
-        } else if (umlGuestManager.sessions.value.containsKey(sessionId)) {
-            // Graceful poweroff can take up to 5 s in closeGuest; keep it off
-            // the main thread. The manager still marks the session DISCONNECTED
-            // before the tab reconciliation runs (the collector fires
-            // syncSessions), so this only affects when the process exits.
-            viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-                umlGuestManager.closeGuest(sessionId)
-            }
         }
         trackedSessionIds.remove(sessionId)
         // Removal is synchronous; the tab reconciliation (now suspending, since
@@ -2463,11 +2032,9 @@ class TerminalViewModel @Inject constructor(
         sessionManager.removeAllSessionsForProfile(profileId)
         moshSessionManager.removeAllSessionsForProfile(profileId)
         etSessionManager.removeAllSessionsForProfile(profileId)
-        localSessionManager.removeAllSessionsForProfile(profileId)
         btSerialSessionManager.removeAllSessionsForProfile(profileId)
         bleSerialSessionManager.removeAllSessionsForProfile(profileId)
         usbSerialSessionManager.removeAllSessionsForProfile(profileId)
-        umlGuestManager.removeAllSessionsForProfile(profileId)
         trackedSessionIds.removeAll(
             _tabs.value.filter { it.profileId == profileId }.map { it.sessionId }.toSet()
         )
@@ -2579,52 +2146,23 @@ class TerminalViewModel @Inject constructor(
             return
         }
 
-        if (activeTab.transportType == "LOCAL") {
-            addLocalTab(activeTab)
-            return
-        }
-
-        if (activeTab.transportType == "GUEST") {
-            addGuestTabForProfile(activeTab.profileId, activeTab.label)
-            return
-        }
-
         addSshTabForProfile(activeTab.profileId)
     }
 
-    private fun addLocalTab(activeTab: TerminalTab) =
-        addLocalTabForProfile(activeTab.profileId, activeTab.label)
+    /** Clear a session-manager attach banner (#731 follow-up) — the notice has
+     *  no auto-dismiss and previously only cleared on re-attach or removal. */
+    fun dismissAttachNotice(sessionId: String) {
+        sessionManager.dismissAttachNotice(sessionId)
+    }
 
     /**
-     * Open a local shell tab for [profileId] from scratch, picking the
-     * `useAndroidShell` flag from any existing local session for the same
-     * profile (so the workspace launcher matches what the user picked
-     * when they last set up the profile manually). [label] defaults to
-     * the profile's display name when called from outside the
-     * clone-current-tab path.
-     */
-    /**
-     * Sessions opened as plain shells, consumed once when the PTY is created.
-     *
-     * The session manager takes `plain` at [LocalSessionManager.createTerminalSession] time,
-     * which happens later in syncSessions than the call that asked for the shell, so the
-     * request has to be parked somewhere in between. Removed on use so a session id that is
-     * later reused cannot inherit it.
-     */
-    private val plainSessionIds = java.util.Collections.newSetFromMap(
-        java.util.concurrent.ConcurrentHashMap<String, Boolean>(),
-    )
-
-    /**
-     * True when a plain shell is meaningful for this tab: a local shell (whose PTY can skip
-     * the session-manager wrapper) or an SSH profile configured with one.
-     *
-     * The point of the affordance is escaping a multiplexer, so it appears wherever there is
-     * a multiplexer to escape — not only on local tabs. Serial and other transports have no
+     * True when a plain shell is meaningful for this tab: an SSH profile
+     * configured with a session-manager (tmux/zellij/screen/...). The point
+     * of the affordance is escaping a multiplexer, so it appears wherever
+     * there is a multiplexer to escape. Serial transports have no
      * session-manager concept and are left alone.
      */
     fun canOpenPlainShell(sessionId: String): Boolean {
-        if (localSessionManager.sessions.value[sessionId] != null) return true
         val profileId = sessionManager.getSession(sessionId)?.profileId ?: return false
         return sessionManager.getConnectionConfigForProfile(profileId)?.second?.listCommand != null
     }
@@ -2635,91 +2173,11 @@ class TerminalViewModel @Inject constructor(
      *
      * Worth having in reach: a multiplexer's status bar reserves the bottom row with DECSTBM,
      * which defeats Haven's own scrollback capture, and a wedged multiplexer is easiest to
-     * debug from a shell that is not inside it. The agent-facing open_local_shell has had
-     * `plain` since #285; this is the same thing for the person holding the phone.
+     * debug from a shell that is not inside it.
      */
     fun addPlainShellTab(sessionId: String) {
-        localSessionManager.sessions.value[sessionId]?.profileId?.let { profileId ->
-            addLocalTabForProfile(profileId, plain = true)
-            return
-        }
         val profileId = sessionManager.getSession(sessionId)?.profileId ?: return
         addSshTabForProfile(profileId, plain = true)
-    }
-
-    /** Clear a session-manager attach banner (#731 follow-up) — the notice has
-     *  no auto-dismiss and previously only cleared on re-attach or removal. */
-    fun dismissAttachNotice(sessionId: String) {
-        sessionManager.dismissAttachNotice(sessionId)
-    }
-
-    fun addLocalTabForProfile(
-        profileId: String,
-        label: String? = null,
-        desktopDeId: String? = null,
-        plain: Boolean = false,
-    ) {
-        viewModelScope.launch {
-            _newTabLoading.value = true
-            try {
-                val existingSession = localSessionManager.sessions.value.values
-                    .find { it.profileId == profileId }
-                val profile = connectionRepository.getById(profileId)
-                val resolvedLabel = label
-                    ?: profile?.label
-                    ?: profileId.take(8)
-                // Join a running desktop session (#285) when a deId was supplied.
-                val desktopEnv = localSessionManager.resolveDesktopEnv(desktopDeId)
-                val sessionId = localSessionManager.registerSession(
-                    profileId, resolvedLabel,
-                    useAndroidShell = existingSession?.useAndroidShell ?: profile?.useAndroidShell ?: false,
-                    prootDistroId = existingSession?.prootDistroId ?: profile?.prootDistroId,
-                    desktopEnv = desktopEnv,
-                )
-                if (plain) plainSessionIds.add(sessionId)
-                localSessionManager.connectSession(sessionId)
-                syncSessions()
-                selectTabBySessionId(sessionId)
-            } catch (e: Exception) {
-                Log.e(TAG, "addLocalTabForProfile failed: ${e.message}", e)
-                _newTabMessage.value = appContext.getString(
-                    R.string.terminal_new_tab_connection_failed,
-                    e.message ?: e.javaClass.simpleName,
-                )
-            } finally {
-                _newTabLoading.value = false
-            }
-        }
-    }
-
-    /**
-     * Open a UML-guest terminal for a GUEST profile: register + connect a
-     * session, then let [syncSessions] build the tab (the kernel boots when
-     * the tab's PTY is created). Mirrors [addLocalTabForProfile] minus the
-     * desktop/plain options a guest doesn't have.
-     */
-    fun addGuestTabForProfile(profileId: String, label: String? = null) {
-        viewModelScope.launch {
-            _newTabLoading.value = true
-            try {
-                val profile = connectionRepository.getById(profileId)
-                val resolvedLabel = label
-                    ?: profile?.label
-                    ?: profileId.take(8)
-                val sessionId = umlGuestManager.registerSession(profileId, resolvedLabel)
-                umlGuestManager.connectSession(sessionId)
-                syncSessions()
-                selectTabBySessionId(sessionId)
-            } catch (e: Exception) {
-                Log.e(TAG, "addGuestTabForProfile failed: ${e.message}", e)
-                _newTabMessage.value = appContext.getString(
-                    R.string.terminal_new_tab_connection_failed,
-                    e.message ?: e.javaClass.simpleName,
-                )
-            } finally {
-                _newTabLoading.value = false
-            }
-        }
     }
 
     /**
@@ -3459,7 +2917,6 @@ class TerminalViewModel @Inject constructor(
     ): String = when (transportType) {
         "ET" -> "Eternal Terminal"
         "MOSH" -> "Mosh"
-        "GUEST" -> "Linux Guest"
         "SSH" -> when {
             profile.useEternalTerminal -> "Eternal Terminal"
             profile.useMosh -> "Mosh"

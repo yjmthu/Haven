@@ -88,7 +88,6 @@ private fun KindChips(items: List<WorkspaceItem>) {
     val counts = items.groupingBy { it.kind }.eachCount()
     val ordered = listOf(
         WorkspaceItem.Kind.TERMINAL,
-        WorkspaceItem.Kind.WAYLAND,
         WorkspaceItem.Kind.FILE_BROWSER,
         WorkspaceItem.Kind.DESKTOP,
     )
@@ -122,5 +121,4 @@ internal fun WorkspaceItem.Kind.labelRes(): Int = when (this) {
     WorkspaceItem.Kind.TERMINAL -> R.string.workspace_card_kind_terminal
     WorkspaceItem.Kind.FILE_BROWSER -> R.string.workspace_card_kind_file_browser
     WorkspaceItem.Kind.DESKTOP -> R.string.workspace_card_kind_desktop
-    WorkspaceItem.Kind.WAYLAND -> R.string.workspace_card_kind_wayland
 }

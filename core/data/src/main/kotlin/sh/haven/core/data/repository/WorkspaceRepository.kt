@@ -30,13 +30,8 @@ class WorkspaceRepository @Inject constructor(
     suspend fun save(profile: WorkspaceProfile, items: List<WorkspaceItem>) {
         require(items.isNotEmpty()) { "workspace must contain at least one item" }
         items.forEach { item ->
-            when (item.kind) {
-                WorkspaceItem.Kind.WAYLAND -> require(item.connectionProfileId == null) {
-                    "WAYLAND items must not reference a connection profile"
-                }
-                else -> require(item.connectionProfileId != null) {
-                    "${item.kind} items require a connectionProfileId"
-                }
+            require(item.connectionProfileId != null) {
+                "${item.kind} items require a connectionProfileId"
             }
         }
         val sealed = profile.copy(updatedAt = System.currentTimeMillis())

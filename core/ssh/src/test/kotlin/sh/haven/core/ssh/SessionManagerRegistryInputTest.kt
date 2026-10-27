@@ -52,7 +52,6 @@ class SessionManagerRegistryInputTest {
 
     private val names = mapOf(
         Transport.SSH to "SSH",
-        Transport.LOCAL to "local",
         Transport.MOSH to "mosh",
         Transport.ET to "ET",
         Transport.BTSERIAL to "Bluetooth-serial",
@@ -125,24 +124,25 @@ class SessionManagerRegistryInputTest {
     @Test
     fun `names the transport that accepted the write`() {
         val ssh = Disowning(Transport.SSH, "SSH")
-        val local = Owning(Transport.LOCAL, "local")
+        val et = Owning(Transport.ET, "ET")
 
-        val accepted = registry(ssh, local).sendTerminalInput("s1", "ls\n")
+        val accepted = registry(ssh, et).sendTerminalInput("s1", "ls\n")
 
-        assertEquals("local", accepted)
-        assertEquals("s1" to "ls\n", local.received)
+        assertEquals("ET", accepted)
+        assertEquals("s1" to "ls\n", et.received)
     }
 
     /** The first accepting transport wins, and is the one reported. */
     @Test
     fun `reports the first acceptor, not the last`() {
         val ssh = Owning(Transport.SSH, "SSH")
-        val local = Owning(Transport.LOCAL, "local")
+        val et = Owning(Transport.ET, "ET")
 
-        val accepted = registry(local, ssh).sendTerminalInput("s1", "x")
+        val accepted = registry(et, ssh).sendTerminalInput("s1", "x")
 
+        // Transports are tried in declaration order, so SSH answers first.
         assertEquals("SSH", accepted)
-        assertEquals(null, local.received)
+        assertEquals(null, et.received)
     }
 
     /**

@@ -24,7 +24,6 @@ import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import sh.haven.core.et.EtSessionManager
-import sh.haven.core.local.LocalSessionManager
 import sh.haven.core.mosh.MoshSessionManager
 import sh.haven.core.ssh.SshClient
 import sh.haven.core.ssh.SshSessionManager
@@ -41,8 +40,6 @@ class TerminalViewModelTest {
     private lateinit var sessionManager: SshSessionManager
     private lateinit var moshSessionManager: MoshSessionManager
     private lateinit var etSessionManager: EtSessionManager
-    private lateinit var localSessionManager: LocalSessionManager
-    private lateinit var umlGuestManager: sh.haven.core.local.uml.UmlGuestManager
     private lateinit var btSerialSessionManager: sh.haven.core.btserial.BtSerialSessionManager
     private lateinit var bleSerialSessionManager: sh.haven.core.bleserial.BleSerialSessionManager
     private lateinit var bleSerialSessions:
@@ -61,12 +58,6 @@ class TerminalViewModelTest {
             every { sessions } returns MutableStateFlow(emptyMap())
         }
         etSessionManager = mockk<EtSessionManager>(relaxed = true) {
-            every { sessions } returns MutableStateFlow(emptyMap())
-        }
-        localSessionManager = mockk<LocalSessionManager>(relaxed = true) {
-            every { sessions } returns MutableStateFlow(emptyMap())
-        }
-        umlGuestManager = mockk<sh.haven.core.local.uml.UmlGuestManager>(relaxed = true) {
             every { sessions } returns MutableStateFlow(emptyMap())
         }
         btSerialSessionManager = mockk(relaxed = true) {
@@ -105,8 +96,6 @@ class TerminalViewModelTest {
         bleSerialSessionManager,
         usbSerialSessionManager,
         mockk<sh.haven.core.usb.UsbBroker>(relaxed = true),
-        localSessionManager,
-        umlGuestManager,
         mockk(relaxed = true), // HostKeyVerifier
         mockk(relaxed = true), // FidoAuthenticator
         mockk(relaxed = true), // KeystoreSshKeySigner

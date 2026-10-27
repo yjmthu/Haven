@@ -31,7 +31,6 @@ class UserPreferencesRepository @Inject constructor(
     // Mail message-list pinch-zoom factor, multiplied onto the terminal font size.
     private val mailFontScaleKey = floatPreferencesKey("mail_font_scale")
     private val terminalScrollbackRowsKey = intPreferencesKey("terminal_scrollback_rows")
-    private val prootIdleTimeoutMinutesKey = intPreferencesKey("proot_idle_timeout_minutes")
     private val rdpDesktopWidthKey = intPreferencesKey("rdp_desktop_width")
     private val rdpDesktopHeightKey = intPreferencesKey("rdp_desktop_height")
     private val terminalTapToPositionCursorKey = booleanPreferencesKey("terminal_tap_to_position_cursor")
@@ -73,9 +72,6 @@ class UserPreferencesRepository @Inject constructor(
     private val snippetLibraryKey = stringPreferencesKey("snippet_library")
     private val toolbarMinButtonWidthKey = intPreferencesKey("toolbar_min_button_width")
     private val toolbarKeyScaleKey = floatPreferencesKey("toolbar_key_scale")
-    private val appWindowDefsKey = stringPreferencesKey("app_window_defs")
-    private val appWindowDefaultResolutionKey = stringPreferencesKey("app_window_default_resolution")
-    private val appWindowDefaultScaleKey = floatPreferencesKey("app_window_default_scale")
     private val navBlockModeKey = stringPreferencesKey("nav_block_mode")
     private val toolbarUniformGridKey = booleanPreferencesKey("toolbar_uniform_grid")
     private val editModeControlsPlacementKey = stringPreferencesKey("edit_mode_controls_placement")
@@ -111,15 +107,12 @@ class UserPreferencesRepository @Inject constructor(
     // Last-started UML kind ("x11"/"wayland") and proot DE id, so the primary
     // Start re-launches what the user actually used rather than a fixed one.
     private val lastUmlKindKey = stringPreferencesKey("last_uml_kind")
-    private val lastProotDeKey = stringPreferencesKey("last_proot_de")
     private val mailAutomationEnabledKey = booleanPreferencesKey("mail_automation_enabled")
     private val mailDeleteToBinKey = booleanPreferencesKey("mail_delete_to_bin")
     private val tabVisibilityKey = stringPreferencesKey("tab_visibility")
     // Legacy master toggle (#160), now superseded by per-tab [tabVisibilityKey].
     // Kept only for a read-time migration fallback; never written.
     private val alwaysShowAllTabsKey = booleanPreferencesKey("always_show_all_tabs")
-    private val usbGuestExposureEnabledKey = booleanPreferencesKey("usb_guest_exposure_enabled")
-    private val gpsGuestExposureEnabledKey = booleanPreferencesKey("gps_guest_exposure_enabled")
     private val tailscaleDiscoveryEnabledKey = booleanPreferencesKey("tailscale_discovery_enabled")
     private val remoteClipboardToLocalKey = booleanPreferencesKey("remote_clipboard_to_local")
     private val verboseLoggingEnabledKey = booleanPreferencesKey("verbose_logging_enabled")
@@ -147,12 +140,9 @@ class UserPreferencesRepository @Inject constructor(
     private val sshKeyOrderKey = stringPreferencesKey("ssh_key_order")
     private val keysSortModeKey = stringPreferencesKey("keys_sort_mode")
     private val keysCollapsedSectionsKey = stringPreferencesKey("keys_collapsed_sections")
-    private val waylandShellCommandKey = stringPreferencesKey("wayland_shell_command")
     private val batteryPromptDismissedKey = booleanPreferencesKey("battery_prompt_dismissed")
     private val batteryPromptNeverAskKey = booleanPreferencesKey("battery_prompt_never_ask")
     private val batteryLastKnownExemptKey = booleanPreferencesKey("battery_last_known_exempt")
-    private val showLinuxVmCardKey = booleanPreferencesKey("show_linux_vm_card")
-    private val showDesktopsCardKey = booleanPreferencesKey("show_desktops_card")
     private val mediaExtensionsKey = stringPreferencesKey("media_extensions")
     private val desktopInputModeKey = stringPreferencesKey("desktop_input_mode")
     // Trackpad-mode speed multiplier (#696). 1f = the 1:1 finger→cursor ratio.
@@ -162,12 +152,10 @@ class UserPreferencesRepository @Inject constructor(
     // (Vulkan→Mali) + zink (modern GL, ~3.2 core) with the wl_shm CPU-copy WSI
     // present path. Native Vulkan apps present; GL-via-zink present is slow. See
     // DesktopManager.gpuPassthroughEnv + project_virgl_cage_gpu_accel memory note.
-    private val gpuUseVenusKey = booleanPreferencesKey("gpu_use_venus")
     // Output-only audio bridge for proot apps (#257). On = a PulseAudio daemon
     // runs in the active distro and its monitor PCM is played through AudioTrack;
     // desktop launch scripts source /etc/profile.d/pulse.sh so apps get
     // PULSE_SERVER. Off (default) = no audio, no behaviour change.
-    private val audioBridgeEnabledKey = booleanPreferencesKey("audio_bridge_enabled")
     // Opt-in update check (#578). Off by default: Haven is used by people who
     // care what their software talks to, and a request to a code-hosting site
     // on every launch is not a thing to start doing to everyone unasked. Only
@@ -486,15 +474,6 @@ class UserPreferencesRepository @Inject constructor(
         dataStore.edit { prefs -> prefs[lastUmlKindKey] = kind }
     }
 
-    /** The last-started proot desktop's DE id; empty if none. */
-    val lastProotDe: Flow<String> = dataStore.data.map { prefs ->
-        prefs[lastProotDeKey] ?: ""
-    }
-
-    suspend fun setLastProotDe(deId: String) {
-        dataStore.edit { prefs -> prefs[lastProotDeKey] = deId }
-    }
-
     /**
      * Master switch for inbound-email automation (Mail Rules). Off by default. While on
      * (and ≥1 enabled rule exists) Haven runs a foreground watch that polls for new mail —
@@ -572,44 +551,6 @@ class UserPreferencesRepository @Inject constructor(
      */
     private fun screenRoutesForcedVisibleByLegacy(): List<String> =
         listOf("terminal", "desktop", "keys", "sftp", "mail")
-
-    /**
-     * Master opt-in for exposing the phone's USB devices to the proot Linux
-     * guest (the haven-usb proxy + shim). Default OFF: the per-call consent
-     * prompt still gates each attach, but this gives the user a single
-     * deliberate switch for the whole capability — guest USB lets *any* guest
-     * app reach the brokered device, so it stays off until explicitly enabled.
-     * Does NOT affect the direct agent USB tools (list/permission/transfer),
-     * which are consent-gated on their own.
-     */
-    val usbGuestExposureEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
-        prefs[usbGuestExposureEnabledKey] ?: false
-    }
-
-    suspend fun setUsbGuestExposureEnabled(enabled: Boolean) {
-        dataStore.edit { prefs ->
-            prefs[usbGuestExposureEnabledKey] = enabled
-        }
-    }
-
-    /**
-     * Master opt-in for exposing the phone's GPS to the proot Linux guest
-     * (the \0haven-gps NMEA bridge + `haven-gps` helper). Default OFF: the
-     * attach consent sheet still gates each attach, but this gives the user
-     * a single deliberate switch for the whole capability — a guest-exposed
-     * GPS lets *any* guest process read the phone's position, so it stays
-     * off until explicitly enabled. Does NOT affect the direct agent GPS
-     * tools (status/fix/log), which are consent-gated on their own.
-     */
-    val gpsGuestExposureEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
-        prefs[gpsGuestExposureEnabledKey] ?: false
-    }
-
-    suspend fun setGpsGuestExposureEnabled(enabled: Boolean) {
-        dataStore.edit { prefs ->
-            prefs[gpsGuestExposureEnabledKey] = enabled
-        }
-    }
 
     /**
      * Gate for Tailscale peer discovery (#654). On by default; off stops the
@@ -871,26 +812,6 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
-    val gpuUseVenus: Flow<Boolean> = dataStore.data.map { prefs ->
-        prefs[gpuUseVenusKey] ?: false
-    }
-
-    suspend fun setGpuUseVenus(enabled: Boolean) {
-        dataStore.edit { prefs ->
-            prefs[gpuUseVenusKey] = enabled
-        }
-    }
-
-    val audioBridgeEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
-        prefs[audioBridgeEnabledKey] ?: false
-    }
-
-    suspend fun setAudioBridgeEnabled(enabled: Boolean) {
-        dataStore.edit { prefs ->
-            prefs[audioBridgeEnabledKey] = enabled
-        }
-    }
-
     /** Opt-in launch-time update check (#578). Default off. */
     val updateCheckEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
         prefs[updateCheckEnabledKey] ?: false
@@ -1064,39 +985,6 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
-    /** Whether the Linux VM card is shown on the Connections screen. */
-    val showLinuxVmCard: Flow<Boolean> = dataStore.data.map { prefs ->
-        prefs[showLinuxVmCardKey] ?: true
-    }
-
-    suspend fun setShowLinuxVmCard(enabled: Boolean) {
-        dataStore.edit { prefs ->
-            prefs[showLinuxVmCardKey] = enabled
-        }
-    }
-
-    /** Whether the Desktops card is shown on the Connections screen. */
-    val showDesktopsCard: Flow<Boolean> = dataStore.data.map { prefs ->
-        prefs[showDesktopsCardKey] ?: true
-    }
-
-    suspend fun setShowDesktopsCard(enabled: Boolean) {
-        dataStore.edit { prefs ->
-            prefs[showDesktopsCardKey] = enabled
-        }
-    }
-
-    /** Shell command to run in the Wayland desktop (default: /bin/sh -l). */
-    val waylandShellCommand: Flow<String> = dataStore.data.map { prefs ->
-        prefs[waylandShellCommandKey] ?: "/bin/sh -l"
-    }
-
-    suspend fun setWaylandShellCommand(command: String) {
-        dataStore.edit { prefs ->
-            prefs[waylandShellCommandKey] = command
-        }
-    }
-
     /** Space-separated file extensions to treat as streamable media (e.g. "mp3 mp4 flac"). */
     val mediaExtensions: Flow<String> = dataStore.data.map { prefs ->
         prefs[mediaExtensionsKey] ?: DEFAULT_MEDIA_EXTENSIONS
@@ -1222,24 +1110,6 @@ class UserPreferencesRepository @Inject constructor(
     suspend fun setTerminalScrollbackRows(rows: Int) {
         dataStore.edit { prefs ->
             prefs[terminalScrollbackRowsKey] = rows.coerceIn(MIN_SCROLLBACK_ROWS, MAX_SCROLLBACK_ROWS)
-        }
-    }
-
-    /**
-     * Optional idle auto-stop for the local PRoot Linux guest (#409). When the
-     * app has been backgrounded this many minutes, Haven stops the interactive
-     * guest (local terminal sessions + desktops) to reclaim resources — unless a
-     * guest service is running (an explicit "keep it up" choice). 0 = off
-     * (default). Opt-in: a long job in a backgrounded terminal would be stopped
-     * too, so it stays off unless the user wants idle reclamation.
-     */
-    val prootIdleTimeoutMinutes: Flow<Int> = dataStore.data.map { prefs ->
-        (prefs[prootIdleTimeoutMinutesKey] ?: 0).coerceAtLeast(0)
-    }
-
-    suspend fun setProotIdleTimeoutMinutes(minutes: Int) {
-        dataStore.edit { prefs ->
-            prefs[prootIdleTimeoutMinutesKey] = minutes.coerceAtLeast(0)
         }
     }
 
@@ -1488,138 +1358,6 @@ class UserPreferencesRepository @Inject constructor(
         dataStore.edit { prefs ->
             prefs[snippetLibraryKey] = SnippetOps.libraryToJson(items)
         }
-    }
-
-    // --- Saved app windows (single-app cage kiosks; see AppWindowDefList) ---
-    // Shared by the Desktop-settings UI (user-defined) and McpTools.present_app
-    // (records the agent's launches so they're restartable). Both already
-    // inject this repository, so a DataStore-JSON list keeps it in one place.
-
-    val appWindowDefs: Flow<AppWindowDefList> = dataStore.data.map { prefs ->
-        prefs[appWindowDefsKey]?.let { AppWindowDefList.fromJson(it) } ?: AppWindowDefList.EMPTY
-    }
-
-    /**
-     * Add a saved app window, or — if one with the same [command] exists —
-     * bump its `lastUsed` (and refresh its label when [label] is non-blank).
-     * The existing entry's [AppWindowOrigin] is preserved, so re-launching a
-     * user entry doesn't demote it to "agent" and vice-versa. Read-modify-
-     * write inside a single `edit` so concurrent upserts don't clobber.
-     */
-    suspend fun upsertAppWindowDef(
-        label: String,
-        command: String,
-        createdBy: AppWindowOrigin,
-        fullscreen: Boolean = false,
-        resolution: String? = null,
-        scale: Float? = null,
-        runAsRoot: Boolean? = null,
-        multiWindow: Boolean? = null,
-        swayRules: List<String>? = null,
-    ) {
-        dataStore.edit { prefs ->
-            val current = prefs[appWindowDefsKey]?.let { AppWindowDefList.fromJson(it) }
-                ?: AppWindowDefList.EMPTY
-            val now = System.currentTimeMillis()
-            val items = if (current.items.any { it.command == command }) {
-                // Preserve an existing entry's resolution/scale/runAsRoot unless
-                // explicitly given (launching shouldn't bake defaults into the def).
-                current.items.map {
-                    if (it.command == command) {
-                        it.copy(
-                            lastUsed = now,
-                            label = label.ifBlank { it.label },
-                            fullscreen = fullscreen,
-                            resolution = resolution ?: it.resolution,
-                            scale = scale ?: it.scale,
-                            runAsRoot = runAsRoot ?: it.runAsRoot,
-                            multiWindow = multiWindow ?: it.multiWindow,
-                            swayRules = swayRules ?: it.swayRules,
-                        )
-                    } else it
-                }
-            } else {
-                current.items + AppWindowDef(
-                    label = label.ifBlank { command },
-                    command = command,
-                    createdBy = createdBy,
-                    lastUsed = now,
-                    fullscreen = fullscreen,
-                    resolution = resolution,
-                    scale = scale,
-                    runAsRoot = runAsRoot ?: false,
-                    multiWindow = multiWindow ?: false,
-                    swayRules = swayRules ?: emptyList(),
-                )
-            }
-            prefs[appWindowDefsKey] = AppWindowDefList(items).toJson()
-        }
-    }
-
-    suspend fun deleteAppWindowDef(id: String) {
-        dataStore.edit { prefs ->
-            val current = prefs[appWindowDefsKey]?.let { AppWindowDefList.fromJson(it) }
-                ?: AppWindowDefList.EMPTY
-            prefs[appWindowDefsKey] =
-                AppWindowDefList(current.items.filterNot { it.id == id }).toJson()
-        }
-    }
-
-    /**
-     * Edit an existing entry's [label] and [command] in place, keyed by [id].
-     * Unlike [upsertAppWindowDef] (which matches by command and so can't change
-     * one), this targets the id, so the user can rename both fields. The
-     * entry's [AppWindowOrigin] is preserved; [lastUsed] is refreshed. No-op
-     * if no entry has that id.
-     */
-    suspend fun updateAppWindowDef(
-        id: String,
-        label: String,
-        command: String,
-        fullscreen: Boolean = false,
-        resolution: String? = null,
-        scale: Float? = null,
-        runAsRoot: Boolean = false,
-    ) {
-        dataStore.edit { prefs ->
-            val current = prefs[appWindowDefsKey]?.let { AppWindowDefList.fromJson(it) }
-                ?: AppWindowDefList.EMPTY
-            val now = System.currentTimeMillis()
-            // Full replace from the edit dialog: resolution/scale null = "use the
-            // global default" (a real value), so these are set directly, not merged.
-            val items = current.items.map {
-                if (it.id == id) {
-                    it.copy(
-                        label = label.ifBlank { command },
-                        command = command,
-                        lastUsed = now,
-                        fullscreen = fullscreen,
-                        resolution = resolution,
-                        scale = scale,
-                        runAsRoot = runAsRoot,
-                    )
-                } else it
-            }
-            prefs[appWindowDefsKey] = AppWindowDefList(items).toJson()
-        }
-    }
-
-    /** Global default cage resolution for app windows that don't set their own. */
-    val appWindowDefaultResolution: Flow<String> = dataStore.data.map { prefs ->
-        prefs[appWindowDefaultResolutionKey] ?: "auto"
-    }
-
-    suspend fun setAppWindowDefaultResolution(resolution: String) {
-        dataStore.edit { it[appWindowDefaultResolutionKey] = resolution }
-    }
-
-    /** Global default cage output scale for app windows that don't set their own. */
-    val appWindowDefaultScale: Flow<Float> = dataStore.data.map { prefs ->
-        prefs.floatSafe(appWindowDefaultScaleKey) ?: 1f
-    }
-
-    suspend fun setAppWindowDefaultScale(scale: Float) {
-        dataStore.edit { it[appWindowDefaultScaleKey] = scale }
     }
 
     val navBlockMode: Flow<NavBlockMode> = dataStore.data.map { prefs ->

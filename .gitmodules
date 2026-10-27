@@ -8,25 +8,3 @@
 [submodule "et-kotlin"]
 	path = et-kotlin
 	url = https://github.com/GlassOnTin/et-kotlin.git
-[submodule "build-proot/proot-termux"]
-	path = build-proot/proot-termux
-	url = https://github.com/GlassOnTin/proot
-	branch = haven-299-fd-fix
-[submodule "wayland-android"]
-	path = wayland-android
-	url = https://github.com/GlassOnTin/wayland-android.git
-	branch = main
-[submodule "reticulum-kt"]
-	path = reticulum-kt
-	url = https://github.com/GlassOnTin/reticulum-kt.git
-	branch = main
-[submodule "rnsh-kt"]
-	path = rnsh-kt
-	url = https://github.com/GlassOnTin/rnsh-kt.git
-[submodule "spice-kotlin"]
-	path = spice-kotlin
-	url = https://github.com/GlassOnTin/spice-kotlin.git
-[submodule "prns"]
-	path = prns
-	url = https://github.com/GlassOnTin/Prns.git
-	branch = trunk

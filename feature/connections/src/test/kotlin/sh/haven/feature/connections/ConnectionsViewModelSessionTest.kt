@@ -41,9 +41,6 @@ import sh.haven.core.data.repository.SshKeyRepository
 import sh.haven.core.ssh.ConnectionConfig
 import sh.haven.core.et.EtSessionManager
 import sh.haven.core.fido.FidoAuthenticator
-import sh.haven.core.local.DesktopManager
-import sh.haven.core.local.LocalSessionManager
-import sh.haven.core.local.ProotManager
 import sh.haven.core.mosh.MoshSessionManager
 import sh.haven.core.smb.SmbSessionManager
 import sh.haven.core.rdp.RdpSessionManager
@@ -82,11 +79,8 @@ class ConnectionsViewModelSessionTest {
     private lateinit var moshSessionManager: MoshSessionManager
     private lateinit var etSessionManager: EtSessionManager
     private lateinit var smbSessionManager: SmbSessionManager
-    private lateinit var localSessionManager: LocalSessionManager
     private lateinit var rdpSessionManager: RdpSessionManager
     private lateinit var rcloneSessionManager: sh.haven.core.rclone.RcloneSessionManager
-    private lateinit var prootManager: ProotManager
-    private lateinit var desktopManager: DesktopManager
     private lateinit var sessionManagerRegistry: SessionManagerRegistry
     private lateinit var sshKeyRepository: SshKeyRepository
     private lateinit var preferencesRepository: UserPreferencesRepository
@@ -121,16 +115,6 @@ class ConnectionsViewModelSessionTest {
         smbSessionManager = mockk(relaxed = true) {
             every { sessions } returns MutableStateFlow(emptyMap())
         }
-        prootManager = mockk(relaxed = true)
-        desktopManager = mockk(relaxed = true) {
-            every { desktops } returns MutableStateFlow(emptyMap())
-        }
-        localSessionManager = mockk(relaxed = true) {
-            every { sessions } returns MutableStateFlow(emptyMap())
-            every { activeSessions } returns emptyList()
-            every { prootManager } returns this@ConnectionsViewModelSessionTest.prootManager
-            every { desktopManager } returns this@ConnectionsViewModelSessionTest.desktopManager
-        }
         rdpSessionManager = mockk(relaxed = true) {
             every { sessions } returns MutableStateFlow(emptyMap())
             every { activeSessions } returns emptyList()
@@ -149,7 +133,6 @@ class ConnectionsViewModelSessionTest {
                 disconnectable(Transport.MOSH) { moshSessionManager.removeAllSessionsForProfile(it) },
                 disconnectable(Transport.ET) { etSessionManager.removeAllSessionsForProfile(it) },
                 disconnectable(Transport.SMB) { smbSessionManager.removeAllSessionsForProfile(it) },
-                disconnectable(Transport.LOCAL) { localSessionManager.removeAllSessionsForProfile(it) },
                 disconnectable(Transport.RDP) { rdpSessionManager.removeAllSessionsForProfile(it) },
                 disconnectable(Transport.RCLONE) { rcloneSessionManager.removeAllSessionsForProfile(it) },
                 // The three serial transports were anonymous mocks here before
@@ -212,10 +195,6 @@ class ConnectionsViewModelSessionTest {
             rcloneClient = mockk(relaxed = true),
             fidoAuthenticator = mockk(relaxed = true),
             keystoreSshKeySigner = mockk(relaxed = true),
-            localSessionManager = localSessionManager,
-            umlGuestManager = mockk(relaxed = true) {
-                every { sessions } returns kotlinx.coroutines.flow.MutableStateFlow(emptyMap())
-            },
             sessionManagerRegistry = sessionManagerRegistry,
             sshKeyRepository = sshKeyRepository,
             totpSecretRepository = mockk(relaxed = true) {
@@ -254,11 +233,6 @@ class ConnectionsViewModelSessionTest {
             biometricGate = mockk(relaxed = true),
             pendingAuthPromptHolder = mockk(relaxed = true),
             sessionSelectionHolder = mockk(relaxed = true),
-            connectionPreflight = mockk(relaxed = true) {
-                coEvery { beforeConnect(any()) } answers {
-                    sh.haven.core.data.repository.ConnectionPreflight.Result.Proceed(firstArg())
-                }
-            },
         )
     }
 
@@ -275,17 +249,9 @@ class ConnectionsViewModelSessionTest {
         verify { moshSessionManager.removeAllSessionsForProfile("profile1") }
         verify { etSessionManager.removeAllSessionsForProfile("profile1") }
         verify { smbSessionManager.removeAllSessionsForProfile("profile1") }
-        verify { localSessionManager.removeAllSessionsForProfile("profile1") }
         // #363: rclone was missing from the registry, so disconnect left
         // the storage card CONNECTED forever.
         verify { rcloneSessionManager.removeAllSessionsForProfile("profile1") }
-    }
-
-    @Test
-    fun `disconnect stops VNC server`() {
-        viewModel.disconnect("profile1")
-
-        verify { desktopManager.stopAll() }
     }
 
     @Test
@@ -297,7 +263,6 @@ class ConnectionsViewModelSessionTest {
         verify { moshSessionManager.removeAllSessionsForProfile("profile1") }
         verify { etSessionManager.removeAllSessionsForProfile("profile1") }
         verify { smbSessionManager.removeAllSessionsForProfile("profile1") }
-        verify { localSessionManager.removeAllSessionsForProfile("profile1") }
         verify { rcloneSessionManager.removeAllSessionsForProfile("profile1") }
     }
 
@@ -306,7 +271,6 @@ class ConnectionsViewModelSessionTest {
         viewModel.deleteConnection("profile1")
         testDispatcher.scheduler.advanceUntilIdle()
 
-        verify { desktopManager.stopAll() }
         coVerify { repository.delete("profile1") }
     }
 

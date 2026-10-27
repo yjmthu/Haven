@@ -47,12 +47,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import sh.haven.app.R
-import sh.haven.app.desktop.DesktopManagerScreen
 import sh.haven.app.desktop.DesktopTab
 import sh.haven.app.desktop.DesktopViewModel
 import sh.haven.core.data.preferences.NavBlockMode
 import sh.haven.core.data.preferences.ToolbarLayout
-import sh.haven.core.wayland.WaylandDesktopView
 import sh.haven.feature.rdp.RdpSessionContent
 import sh.haven.feature.vnc.VncSessionContent
 import sh.haven.feature.vnc.charToKeySym
@@ -69,7 +67,7 @@ private val TAB_COLORS = listOf(
 )
 
 /**
- * Multi-session desktop screen with VNC/RDP/Wayland tabs.
+ * Multi-session desktop screen with VNC/RDP tabs.
  * Mirrors the terminal's multi-tab pattern.
  */
 @OptIn(ExperimentalFoundationApi::class)
@@ -153,27 +151,6 @@ fun DesktopScreen(
         }
     }
 
-    // Manage toggle: a single TopAppBar action that flips between
-    // Sessions view (today's tabs + frame) and Manage view (distro
-    // picker + DE install/start/stop rows, moved from the old
-    // Connections topbar dialog in issue #162 Phase 3c).
-    //
-    // User override: a non-null userManageOverride takes precedence;
-    // when null, default to Manage when no sessions are running so the
-    // empty state lands on something actionable, otherwise Sessions.
-    var userManageOverride by remember { mutableStateOf<Boolean?>(null) }
-    val showManage = userManageOverride ?: tabs.isEmpty()
-
-    // When the Sessions/monitor view is shown, connect a viewer to any
-    // running desktop that doesn't have one — e.g. a desktop started via
-    // the MCP start_desktop tool (backend-only, no UI viewer). Without
-    // this, the monitor view sits empty even though the compositor +
-    // wayvnc are up. addVncSession dedupes, so an already-open viewer is
-    // untouched.
-    LaunchedEffect(showManage) {
-        if (!showManage) desktopViewModel.connectRunningDesktopViewers()
-    }
-
     Column(modifier = Modifier.fillMaxSize()) {
         // Compact action row at the very top — surfaces the Manage
         // toggle without consuming the full TopAppBar height. Stays
@@ -205,21 +182,8 @@ fun DesktopScreen(
                             )
                         }
                     }
-                    IconButton(
-                        onClick = { userManageOverride = !showManage },
-                    ) {
-                        Icon(
-                            imageVector = if (showManage) Icons.Filled.DesktopWindows else Icons.Filled.Tune,
-                            contentDescription = if (showManage) stringResource(R.string.app_desktop_sessions_cd) else stringResource(R.string.app_desktop_manage_cd),
-                        )
-                    }
                 }
             }
-        }
-
-        if (showManage) {
-            DesktopManagerScreen(viewModel = desktopViewModel)
-            return@Column
         }
 
         if (tabs.isEmpty()) {
@@ -333,14 +297,6 @@ fun DesktopScreen(
                             onRetry = { desktopViewModel.retryTab(tab.id) },
                         )
 
-                        is DesktopTab.Wayland -> WaylandDesktopView(
-                            modifier = Modifier.fillMaxSize(),
-                            toolbarLayout = toolbarLayout,
-                            navBlockMode = navBlockMode,
-                            uniformGrid = toolbarUniformGrid,
-                            keyScale = toolbarKeyScale,
-                            onFullscreenChanged = onFullscreenChanged,
-                        )
                     }
                 }
             }

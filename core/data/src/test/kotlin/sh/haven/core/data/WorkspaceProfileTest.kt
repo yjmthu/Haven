@@ -37,8 +37,7 @@ class WorkspaceProfileTest {
         assertEquals("TERMINAL", WorkspaceItem.Kind.TERMINAL.name)
         assertEquals("FILE_BROWSER", WorkspaceItem.Kind.FILE_BROWSER.name)
         assertEquals("DESKTOP", WorkspaceItem.Kind.DESKTOP.name)
-        assertEquals("WAYLAND", WorkspaceItem.Kind.WAYLAND.name)
-        assertEquals(4, WorkspaceItem.Kind.values().size)
+        assertEquals(3, WorkspaceItem.Kind.values().size)
     }
 
     @Test

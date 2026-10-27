@@ -64,8 +64,6 @@ object DatabaseModule {
     @Provides
     fun provideSyncProfileDao(db: HavenDatabase): SyncProfileDao = db.syncProfileDao()
 
-    @Provides
-    fun provideProotInstallLogDao(db: HavenDatabase): ProotInstallLogDao = db.prootInstallLogDao()
 
     @Provides
     fun provideTotpSecretDao(db: HavenDatabase): TotpSecretDao = db.totpSecretDao()

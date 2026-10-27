@@ -28,19 +28,18 @@ import sh.haven.core.ssh.SshSessionManager
 class WorkspaceLauncherTest {
 
     @Test
-    fun sortPutsTerminalsFirstThenWaylandFileBrowserDesktop() {
+    fun sortPutsTerminalsFirstThenFileBrowserDesktop() {
         val ws = "ws-1"
         val items = listOf(
             item(ws, "d", WorkspaceItem.Kind.DESKTOP, "vnc-prof"),
             item(ws, "f", WorkspaceItem.Kind.FILE_BROWSER, "ssh-prof"),
-            item(ws, "w", WorkspaceItem.Kind.WAYLAND, null),
             item(ws, "t", WorkspaceItem.Kind.TERMINAL, "ssh-prof"),
         )
 
         val sorted = WorkspaceLauncher.sortByKindPriority(items)
 
         assertEquals(
-            listOf("t", "w", "f", "d"),
+            listOf("t", "f", "d"),
             sorted.map { it.id },
         )
     }
@@ -81,7 +80,6 @@ class WorkspaceLauncherTest {
         val ws = WorkspaceProfile(id = "ws-1", name = "Work")
         val items = listOf(
             item("ws-1", "vnc-item", WorkspaceItem.Kind.DESKTOP, "vnc-1"),
-            item("ws-1", "wayland-item", WorkspaceItem.Kind.WAYLAND, null),
             item("ws-1", "ssh-item", WorkspaceItem.Kind.TERMINAL, "ssh-1", sessionName = "main"),
             item("ws-1", "sftp-item", WorkspaceItem.Kind.FILE_BROWSER, "ssh-1", path = "/srv"),
         )
@@ -109,19 +107,17 @@ class WorkspaceLauncherTest {
             (state as WorkspaceLaunchState.Completed).items.all { it.status == ItemProgress.Status.Succeeded },
         )
         // The terminal attached directly (no bus). Then: focus the terminal
-        // screen, then WAYLAND → FILE_BROWSER → DESKTOP.
-        assertEquals(4, emitted.size)
+        // screen, then FILE_BROWSER → DESKTOP.
+        assertEquals(3, emitted.size)
         assertEquals("s-1", (emitted[0] as AgentUiCommand.FocusTerminalSession).sessionId)
-        assertTrue("second should be OpenWaylandDesktop",
-            emitted[1] is AgentUiCommand.OpenWaylandDesktop)
-        assertTrue("third should be NavigateToSftpPath",
-            emitted[2] is AgentUiCommand.NavigateToSftpPath)
-        assertTrue("fourth should be OpenRemoteDesktop",
-            emitted[3] is AgentUiCommand.OpenRemoteDesktop)
+        assertTrue("second should be NavigateToSftpPath",
+            emitted[1] is AgentUiCommand.NavigateToSftpPath)
+        assertTrue("third should be OpenRemoteDesktop",
+            emitted[2] is AgentUiCommand.OpenRemoteDesktop)
         // SFTP item carries the path through.
         assertEquals(
             "/srv",
-            (emitted[2] as AgentUiCommand.NavigateToSftpPath).path,
+            (emitted[1] as AgentUiCommand.NavigateToSftpPath).path,
         )
     }
 

@@ -137,8 +137,6 @@ fun ConnectionEditDialog(
     sshKeys: List<sh.haven.core.data.db.entities.SshKey> = emptyList(),
     totpSecrets: List<sh.haven.core.data.db.entities.TotpSecret> = emptyList(),
     tunnelConfigs: List<sh.haven.core.data.db.entities.TunnelConfig> = emptyList(),
-    /** Installed distros `(id, label)` for a LOCAL profile's "open in" picker. */
-    availableDistros: List<Pair<String, String>> = emptyList(),
     /** Attached phone USB devices `(vidPid, label)` for the SSH USB-forward picker. */
     usbDevices: List<Pair<String, String>> = emptyList(),
     /**
@@ -198,8 +196,6 @@ fun ConnectionEditDialog(
     val seed = existing ?: prefill
     // Transport dropdown maps to: connectionType + useMosh + useEternalTerminal
     val initialTransport = when {
-        seed?.isLocal == true -> "LOCAL"
-        seed?.isGuest == true -> "GUEST"
         seed?.isBtSerial == true -> "BTSERIAL"
         seed?.isBleSerial == true -> "BLESERIAL"
         seed?.isUsbSerial == true -> "USBSERIAL"
@@ -214,8 +210,6 @@ fun ConnectionEditDialog(
     var selectedTransport by rememberSaveable { mutableStateOf(initialTransport) }
     // Derived connectionType for field visibility
     val connectionType = when (selectedTransport) {
-        "LOCAL" -> "LOCAL"
-        "GUEST" -> "GUEST"
         "BTSERIAL" -> "BTSERIAL"
         "BLESERIAL" -> "BLESERIAL"
         "USBSERIAL" -> "USBSERIAL"
@@ -370,10 +364,6 @@ fun ConnectionEditDialog(
     // USB/IP auto-forward: VID:PID of a phone device to export on connect (null = off).
     var usbForwardVidPid by rememberSaveable { mutableStateOf(existing?.usbForwardVidPid) }
     var disableAltScreen by rememberSaveable { mutableStateOf(existing?.disableAltScreen ?: false) }
-    var useAndroidShell by rememberSaveable { mutableStateOf(existing?.useAndroidShell ?: false) }
-    // null = follow the active distro (the default). Set to a distro id to
-    // pin this LOCAL profile to a specific OS. (#per-distro-local)
-    var prootDistroId by rememberSaveable { mutableStateOf(existing?.prootDistroId) }
     var forwardAgent by rememberSaveable { mutableStateOf(existing?.forwardAgent ?: false) }
     var addressFamily by rememberSaveable { mutableStateOf(existing?.addressFamily ?: "AUTO") }
     var bindAddress by rememberSaveable { mutableStateOf(existing?.bindAddress ?: "") }
@@ -1012,7 +1002,7 @@ fun ConnectionEditDialog(
         }
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 ConnectionSection(stringResource(R.string.connections_section_general))
-                // Transport selector. LOCAL is back in the list (was briefly
+                // Transport selector.
                 // removed in v5.24.52 because the main list filtered Local
                 // profiles out, making the "+" → Local flow a dead-end).
                 // The list now shows Local profiles like every other
@@ -1022,8 +1012,6 @@ fun ConnectionEditDialog(
                     "SSH" to "SSH",
                     "MOSH" to "Mosh",
                     "ET" to "Eternal Terminal",
-                    "LOCAL" to "Local Shell (PRoot)",
-                    "GUEST" to "Linux Guest (UML)",
                     "BTSERIAL" to "Bluetooth Serial",
                     "BLESERIAL" to "Bluetooth LE Serial",
                     "USBSERIAL" to "USB Serial",
@@ -1052,10 +1040,6 @@ fun ConnectionEditDialog(
                         // every build, but the terminal flavour's copy is
                         // built without rclone.
                         rclone = sh.haven.rclone.bridge.RcloneBridge.available,
-                        // Same missing-file gate as rdp: the terminal
-                        // flavour drops the UML libraries, F-Droid skips the
-                        // fetch.
-                        uml = native.uml,
                     )
                 }
                 var transportExpanded by remember { mutableStateOf(false) }
@@ -1112,8 +1096,6 @@ fun ConnectionEditDialog(
                     placeholder = {
                         Text(
                             when (connectionType) {
-                                "LOCAL" -> "Local Shell"
-                                "GUEST" -> "Linux Guest"
                                 "VNC" -> "My VNC Desktop"
                                 "RDP" -> "My RDP Desktop"
                                 "SMB" -> "My File Share"
@@ -1227,87 +1209,7 @@ fun ConnectionEditDialog(
                     Spacer(Modifier.height(4.dp))
                 }
 
-                if (connectionType == "GUEST") {
-                    ConnectionSection(stringResource(R.string.connections_section_guest))
-                    Text(
-                        stringResource(R.string.connections_guest_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                if (connectionType == "LOCAL") {
-                    ConnectionSection(stringResource(R.string.connections_section_local_shell))
-                    Text(
-                        if (useAndroidShell) {
-                            stringResource(R.string.connections_local_shell_android_desc)
-                        } else {
-                            stringResource(R.string.connections_local_shell_proot_desc)
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { useAndroidShell = !useAndroidShell },
-                    ) {
-                        Checkbox(
-                            checked = useAndroidShell,
-                            onCheckedChange = { useAndroidShell = it },
-                        )
-                        Text(
-                            stringResource(R.string.connections_use_android_shell),
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    }
-                    // Pin this Local profile to a specific OS (proot only).
-                    // Default "Active distro" = follow the global active one.
-                    if (!useAndroidShell && availableDistros.isNotEmpty()) {
-                        Spacer(Modifier.height(8.dp))
-                        var distroExpanded by remember { mutableStateOf(false) }
-                        val activeDefault = stringResource(R.string.connections_local_distro_active_default)
-                        val selectedDistroLabel = availableDistros
-                            .firstOrNull { it.first == prootDistroId }?.second
-                            ?: activeDefault
-                        ExposedDropdownMenuBox(
-                            expanded = distroExpanded,
-                            onExpandedChange = { distroExpanded = it },
-                        ) {
-                            OutlinedTextField(
-                                value = selectedDistroLabel,
-                                onValueChange = {},
-                                readOnly = true,
-                                label = { Text(stringResource(R.string.connections_local_distro_label)) },
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(distroExpanded) },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .menuAnchor(MenuAnchorType.PrimaryNotEditable),
-                            )
-                            ExposedDropdownMenu(
-                                expanded = distroExpanded,
-                                onDismissRequest = { distroExpanded = false },
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text(activeDefault) },
-                                    onClick = {
-                                        prootDistroId = null
-                                        distroExpanded = false
-                                    },
-                                )
-                                availableDistros.forEach { (id, distroLabel) ->
-                                    DropdownMenuItem(
-                                        text = { Text(distroLabel) },
-                                        onClick = {
-                                            prootDistroId = id
-                                            distroExpanded = false
-                                        },
-                                    )
-                                }
-                            }
-                        }
-                    }
-                } else if (connectionType == "BTSERIAL") {
+                if (connectionType == "BTSERIAL") {
                     BtSerialDeviceField(
                         selectedAddress = btDevice,
                         onSelect = { address, name ->
@@ -2910,7 +2812,7 @@ fun ConnectionEditDialog(
                 }
 
                 // Port knocking. Visible for any profile with a remote
-                // TCP host — skipped for LOCAL (no host), RCLONE (its own
+                // TCP host — skipped for RCLONE (its own
                 // protocol).
                 if (connectionType in setOf("VNC", "RDP", "SMB")) {
                     ConnectionSection(stringResource(R.string.connections_section_routing))
@@ -2926,7 +2828,7 @@ fun ConnectionEditDialog(
                 // Route through — shared picker for SOCKS / HTTP proxy and
                 // WireGuard / Tailscale tunnel. Was SSH-only until #149;
                 // VNC, RDP, and SMB now also honour profile.tunnelConfigId
-                // so the picker has to surface for them too. LOCAL has no
+                // so the picker has to surface for them too.
                 // network; RCLONE manages its own transport.
                 // Mutually exclusive at the UI layer: picking any tunnel
                 // clears proxy fields; picking any proxy clears
@@ -2941,8 +2843,6 @@ fun ConnectionEditDialog(
                 portKnockDelayMs.toIntOrNull() ?: KnockSequence.DEFAULT_DELAY_MS,
             ).isSuccess
             val canSave = knockOk && when (connectionType) {
-                "LOCAL" -> true // No host/auth needed
-                "GUEST" -> true // No fields — the rootfs and kernel args are fixed
                 "BTSERIAL" -> btDevice.isNotBlank() // a paired device must be picked
                 "BLESERIAL" -> bleDevice.isNotBlank() // a scanned device must be picked
                 "USBSERIAL" -> usbDevice.isNotBlank() && (usbBaud.toIntOrNull() ?: 0) > 0
@@ -2961,39 +2861,7 @@ fun ConnectionEditDialog(
             // what the form shows.
             fun buildProfile(): ConnectionProfile {
                         val etPortInt = etPort.toIntOrNull() ?: 2022
-                        val profile = if (connectionType == "LOCAL") {
-                            (existing ?: ConnectionProfile(
-                                label = label,
-                                host = "localhost",
-                                username = "",
-                            )).copy(
-                                label = label.ifBlank { if (useAndroidShell) "Android Shell" else "Local Shell" },
-                                host = "localhost",
-                                port = 0,
-                                username = "",
-                                connectionType = "LOCAL",
-                                useAndroidShell = useAndroidShell,
-                                prootDistroId = if (useAndroidShell) null else prootDistroId,
-                                colorTag = colorTag,
-                                groupId = groupId,
-                                identityId = identityId,
-                            )
-                        } else if (connectionType == "GUEST") {
-                            (existing ?: ConnectionProfile(
-                                label = label,
-                                host = "localhost",
-                                username = "",
-                            )).copy(
-                                label = label.ifBlank { "Linux Guest" },
-                                host = "localhost",
-                                port = 0,
-                                username = "",
-                                connectionType = "GUEST",
-                                colorTag = colorTag,
-                                groupId = groupId,
-                                identityId = identityId,
-                            )
-                        } else if (connectionType == "BTSERIAL") {
+                                                val profile = if (connectionType == "BTSERIAL") {
                             // The paired device MAC lives in `host` (no new column).
                             (existing ?: ConnectionProfile(
                                 label = label,
@@ -3227,8 +3095,6 @@ fun ConnectionEditDialog(
                                 disableAltScreen = disableAltScreen,
                                 terminalColorScheme = terminalColorScheme,
                                 terminalBackgroundOpacity = terminalBackgroundOpacity,
-                                useAndroidShell = useAndroidShell,
-                                prootDistroId = if (useAndroidShell) null else prootDistroId,
                                 forwardAgent = forwardAgent,
                                 addressFamily = addressFamily,
                                 bindAddress = bindAddress.ifBlank { null },

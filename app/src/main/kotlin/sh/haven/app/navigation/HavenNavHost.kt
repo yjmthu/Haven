@@ -103,15 +103,6 @@ fun HavenNavHost(
     // Desktop multi-session ViewModel — hoisted to nav scope so it survives tab switches
     val desktopViewModel: DesktopViewModel = hiltViewModel()
 
-    // Native Wayland desktop — poll compositor state reactively
-    var waylandRunning by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            waylandRunning = sh.haven.core.wayland.WaylandBridge.isCompositorRunning()
-            kotlinx.coroutines.delay(500)
-        }
-    }
-
     // Tab visibility (#navbar-visibility): each nav tab has a per-tab
     // preference (AUTO / SHOW / HIDE). AUTO defers to the built-in usage rule
     // computed below; SHOW/HIDE override it. The connections list backs the
@@ -298,8 +289,6 @@ fun HavenNavHost(
                 is sh.haven.core.data.agent.AgentUiCommand.FocusTerminalSession -> Screen.Terminal
                 is sh.haven.core.data.agent.AgentUiCommand.OpenTerminalSession -> Screen.Terminal
                 is sh.haven.core.data.agent.AgentUiCommand.OpenRemoteDesktop -> Screen.Desktop
-                is sh.haven.core.data.agent.AgentUiCommand.OpenWaylandDesktop -> Screen.Desktop
-                is sh.haven.core.data.agent.AgentUiCommand.OpenUsbDrive -> Screen.Desktop
                 is sh.haven.core.data.agent.AgentUiCommand.RegenerateStepCaCert -> Screen.Keys
                 is sh.haven.core.data.agent.AgentUiCommand.OpenInEditor -> Screen.Sftp
                 is sh.haven.core.data.agent.AgentUiCommand.EncryptFile -> Screen.Sftp
@@ -432,27 +421,11 @@ fun HavenNavHost(
     // TerminalViewModel only collects the bus while TerminalScreen is composed,
     // and the Desktop tab is outside the pager's composition window — the bus
     // event was dropped and no tab opened. HavenNavHost is always composed.
-    var pendingLocalShellProfileId by rememberSaveable { mutableStateOf<String?>(null) }
-    // Desktop id to join (DISPLAY/WAYLAND_DISPLAY) when the pending shell opens (#285).
-    var pendingLocalShellDeId by rememberSaveable { mutableStateOf<String?>(null) }
-
     // SMB auto-connect params
     var pendingSmbProfileId by rememberSaveable { mutableStateOf<String?>(null) }
 
     // Rclone auto-connect params
     var pendingRcloneProfileId by rememberSaveable { mutableStateOf<String?>(null) }
-
-    // Local-shell open requests from the Desktop → Manage shell button (#168).
-    // Always-composed HavenNavHost collects them, sets the pending profile,
-    // and animates to the Terminal page; TerminalScreen creates the tab once
-    // composed (see pendingLocalShellProfileId).
-    LaunchedEffect(desktopViewModel) {
-        desktopViewModel.openLocalShellRequests.collect { req ->
-            pendingLocalShellProfileId = req.profileId
-            pendingLocalShellDeId = req.desktopDeId
-            requestScreen(Screen.Terminal)
-        }
-    }
 
     // Disable pager swipe while terminal text selection is active
     var terminalSelectionActive by remember { mutableStateOf(false) }
@@ -577,12 +550,6 @@ fun HavenNavHost(
                             requestScreen(Screen.Sftp)
                         }
                     },
-                    onNavigateToWayland = {
-                        desktopViewModel.addWaylandTab()
-                        coroutineScope.launch {
-                            requestScreen(Screen.Desktop)
-                        }
-                    },
                     onNavigateToConnections = {
                         coroutineScope.launch {
                             requestScreen(Screen.Connections)
@@ -594,8 +561,6 @@ fun HavenNavHost(
                     TerminalScreen(
                         navigateToProfileId = pendingTerminalProfileId,
                         newSessionProfileId = pendingNewSessionProfileId,
-                        openLocalShellProfileId = pendingLocalShellProfileId,
-                        openLocalShellDeId = pendingLocalShellDeId,
                         isActive = pagerState.settledPage == pageOf(Screen.Terminal),
                         fontSize = terminalFontSize,
                         horizontalPaddingDp = terminalHorizontalPadding,
@@ -699,20 +664,8 @@ fun HavenNavHost(
                             pendingNewSessionProfileId = null
                         }
                     }
-                    LaunchedEffect(pendingLocalShellProfileId) {
-                        if (pendingLocalShellProfileId != null) {
-                            kotlinx.coroutines.delay(6000)
-                            pendingLocalShellProfileId = null
-                            pendingLocalShellDeId = null
-                        }
-                    }
                 }
                 Screen.Desktop -> {
-                    // Auto-add Wayland tab when compositor is running
-                    LaunchedEffect(waylandRunning) {
-                        if (waylandRunning) desktopViewModel.addWaylandTab()
-                        else desktopViewModel.removeWaylandTab()
-                    }
                     DesktopScreen(
                         desktopViewModel = desktopViewModel,
                         toolbarLayout = toolbarLayout,
@@ -781,7 +734,6 @@ fun HavenNavHost(
                                 requestScreen(Screen.Terminal)
                             }
                         },
-                        onOpenUsbDrive = { desktopViewModel.openUsbDrive() },
                         viewModel = sftpViewModel,
                     )
                     LaunchedEffect(pendingSmbProfileId) {

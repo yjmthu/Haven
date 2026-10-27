@@ -161,7 +161,6 @@ fun ConnectionsScreen(
     // composed (fixes Retry / connect_profile reliability, #121).
     onNavigateToSmb: (profileId: String) -> Unit = {},
     onNavigateToRclone: (profileId: String) -> Unit = {},
-    onNavigateToWayland: () -> Unit = {},
     onNavigateToConnections: () -> Unit = {},
     /**
      * Slot for the Workspaces section, supplied by the host (HavenNavHost
@@ -178,10 +177,6 @@ fun ConnectionsScreen(
     val identities by viewModel.identities.collectAsState()
     val totpSecrets by viewModel.totpSecrets.collectAsState()
     val tunnelConfigs by viewModel.tunnelConfigs.collectAsState()
-    // Installed distros for a LOCAL profile's "open in" picker. Snapshotted
-    // for this screen's lifetime — installs are rare and re-entering the
-    // screen refreshes it.
-    val availableLocalDistros = remember { viewModel.installedLocalDistros() }
     val availableUsbDevices = remember { viewModel.availableUsbDevices() }
     var showTunnelsScreen by remember { mutableStateOf(false) }
     // When the user picks "+ New WireGuard tunnel" from a profile's
@@ -209,11 +204,7 @@ fun ConnectionsScreen(
             .associate { (i, id) -> id to PROFILE_COLORS[i % PROFILE_COLORS.size] }
     }
     val discoveredHosts by viewModel.discoveredHosts.collectAsState()
-    val localVmStatus by viewModel.localVmStatus.collectAsState()
-    val showLinuxVmCard by viewModel.showLinuxVmCard.collectAsState()
-    val showDesktopsCard by viewModel.showDesktopsCard.collectAsState()
     val connectingProfileId by viewModel.connectingProfileId.collectAsState()
-    val launchingDesktop by viewModel.launchingDesktop.collectAsState()
     val error by viewModel.error.collectAsState()
     val warning by viewModel.warning.collectAsState()
     // haven://connect deep link (#305): confirm sheet for a matched profile,
@@ -223,7 +214,6 @@ fun ConnectionsScreen(
     val navigateToTerminal by viewModel.navigateToTerminal.collectAsState()
     val navigateToSmb by viewModel.navigateToSmb.collectAsState()
     val navigateToRclone by viewModel.navigateToRclone.collectAsState()
-    val navigateToWayland by viewModel.navigateToWayland.collectAsState()
     val navigateBackToConnections by viewModel.navigateToConnections.collectAsState()
     val deploySuccess by viewModel.deploySuccess.collectAsState()
     val sessionSelection by viewModel.sessionSelection.collectAsState()
@@ -241,9 +231,6 @@ fun ConnectionsScreen(
     val smbSubnetScanning by viewModel.smbSubnetScanning.collectAsState()
     val showMoshSetupGuide by viewModel.showMoshSetupGuide.collectAsState()
     val showMoshClientMissing by viewModel.showMoshClientMissing.collectAsState()
-    val desktopSetupState by viewModel.desktopSetupState.collectAsState()
-    val desktopStates by viewModel.desktopStates.collectAsState()
-    val desktopVncPasswordPrompt by viewModel.desktopVncPasswordPrompt.collectAsState()
     val groupLaunchState by viewModel.groupLaunchState.collectAsState()
     val certRenewing by viewModel.certRenewing.collectAsState()
 
@@ -251,13 +238,6 @@ fun ConnectionsScreen(
         navigateToTerminal?.let { profileId ->
             onNavigateToTerminal(profileId)
             viewModel.onNavigated()
-        }
-    }
-
-    LaunchedEffect(navigateToWayland) {
-        if (navigateToWayland) {
-            onNavigateToWayland()
-            viewModel.consumeNavigateToWayland()
         }
     }
 
@@ -296,7 +276,6 @@ fun ConnectionsScreen(
     var prefillDraft by remember { mutableStateOf<ConnectionProfile?>(null) }
     var showOverflowMenu by remember { mutableStateOf(false) }
     var showImportRclone by rememberSaveable { mutableStateOf(false) }
-    var showVmSetup by rememberSaveable { mutableStateOf(false) }
     var editingProfileId by rememberSaveable { mutableStateOf<String?>(null) }
     val editingProfile = editingProfileId?.let { id -> connections.firstOrNull { it.id == id } }
     var connectingProfile by remember { mutableStateOf<ConnectionProfile?>(null) }
@@ -426,13 +405,8 @@ fun ConnectionsScreen(
         val exempt = pm?.isIgnoringBatteryOptimizations(context.packageName) ?: true
         val action = viewModel.batteryPromptCheck(exempt)
         if (action != BatteryPromptAction.NONE) {
-            // If Shizuku is available, silently whitelist without bothering the user
-            if (sh.haven.core.local.WaylandSocketHelper.tryDisableBatteryOptimization(context.packageName)) {
-                viewModel.dismissBatteryPrompt()
-            } else {
-                batteryDropDetected = action == BatteryPromptAction.OFFER_DROPPED
-                showBatteryDialog = true
-            }
+            batteryDropDetected = action == BatteryPromptAction.OFFER_DROPPED
+            showBatteryDialog = true
         }
     }
 
@@ -503,7 +477,6 @@ fun ConnectionsScreen(
             sshKeys = sshKeys,
             totpSecrets = totpSecrets,
             tunnelConfigs = tunnelConfigs,
-            availableDistros = availableLocalDistros,
             usbDevices = availableUsbDevices,
             onManageTunnels = { preselect ->
                 pendingTunnelAddType = preselect
@@ -582,78 +555,6 @@ fun ConnectionsScreen(
         ImportRcloneConfigDialog(onDismiss = { showImportRclone = false })
     }
 
-    if (showVmSetup) {
-        val linuxVmLabel = stringResource(R.string.connections_linux_vm)
-        LinuxVmSetupDialog(
-            vmStatus = localVmStatus,
-            onConnectSsh = { port ->
-                showVmSetup = false
-                val existing = connections.find {
-                    it.host in listOf("localhost", "127.0.0.1") && it.port == port && it.username == "droid"
-                }
-                val profile = existing ?: ConnectionProfile(
-                    label = linuxVmLabel,
-                    host = "localhost",
-                    port = port,
-                    username = "droid",
-                )
-                if (existing == null) viewModel.saveConnection(profile)
-                connectingProfile = profile
-            },
-            onConnectSshDirect = { ip, port ->
-                showVmSetup = false
-                val existing = connections.find {
-                    it.host == ip && it.port == port && it.username == "droid"
-                }
-                val profile = existing ?: ConnectionProfile(
-                    label = linuxVmLabel,
-                    host = ip,
-                    port = port,
-                    username = "droid",
-                )
-                if (existing == null) viewModel.saveConnection(profile)
-                connectingProfile = profile
-            },
-            onConnectVnc = { port ->
-                showVmSetup = false
-                val sshPort = localVmStatus.sshPort ?: 8022
-                val existing = connections.find {
-                    it.host in listOf("localhost", "127.0.0.1") && it.port == sshPort && it.username == "droid"
-                }
-                val profile = (existing?.copy(vncPort = port, vncSshForward = false))
-                    ?: ConnectionProfile(
-                        label = linuxVmLabel,
-                        host = "localhost",
-                        port = sshPort,
-                        username = "droid",
-                        vncPort = port,
-                        vncSshForward = false,
-                    )
-                viewModel.saveConnection(profile)
-                connectingProfile = profile
-            },
-            onConnectVncDirect = { ip, port ->
-                showVmSetup = false
-                val existing = connections.find {
-                    it.host == ip && it.username == "droid"
-                }
-                val sshPort = localVmStatus.directSshPort ?: 22
-                val profile = (existing?.copy(vncPort = port, vncSshForward = false))
-                    ?: ConnectionProfile(
-                        label = linuxVmLabel,
-                        host = ip,
-                        port = sshPort,
-                        username = "droid",
-                        vncPort = port,
-                        vncSshForward = false,
-                    )
-                viewModel.saveConnection(profile)
-                connectingProfile = profile
-            },
-            onDismiss = { showVmSetup = false },
-        )
-    }
-
     editingProfile?.let { profile ->
         // Load the embedded Cloudflare Tunnel (if any) before showing the
         // dialog so the inline transport fields can pre-populate. Loading
@@ -680,7 +581,6 @@ fun ConnectionsScreen(
             sshKeys = sshKeys,
             totpSecrets = totpSecrets,
             tunnelConfigs = tunnelConfigs,
-            availableDistros = availableLocalDistros,
             usbDevices = availableUsbDevices,
             embeddedCloudflareTunnel = embeddedCf.value,
             onManageTunnels = { preselect ->
@@ -946,35 +846,6 @@ fun ConnectionsScreen(
     }
 
     // (DesktopSetupDialog rendering removed in 3c — moved to DesktopManagerScreen.kt.)
-
-    // Desktop VNC password prompt — shown when starting a desktop that requires auth
-    // but no stored password is available
-    desktopVncPasswordPrompt?.let { prompt ->
-        var vncPwd by remember { mutableStateOf("") }
-        AlertDialog(
-            onDismissRequest = { viewModel.dismissDesktopVncPasswordPrompt() },
-            title = { Text(stringResource(R.string.connections_vnc_password_title)) },
-            text = {
-                sh.haven.core.ui.PasswordField(
-                    value = vncPwd,
-                    onValueChange = { vncPwd = it },
-                    label = stringResource(R.string.common_password),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = { viewModel.onDesktopVncPasswordEntered(vncPwd) },
-                    enabled = vncPwd.isNotBlank(),
-                ) { Text(stringResource(R.string.common_connect)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { viewModel.dismissDesktopVncPasswordPrompt() }) {
-                    Text(stringResource(R.string.common_cancel))
-                }
-            },
-        )
-    }
 
     var showNewGroupDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -1574,9 +1445,7 @@ private fun onTapProfile(
     onNavigateToRclone: (String) -> Unit,
     showPasswordDialog: () -> Unit,
 ) {
-    if (profile.isLocal) {
-        viewModel.connect(profile, "")
-    } else if (profileStatus == ProfileStatus.CONNECTED && profile.isRclone) {
+    if (profileStatus == ProfileStatus.CONNECTED && profile.isRclone) {
         onNavigateToRclone(profile.id)
     } else if (profileStatus == ProfileStatus.CONNECTED && profile.isSmb) {
         onNavigateToSmb(profile.id)
@@ -1823,14 +1692,7 @@ private fun ConnectionTreeItem(
             ListItem(
                 headlineContent = { Text(profile.label) },
                 supportingContent = {
-                    if (profile.isLocal) {
-                        Text(
-                            stringResource(
-                                if (profile.useAndroidShell) R.string.connections_android_shell_label
-                                else R.string.connections_proot_label,
-                            ),
-                        )
-                    } else if (profile.isRclone) {
+                    if (profile.isRclone) {
                         val providerLabel = when (profile.rcloneProvider) {
                             "drive" -> "Google Drive"
                             "dropbox" -> "Dropbox"
@@ -2022,85 +1884,6 @@ private fun RenameDialog(
         },
     )
 }
-
-@Composable
-private fun LinuxVmCard(
-    vmStatus: LocalVmStatus,
-    onClick: () -> Unit,
-    onRefresh: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val hasLocalServices = vmStatus.sshPort != null || vmStatus.vncPort != null
-    val hasDirectServices = vmStatus.directSshPort != null || vmStatus.directVncPort != null
-    val hasServices = hasLocalServices || hasDirectServices
-    Card(
-        onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
-        modifier = modifier.fillMaxWidth(),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(start = 12.dp, top = 12.dp, bottom = 12.dp, end = 4.dp),
-        ) {
-            Icon(
-                Icons.Filled.Laptop,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp),
-            )
-            Spacer(Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(stringResource(R.string.connections_linux_vm), style = MaterialTheme.typography.titleSmall)
-                if (hasServices) {
-                    val services = buildList {
-                        vmStatus.sshPort?.let { add("SSH :$it") }
-                        vmStatus.vncPort?.let { add("VNC :$it") }
-                    }
-                    if (services.isNotEmpty()) {
-                        Text(
-                            services.joinToString(" · ") + " on localhost",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    if (hasDirectServices) {
-                        val directServices = buildList {
-                            vmStatus.directSshPort?.let { add("SSH :$it") }
-                            vmStatus.directVncPort?.let { add("VNC :$it") }
-                        }
-                        Text(
-                            directServices.joinToString(" · ") + " on ${vmStatus.directIp}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                } else {
-                    Text(
-                        stringResource(R.string.connections_vm_tap_to_setup),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-            if (hasServices) {
-                Icon(
-                    Icons.Filled.Circle,
-                    contentDescription = stringResource(R.string.connections_vm_status_active),
-                    tint = Color(0xFF4CAF50),
-                    modifier = Modifier.size(10.dp),
-                )
-            }
-            IconButton(onClick = onRefresh, modifier = Modifier.size(32.dp)) {
-                Icon(
-                    Icons.Filled.Refresh,
-                    contentDescription = stringResource(R.string.connections_vm_refresh),
-                    modifier = Modifier.size(18.dp),
-                )
-            }
-        }
-    }
-}
-
 
 @Composable
 private fun NewGroupDialog(

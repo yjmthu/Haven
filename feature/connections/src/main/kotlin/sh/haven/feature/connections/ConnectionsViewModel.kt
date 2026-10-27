@@ -65,7 +65,6 @@ import sh.haven.core.mosh.MoshSessionManager
 import sh.haven.core.et.EtSessionManager
 import sh.haven.core.fido.FidoAuthenticator
 import sh.haven.core.fido.FidoTouchPrompt
-import sh.haven.core.local.LocalSessionManager
 import sh.haven.core.rclone.RcloneClient
 import sh.haven.core.rclone.RcloneSessionManager
 import sh.haven.core.security.Totp
@@ -216,8 +215,6 @@ class ConnectionsViewModel @Inject constructor(
     private val fidoAuthenticator: FidoAuthenticator,
     /** Security-chip SSH keys sign through the Keystore + biometric ceremony. */
     private val keystoreSshKeySigner: KeystoreSshKeySigner,
-    private val localSessionManager: LocalSessionManager,
-    private val umlGuestManager: sh.haven.core.local.uml.UmlGuestManager,
     private val sessionManagerRegistry: SessionManagerRegistry,
     private val sshKeyRepository: SshKeyRepository,
     private val totpSecretRepository: sh.haven.core.data.repository.TotpSecretRepository,
@@ -237,7 +234,6 @@ class ConnectionsViewModel @Inject constructor(
     private val biometricGate: sh.haven.core.data.keystore.BiometricGate,
     private val pendingAuthPromptHolder: sh.haven.core.data.agent.PendingAuthPromptHolder,
     private val sessionSelectionHolder: sh.haven.core.data.agent.SessionSelectionHolder,
-    private val connectionPreflight: sh.haven.core.data.repository.ConnectionPreflight,
 ) : ViewModel() {
 
     /**
@@ -254,13 +250,6 @@ class ConnectionsViewModel @Inject constructor(
     /** Live USB/IP auto-forwards, keyed by sessionId (Slice 1). Torn down on disconnect. */
     private val usbForwardHandles =
         java.util.concurrent.ConcurrentHashMap<String, sh.haven.feature.connections.usb.UsbipConnectionForwarder.Handle>()
-
-    /**
-     * Installed distros `(id, label)` for the LOCAL profile editor's
-     * "open in" distro picker. Empty when no rootfs is installed.
-     */
-    fun installedLocalDistros(): List<Pair<String, String>> =
-        localSessionManager.installedDistros()
 
     /** Attached phone USB devices `(vidPid, label)` for the SSH USB-forward picker. */
     fun availableUsbDevices(): List<Pair<String, String>> =
@@ -446,8 +435,6 @@ class ConnectionsViewModel @Inject constructor(
                 sshSessionManager.sessions,
                 moshSessionManager.sessions,
                 etSessionManager.sessions,
-                localSessionManager.sessions,
-                umlGuestManager.sessions,
             ) { flows -> flows }
                 .debounce(500L)
                 .collect { updateServiceNotification() }
@@ -573,10 +560,8 @@ class ConnectionsViewModel @Inject constructor(
             ) { ssh, mosh, et -> arrayOf(ssh, mosh, et) },
             combine(
                 smbSessionManager.sessions,
-                localSessionManager.sessions,
                 rcloneSessionManager.sessions,
-                umlGuestManager.sessions,
-            ) { smb, local, rclone, guest -> arrayOf(smb, local, rclone, guest) },
+            ) { smb, rclone -> arrayOf(smb, rclone) },
             desktopSessionRegistry.statuses,
         ) { base, extra, deskMap ->
             @Suppress("UNCHECKED_CAST")
@@ -588,11 +573,7 @@ class ConnectionsViewModel @Inject constructor(
             @Suppress("UNCHECKED_CAST")
             val smbMap = extra[0] as Map<String, SmbSessionManager.SessionState>
             @Suppress("UNCHECKED_CAST")
-            val localMap = extra[1] as Map<String, LocalSessionManager.SessionState>
-            @Suppress("UNCHECKED_CAST")
-            val rcloneMap = extra[2] as Map<String, RcloneSessionManager.SessionState>
-            @Suppress("UNCHECKED_CAST")
-            val guestMap = extra[3] as Map<String, sh.haven.core.local.uml.UmlGuestManager.SessionState>
+            val rcloneMap = extra[1] as Map<String, RcloneSessionManager.SessionState>
             val result = mutableMapOf<String, ProfileStatus>()
 
             // Track which profiles have transport-specific sessions (Mosh/ET/RNS/Local).
@@ -651,21 +632,6 @@ class ConnectionsViewModel @Inject constructor(
                 }
             }
 
-            // Local statuses (merge)
-            localMap.values.groupBy { it.profileId }.forEach { (profileId, states) ->
-                val statuses = states.map { it.status }
-                val localStatus = when {
-                    LocalSessionManager.SessionState.Status.CONNECTED in statuses -> ProfileStatus.CONNECTED
-                    LocalSessionManager.SessionState.Status.CONNECTING in statuses -> ProfileStatus.CONNECTING
-                    LocalSessionManager.SessionState.Status.ERROR in statuses -> ProfileStatus.ERROR
-                    else -> ProfileStatus.DISCONNECTED
-                }
-                val existing = result[profileId]
-                if (existing == null || localStatus.ordinal < existing.ordinal) {
-                    result[profileId] = localStatus
-                }
-            }
-
             // Rclone statuses (merge)
             rcloneMap.values.groupBy { it.profileId }.forEach { (profileId, states) ->
                 val statuses = states.map { it.status }
@@ -678,22 +644,6 @@ class ConnectionsViewModel @Inject constructor(
                 val existing = result[profileId]
                 if (existing == null || rcloneStatus.ordinal < existing.ordinal) {
                     result[profileId] = rcloneStatus
-                }
-            }
-
-            // Guest statuses (merge — a GUEST profile shares no infrastructure
-            // session, so like SMB/Local this only ever fills an empty slot)
-            guestMap.values.groupBy { it.profileId }.forEach { (profileId, states) ->
-                val statuses = states.map { it.status }
-                val guestStatus = when {
-                    sh.haven.core.local.uml.UmlGuestManager.SessionState.Status.CONNECTED in statuses -> ProfileStatus.CONNECTED
-                    sh.haven.core.local.uml.UmlGuestManager.SessionState.Status.CONNECTING in statuses -> ProfileStatus.CONNECTING
-                    sh.haven.core.local.uml.UmlGuestManager.SessionState.Status.ERROR in statuses -> ProfileStatus.ERROR
-                    else -> ProfileStatus.DISCONNECTED
-                }
-                val existing = result[profileId]
-                if (existing == null || guestStatus.ordinal < existing.ordinal) {
-                    result[profileId] = guestStatus
                 }
             }
 
@@ -1015,10 +965,6 @@ class ConnectionsViewModel @Inject constructor(
     private val _navigateToVnc = MutableStateFlow<VncNavigation?>(null)
     val navigateToVnc: StateFlow<VncNavigation?> = _navigateToVnc.asStateFlow()
 
-    /** Emitted to navigate to the native Wayland desktop view. */
-    private val _navigateToWayland = MutableStateFlow(false)
-    val navigateToWayland: StateFlow<Boolean> = _navigateToWayland.asStateFlow()
-
     /** Emitted to navigate to RDP screen with connection params. */
     data class RdpNavigation(val host: String, val port: Int, val username: String, val password: String, val domain: String, val sshForward: Boolean = false, val sshSessionId: String? = null, val profileId: String? = null, val useNla: Boolean = true, val colorDepth: Int = 32, val portKnockSequence: String? = null, val portKnockDelayMs: Int = 100)
     private val _navigateToRdp = MutableStateFlow<RdpNavigation?>(null)
@@ -1266,14 +1212,6 @@ class ConnectionsViewModel @Inject constructor(
     private val networkDiscovery = NetworkDiscovery(appContext)
     val discoveredHosts: StateFlow<List<DiscoveredHost>> = networkDiscovery.hosts
     val discoveredSmbHosts: StateFlow<List<DiscoveredHost>> = networkDiscovery.smbHosts
-    val localVmStatus: StateFlow<LocalVmStatus> = networkDiscovery.localVm
-
-    val showLinuxVmCard: StateFlow<Boolean> = preferencesRepository.showLinuxVmCard
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
-
-    val showDesktopsCard: StateFlow<Boolean> = preferencesRepository.showDesktopsCard
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
-
     init {
         // Feed the Tailscale-discovery preference (#654) into the probe: the
         // scan paths read the @Volatile flag, so flipping the setting takes
@@ -1287,14 +1225,7 @@ class ConnectionsViewModel @Inject constructor(
 
     fun startNetworkDiscovery() {
         networkDiscovery.start()
-        networkDiscovery.startVmPolling(viewModelScope)
         viewModelScope.launch { networkDiscovery.discoverTailscale() }
-    }
-
-    fun refreshLocalVm() {
-        viewModelScope.launch {
-            networkDiscovery.scanLocalVm()
-        }
     }
 
     private val _subnetScanning = MutableStateFlow(false)
@@ -1746,7 +1677,6 @@ class ConnectionsViewModel @Inject constructor(
     }
 
     private fun canAutoConnect(profile: ConnectionProfile, keys: List<SshKey>): Boolean = when {
-        profile.isLocal -> true
         profile.isRclone -> true
         // Connect only on explicit tap: a BT link is slow/blocking and needs the
         // adapter powered + the device in range (#406).
@@ -1846,7 +1776,6 @@ class ConnectionsViewModel @Inject constructor(
     fun deleteConnection(id: String) {
         viewModelScope.launch {
             sessionManagerRegistry.disconnectProfile(id)
-            localSessionManager.desktopManager.stopAll()
             updateServiceNotification()
             repository.delete(id)
         }
@@ -2158,22 +2087,6 @@ class ConnectionsViewModel @Inject constructor(
         sessionName: String?,
         startupCommand: String? = null,
     ) {
-        // USB-drive bookmarks (#287): the "USB: …" connection's VM stops on
-        // eject/sleep/app-restart, leaving the profile pointing at a dead
-        // loopback port. connectionPreflight re-opens it (and refreshes the
-        // profile's port/key) before dialing — a no-op for every other
-        // profile, so this only adds a coroutine hop for USB-drive bookmarks.
-        if (profile.usbDriveSerial != null) {
-            viewModelScope.launch {
-                when (val result = connectionPreflight.beforeConnect(profile)) {
-                    is sh.haven.core.data.repository.ConnectionPreflight.Result.Block ->
-                        _error.value = result.message
-                    is sh.haven.core.data.repository.ConnectionPreflight.Result.Proceed ->
-                        connectInner(result.profile, password, keyOnly, rememberPassword, usernameOverride, sessionName, startupCommand)
-                }
-            }
-            return
-        }
         connectInner(profile, password, keyOnly, rememberPassword, usernameOverride, sessionName, startupCommand)
     }
 
@@ -2186,14 +2099,6 @@ class ConnectionsViewModel @Inject constructor(
         sessionName: String? = null,
         startupCommand: String? = null,
     ) {
-        if (profile.isLocal) {
-            connectLocal(profile)
-            return
-        }
-        if (profile.isGuest) {
-            connectGuest(profile)
-            return
-        }
         if (profile.isSaf) {
             // SAF "local folder" locations (#415) have no connection to open — they're
             // browsed straight from the Files tab. No-op so a connect-by-id path (MCP
@@ -2565,320 +2470,6 @@ class ConnectionsViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to connect rclone remote", e)
                 _error.value = "rclone: ${e.message}"
-            } finally {
-                _connectingProfileId.value = null
-            }
-        }
-    }
-
-    val desktopSetupState: StateFlow<sh.haven.core.local.ProotManager.DesktopSetupState> =
-        localSessionManager.prootManager.desktopState
-
-    /** Desktop process states from DesktopManager. */
-    val desktopStates: StateFlow<Map<sh.haven.core.local.ProotManager.DesktopEnvironment, sh.haven.core.local.DesktopManager.DesktopInstance>> =
-        localSessionManager.desktopManager.desktops
-
-    /** All installed desktop environments. */
-    val installedDesktops: Set<sh.haven.core.local.ProotManager.DesktopEnvironment>
-        get() = localSessionManager.prootManager.installedDesktops
-
-    /** Currently-active distro id (e.g. "alpine-3.21", "debian-bookworm"). */
-    val activeDistroId: StateFlow<String> =
-        localSessionManager.prootManager.activeDistroIdFlow
-
-    /** Rootfs install progress for the active distro (NotInstalled/Downloading/Extracting/Ready/Error). */
-    val rootfsSetupState: StateFlow<sh.haven.core.local.ProotManager.SetupState> =
-        localSessionManager.prootManager.state
-
-    /** Distros installed on this device (filesystem-derived). */
-    val installedDistros: List<sh.haven.core.local.proot.Distro>
-        get() = localSessionManager.prootManager.installedDistros
-
-    /** Catalog distros that could be added (arch-compatible, not installed). */
-    val availableDistros: List<sh.haven.core.local.proot.Distro>
-        get() = localSessionManager.prootManager.availableDistros
-
-    /** Switch the active distro — affects which rootfs subsequent DE ops use. */
-    fun switchActiveDistro(distroId: String) {
-        localSessionManager.prootManager.setActiveDistroId(distroId)
-    }
-
-    /**
-     * Delete a distro's rootfs. Reclaims the disk space and is the
-     * recovery path when an install lands in a broken state. If the
-     * deleted distro was active, ProotManager switches to the first
-     * remaining installed one. Also stops any running DEs on the
-     * deleted distro since their rootfs is about to disappear.
-     */
-    fun deleteDistro(distroId: String) {
-        val pm = localSessionManager.prootManager
-        // Stop any DEs running on the doomed distro before pulling
-        // the rootfs out from under them.
-        if (pm.activeDistroId == distroId) {
-            localSessionManager.desktopManager.stopAll()
-        }
-        pm.deleteDistro(distroId)
-    }
-
-    /**
-     * Make [distro] the active distro and install its rootfs. The
-     * common path for "+ Add another distro" — selecting one already
-     * installed just switches to it via [switchActiveDistro]; this
-     * action both switches AND triggers the download/extract flow.
-     *
-     * If the rootfs install fails the active distro reverts to the
-     * previous selection so the user isn't left with an "active but
-     * missing" distro where Haven thinks no rootfs is installed.
-     */
-    fun addDistro(distro: sh.haven.core.local.proot.Distro) {
-        val pm = localSessionManager.prootManager
-        val previousActive = pm.activeDistroId
-        pm.setActiveDistroId(distro.id)
-        viewModelScope.launch {
-            try {
-                pm.installRootfs()
-                val state = pm.state.value
-                if (state is sh.haven.core.local.ProotManager.SetupState.Error) {
-                    Log.w(TAG, "addDistro: ${distro.id} install failed (${state.message}), reverting to $previousActive")
-                    pm.setActiveDistroId(previousActive)
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "addDistro: ${distro.id} install threw", e)
-                pm.setActiveDistroId(previousActive)
-            }
-        }
-    }
-
-    /** Install a desktop environment (packages only, does not auto-start). */
-    fun setupDesktop(
-        vncPassword: String,
-        de: sh.haven.core.local.ProotManager.DesktopEnvironment = sh.haven.core.local.ProotManager.DesktopEnvironment.XFCE4,
-        addons: Set<sh.haven.core.local.ProotManager.DesktopAddon> = emptySet(),
-    ) {
-        viewModelScope.launch {
-            val prootManager = localSessionManager.prootManager
-            prootManager.setupDesktop(vncPassword, de)
-
-            // Install optional desktop add-ons (panel, file manager, etc.)
-            if (addons.isNotEmpty() && prootManager.desktopState.value is sh.haven.core.local.ProotManager.DesktopSetupState.Complete) {
-                prootManager.installAddons(addons)
-            }
-
-            Log.d(TAG, "Desktop setup result: ${prootManager.desktopState.value}")
-            // Don't reset state here — let the dialog observe Complete and auto-dismiss
-        }
-    }
-
-    /** Uninstall a desktop environment. */
-    fun uninstallDesktop(de: sh.haven.core.local.ProotManager.DesktopEnvironment) {
-        viewModelScope.launch {
-            try {
-                // Stop if running
-                localSessionManager.desktopManager.stopDesktop(de)
-                localSessionManager.prootManager.uninstallDesktop(de)
-                localSessionManager.prootManager.resetDesktopState()
-            } catch (e: Exception) {
-                Log.e(TAG, "uninstallDesktop failed for ${LogRedact.of(de.label)}", e)
-                _error.value = "Uninstall failed: ${e.message}"
-            }
-        }
-    }
-
-    /** Prompt for desktop VNC password when no stored password is available. */
-    data class DesktopVncPasswordPrompt(
-        val de: sh.haven.core.local.ProotManager.DesktopEnvironment,
-        val port: Int,
-    )
-    private val _desktopVncPasswordPrompt = MutableStateFlow<DesktopVncPasswordPrompt?>(null)
-    val desktopVncPasswordPrompt: StateFlow<DesktopVncPasswordPrompt?> = _desktopVncPasswordPrompt.asStateFlow()
-
-    fun onDesktopVncPasswordEntered(password: String) {
-        val prompt = _desktopVncPasswordPrompt.value ?: return
-        _desktopVncPasswordPrompt.value = null
-        // Save for next time
-        localSessionManager.prootManager.storedVncPassword = password
-        _navigateToVnc.value = VncNavigation("localhost", prompt.port, password)
-    }
-
-    fun dismissDesktopVncPasswordPrompt() {
-        _desktopVncPasswordPrompt.value = null
-    }
-
-    /** Start a desktop environment and navigate to viewer. */
-    fun startDesktop(de: sh.haven.core.local.ProotManager.DesktopEnvironment) {
-        viewModelScope.launch {
-            val desktopManager = localSessionManager.desktopManager
-            val shellCmd = preferencesRepository.waylandShellCommand.first()
-            Log.d(TAG, "startDesktop: ${LogRedact.of(de.label)} shell=$shellCmd")
-            withContext(Dispatchers.IO) {
-                desktopManager.startDesktop(de, shellCmd)
-            }
-            val state = desktopManager.desktops.value[de]
-            Log.d(TAG, "startDesktop: state after start = ${state?.state}")
-            if (de.isNative) {
-                delay(2000)
-                _navigateToWayland.value = true
-            } else {
-                val port = desktopManager.getVncPort(de) ?: 5901
-                Log.d(TAG, "startDesktop: VNC port=$port")
-                // Look up VNC password: stored from setup, then saved profiles
-                val pwd = localSessionManager.prootManager.storedVncPassword
-                    ?: connections.value
-                        .find { it.isVnc && it.host == "localhost" }
-                        ?.vncPassword
-                Log.d(TAG, "startDesktop: waiting for VNC server on port $port...")
-                // Wait up to 8s for VNC port to become available
-                val ready = withContext(Dispatchers.IO) {
-                    repeat(16) {
-                        try {
-                            java.net.Socket("127.0.0.1", port).close()
-                            return@withContext true
-                        } catch (_: Exception) {
-                            delay(500)
-                        }
-                    }
-                    false
-                }
-                if (ready) {
-                    if (pwd == null) {
-                        // No stored password — prompt the user (VNC may or may not need auth,
-                        // but it's better to ask than to fail silently)
-                        Log.d(TAG, "startDesktop: VNC needs auth but no password stored, prompting")
-                        _desktopVncPasswordPrompt.value = DesktopVncPasswordPrompt(de, port)
-                    } else {
-                        Log.d(TAG, "startDesktop: VNC server ready, navigating to localhost:$port")
-                        _navigateToVnc.value = VncNavigation("localhost", port, pwd)
-                    }
-                } else {
-                    Log.e(TAG, "startDesktop: VNC server not listening on port $port after 8s")
-                    _error.value = "Desktop failed to start — VNC server not responding"
-                    desktopManager.stopDesktop(de)
-                }
-            }
-        }
-    }
-
-    /** Stop a running desktop environment. */
-    fun stopDesktop(de: sh.haven.core.local.ProotManager.DesktopEnvironment) {
-        viewModelScope.launch(Dispatchers.IO) {
-            localSessionManager.desktopManager.stopDesktop(de)
-        }
-    }
-
-    fun resetDesktopSetupState() {
-        localSessionManager.prootManager.resetDesktopState()
-    }
-
-    fun setWaylandShellCommand(command: String) {
-        viewModelScope.launch {
-            preferencesRepository.setWaylandShellCommand(command)
-        }
-    }
-
-    /** True if any PRoot desktop environment is installed. */
-    val isDesktopInstalled: Boolean
-        get() = localSessionManager.prootManager.hasAnyDesktopInstalled
-
-    /** True if PRoot rootfs is installed and ready for desktop use. */
-    val isRootfsReady: Boolean
-        get() = localSessionManager.prootManager.isReady
-
-    private val _launchingDesktop = MutableStateFlow(false)
-    val launchingDesktop: StateFlow<Boolean> = _launchingDesktop.asStateFlow()
-
-    fun consumeNavigateToWayland() {
-        _navigateToWayland.value = false
-    }
-
-    // (connectLocalTerminal removed in 3c — local shells are added via
-    //  Connection + → LOCAL transport, same as every other backend.
-    //  Existing "Local Shell" profiles created by the old topbar button
-    //  remain in the list and continue to work.)
-
-    private fun connectLocal(profile: ConnectionProfile) {
-        viewModelScope.launch {
-            // Skip if already connected
-            val existing = localSessionManager.getSessionsForProfile(profile.id)
-            if (existing.any { it.status == LocalSessionManager.SessionState.Status.CONNECTED }) {
-                _navigateToTerminal.value = profile.id
-                return@launch
-            }
-
-            _connectingProfileId.value = profile.id
-            _error.value = null
-
-            // If proot binary is available but rootfs isn't installed, download it first
-            val prootManager = localSessionManager.prootManager
-            if (prootManager.prootBinary != null && !prootManager.isRootfsInstalled) {
-                Log.d(TAG, "PRoot available but rootfs not installed — downloading...")
-                prootManager.installRootfs()
-                if (prootManager.state.value is sh.haven.core.local.ProotManager.SetupState.Error) {
-                    val err = prootManager.state.value as sh.haven.core.local.ProotManager.SetupState.Error
-                    Log.w(TAG, "Rootfs install failed: ${err.message}, falling back to plain shell")
-                }
-            }
-
-            val sessionId = localSessionManager.registerSession(profile.id, profile.label, profile.useAndroidShell, profile.prootDistroId)
-            try {
-                localSessionManager.connectSession(sessionId)
-                repository.markConnected(profile.id)
-                connectionLogRepository.logEvent(profile.id, ConnectionLog.Status.CONNECTED)
-                startForegroundServiceIfNeeded()
-                _navigateToTerminal.value = profile.id
-            } catch (e: Exception) {
-                Log.e(TAG, "connectLocal failed: ${e.message}", e)
-                connectionLogRepository.logEvent(profile.id, ConnectionLog.Status.FAILED, details = e.message)
-                localSessionManager.updateStatus(sessionId, LocalSessionManager.SessionState.Status.ERROR)
-                localSessionManager.removeSession(sessionId)
-                _error.value = e.message ?: "Local terminal failed"
-            } finally {
-                _connectingProfileId.value = null
-            }
-        }
-    }
-
-    /**
-     * Connect a UML guest profile: stage the rootfs on first use, register the
-     * session, and navigate — the kernel itself boots when the terminal tab
-     * calls [sh.haven.core.local.uml.UmlGuestManager.createTerminalSession],
-     * mirroring how connectLocal's shell only execs on tab attach.
-     */
-    private fun connectGuest(profile: ConnectionProfile) {
-        viewModelScope.launch {
-            val existing = umlGuestManager.getSessionsForProfile(profile.id)
-            if (existing.any { it.status == sh.haven.core.local.uml.UmlGuestManager.SessionState.Status.CONNECTED }) {
-                _navigateToTerminal.value = profile.id
-                return@launch
-            }
-            _connectingProfileId.value = profile.id
-            _error.value = null
-            try {
-                if (!umlGuestManager.isAvailable()) {
-                    throw IllegalStateException(
-                        "This build does not include the Linux guest payload")
-                }
-                umlGuestManager.ensureRootfs()
-            } catch (e: Exception) {
-                Log.e(TAG, "connectGuest setup failed: ${e.message}", e)
-                connectionLogRepository.logEvent(
-                    profile.id, ConnectionLog.Status.FAILED, details = e.message)
-                _error.value = e.message ?: "Guest rootfs staging failed"
-                _connectingProfileId.value = null
-                return@launch
-            }
-            val sessionId = umlGuestManager.registerSession(profile.id, profile.label)
-            try {
-                umlGuestManager.connectSession(sessionId)
-                repository.markConnected(profile.id)
-                connectionLogRepository.logEvent(profile.id, ConnectionLog.Status.CONNECTED)
-                startForegroundServiceIfNeeded()
-                _navigateToTerminal.value = profile.id
-            } catch (e: Exception) {
-                Log.e(TAG, "connectGuest failed: ${e.message}", e)
-                connectionLogRepository.logEvent(profile.id, ConnectionLog.Status.FAILED, details = e.message)
-                umlGuestManager.updateStatus(sessionId, sh.haven.core.local.uml.UmlGuestManager.SessionState.Status.ERROR)
-                umlGuestManager.removeSession(sessionId)
-                _error.value = e.message ?: "Guest failed to start"
             } finally {
                 _connectingProfileId.value = null
             }
@@ -5404,7 +4995,6 @@ class ConnectionsViewModel @Inject constructor(
         // through a tunnel; otherwise the underlying tunnel closes only
         // when its last dependent disconnects (#149).
         viewModelScope.launch { tunnelResolver.release(profileId) }
-        localSessionManager.desktopManager.stopAll()
         updateServiceNotification()
     }
 
@@ -5458,8 +5048,7 @@ class ConnectionsViewModel @Inject constructor(
      * password-based connect. Only fires if keys exist and haven't been deployed yet.
      */
     private fun maybeAutoDeployKey(profile: ConnectionProfile, password: String) {
-        val isLocalVm = profile.host in listOf("localhost", "127.0.0.1") ||
-            profile.host == localVmStatus.value.directIp
+        val isLocalVm = profile.host in listOf("localhost", "127.0.0.1")
         if (!isLocalVm) return
 
         viewModelScope.launch {
@@ -5665,36 +5254,9 @@ class ConnectionsViewModel @Inject constructor(
      */
     private suspend fun connectSilent(profile: ConnectionProfile) {
         when {
-            profile.isLocal -> connectLocalSilent(profile)
             profile.isEternalTerminal -> connectEtSilent(profile)
             profile.isMosh -> connectMoshSilent(profile)
             else -> connectSshSilent(profile)
-        }
-    }
-
-    private suspend fun connectLocalSilent(profile: ConnectionProfile) {
-        val existing = localSessionManager.getSessionsForProfile(profile.id)
-        if (existing.any { it.status == LocalSessionManager.SessionState.Status.CONNECTED }) {
-            return
-        }
-
-        val prootManager = localSessionManager.prootManager
-        if (prootManager.prootBinary != null && !prootManager.isRootfsInstalled) {
-            prootManager.installRootfs()
-        }
-
-        val sessionId = localSessionManager.registerSession(profile.id, profile.label)
-        try {
-            localSessionManager.connectSession(sessionId)
-            repository.markConnected(profile.id)
-            connectionLogRepository.logEvent(profile.id, ConnectionLog.Status.CONNECTED)
-            startForegroundServiceIfNeeded()
-        } catch (e: Exception) {
-            Log.e(TAG, "connectLocalSilent failed: ${e.message}", e)
-            connectionLogRepository.logEvent(profile.id, ConnectionLog.Status.FAILED, details = e.message)
-            localSessionManager.updateStatus(sessionId, LocalSessionManager.SessionState.Status.ERROR)
-            localSessionManager.removeSession(sessionId)
-            throw e
         }
     }
 

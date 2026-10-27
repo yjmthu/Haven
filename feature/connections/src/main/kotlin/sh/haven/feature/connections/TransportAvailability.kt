@@ -16,9 +16,6 @@ internal object TransportAvailability {
      *   the other two this is not a missing *file* — the terminal flavour
      *   ships a smaller library built without the rcbridge package, so the
      *   answer comes from probing it rather than looking for it.
-     * @param uml whether the UML guest payload (libvmlinux.so + stub + passt)
-     *   shipped. The terminal flavour drops all three and F-Droid builds skip
-     *   the fetch, so like RDP this is a missing-file gate.
      *
      * VNC is never filtered: its client is Kotlin and ships in every build.
      * Nor is anything else — only the transports with native code the
@@ -28,12 +25,10 @@ internal object TransportAvailability {
         all: List<Pair<String, String>>,
         rdp: Boolean,
         rclone: Boolean,
-        uml: Boolean = true,
     ): List<Pair<String, String>> = all.filter { (value, _) ->
         when (value) {
             "RDP" -> rdp
             "RCLONE" -> rclone
-            "GUEST" -> uml
             else -> true
         }
     }

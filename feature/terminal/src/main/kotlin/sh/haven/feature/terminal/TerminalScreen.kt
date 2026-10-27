@@ -419,8 +419,6 @@ private fun TabActionsMenu(
 fun TerminalScreen(
     navigateToProfileId: String? = null,
     newSessionProfileId: String? = null,
-    openLocalShellProfileId: String? = null,
-    openLocalShellDeId: String? = null,
     isActive: Boolean = false,
     terminalModifier: Modifier = Modifier,
     fontSize: Int = UserPreferencesRepository.DEFAULT_FONT_SIZE,
@@ -583,7 +581,6 @@ fun TerminalScreen(
     val newTabMessage by viewModel.newTabMessage.collectAsState()
     val fidoTouchPrompt by viewModel.fidoTouchPrompt.collectAsState()
     var vncDialogInfo by remember { mutableStateOf<VncInfo?>(null) }
-    var localVncLoading by remember { mutableStateOf(false) }
     val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
 
     val context = LocalContext.current
@@ -757,7 +754,6 @@ fun TerminalScreen(
     // lint-banned (LocalContextGetResourceValueCall).
     val linkOpenFailedMessage = stringResource(R.string.terminal_link_open_failed)
     val linkSchemeBlockedMessage = stringResource(R.string.terminal_link_scheme_blocked)
-    val localVncFailedMessage = stringResource(R.string.terminal_local_vnc_failed)
     fun launchCameraScan(mode: TerminalViewModel.ScanMode) {
         val cacheRoot = java.io.File(context.cacheDir, "scan").apply { mkdirs() }
         val file = java.io.File(cacheRoot, "scan_${System.currentTimeMillis()}.jpg")
@@ -1041,18 +1037,6 @@ fun TerminalScreen(
     LaunchedEffect(newSessionProfileId) {
         if (newSessionProfileId != null) {
             viewModel.addSshTabForProfile(newSessionProfileId)
-        }
-    }
-
-    // Open a local-shell tab for the Desktop → Manage shell button (#168).
-    // Driven by a pending profile id from HavenNavHost rather than the
-    // AgentUiCommandBus: the bus is replay=0 and this ViewModel only collects
-    // it while this screen is composed, so a request fired from the Desktop
-    // tab was dropped before TerminalScreen existed. Consuming a pending id
-    // here runs once the screen is composed after the pager switch.
-    LaunchedEffect(openLocalShellProfileId) {
-        if (openLocalShellProfileId != null) {
-            viewModel.addLocalTabForProfile(openLocalShellProfileId, desktopDeId = openLocalShellDeId)
         }
     }
 
@@ -2213,33 +2197,8 @@ fun TerminalScreen(
                                     vncDialogInfo = info
                                 }
                             }
-                        }} else if (activeTab.transportType == "LOCAL" && viewModel.isLocalDesktopInstalled) {{
-                            if (!localVncLoading) {
-                                localVncLoading = true
-                                coroutineScope.launch {
-                                    // try/finally so a failure (e.g. keystore decrypt,
-                                    // server start) can't leave the spinner stuck true and
-                                    // lock the button out forever. (#208 finding 17)
-                                    try {
-                                        viewModel.ensureLocalVncProfile()
-                                        viewModel.startLocalVncServer()
-                                        kotlinx.coroutines.delay(4000)
-                                        val pwd = viewModel.getLocalVncPassword()
-                                        onNavigateToVnc("localhost", 5901, null, pwd, false, null, "BPP_24_TRUE")
-                                    } catch (e: Exception) {
-                                        android.util.Log.e("TerminalScreen", "local VNC launch failed", e)
-                                        android.widget.Toast.makeText(
-                                            context,
-                                            localVncFailedMessage,
-                                            android.widget.Toast.LENGTH_LONG,
-                                        ).show()
-                                    } finally {
-                                        localVncLoading = false
-                                    }
-                                }
-                            }
                         }} else null,
-                        vncLoading = localVncLoading,
+                        vncLoading = false,
                         selectionController = selectionController,
                         selectionActive = selectionActive,
                         hyperlinkUri = currentHyperlinkUri,

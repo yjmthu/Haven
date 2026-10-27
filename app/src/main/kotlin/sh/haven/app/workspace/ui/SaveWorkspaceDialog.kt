@@ -33,13 +33,13 @@ import sh.haven.core.data.db.entities.WorkspaceItem
 import sh.haven.core.data.db.entities.WorkspaceProfile
 
 /**
- * Capture the user's currently-open singletons (sessions + Wayland)
+ * Capture the user's currently-open singletons (sessions)
  * into a draft list, let them tick which to keep, name the workspace,
  * and persist it.
  *
  * Items not present in app singletons (VNC tabs, SFTP path, rclone
  * tabs) aren't auto-captured here — the dialog covers terminal
- * sessions, SMB shares, RDP, Wayland. Manual additions land in a
+ * sessions, SMB shares and RDP. Manual additions land in a
  * follow-up: see VISION.md §1 "Workspace profiles".
  */
 @Composable
@@ -142,14 +142,13 @@ private fun DraftItemRow(
         val item = draft.item
         // "<host> tmux haven" for a terminal on a multiplexer; "<host> haven"
         // or just "<host>" for a plain shell; "<kind> <host>" for the other
-        // kinds; the kind label alone for Wayland. Manager labels (tmux/…) and
-        // hostnames are data / proper nouns, so no new translatable strings.
+        // kinds. Manager labels (tmux/…) and hostnames are data / proper
+        // nouns, so no new translatable strings.
         val detail = when (item.kind) {
             WorkspaceItem.Kind.TERMINAL ->
                 listOfNotNull(draft.host, draft.sessionType, item.sessionName)
                     .joinToString(" ")
                     .ifBlank { stringResource(item.kind.labelRes()) }
-            WorkspaceItem.Kind.WAYLAND -> stringResource(item.kind.labelRes())
             else -> listOfNotNull(stringResource(item.kind.labelRes()), draft.host)
                 .joinToString(" ")
         }

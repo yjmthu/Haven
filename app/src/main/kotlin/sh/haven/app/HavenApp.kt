@@ -35,14 +35,11 @@ class HavenApp : Application(), Configuration.Provider {
     @Inject lateinit var preferencesRepository: UserPreferencesRepository
     @Inject lateinit var launcherShortcutManager: sh.haven.app.launcher.LauncherShortcutManager
     @Inject lateinit var workerFactory: HiltWorkerFactory
-    @Inject lateinit var prootManager: sh.haven.core.local.ProotManager
-    @Inject lateinit var guestServiceManager: sh.haven.core.local.GuestServiceManager
     @Inject lateinit var sessionManagerRegistry: sh.haven.core.ssh.SessionManagerRegistry
     @Inject lateinit var backupAutoSyncScheduler: sh.haven.app.backup.BackupAutoSyncScheduler
     @Inject lateinit var backupAutoPullScheduler: sh.haven.app.backup.BackupAutoPullScheduler
     @Inject lateinit var sshTerminalEmulatorOwner: sh.haven.feature.terminal.SshTerminalEmulatorOwner
     @Inject lateinit var updateNotifier: sh.haven.app.update.UpdateNotifier
-    @Inject lateinit var usbMountCorrelator: sh.haven.app.usb.UsbMountCorrelator
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -82,10 +79,6 @@ class HavenApp : Application(), Configuration.Provider {
             UserPreferencesRepository.ThemeMode.SYSTEM
         }
         AppCompatDelegate.setDefaultNightMode(savedMode.toNightMode())
-
-        // Register Shizuku binder listeners early so the async callback
-        // has time to fire before any UI checks isShizukuAvailable().
-        sh.haven.core.local.WaylandSocketHelper.initShizukuListeners()
 
         // Recover the tombstone from any previous native crash (#509, #517).
         // Haven records its logcat from inside its own process, so a native
@@ -166,145 +159,25 @@ class HavenApp : Application(), Configuration.Provider {
             .distinctUntilChanged()
             .onEach { sh.haven.core.rdp.RdpDebugToggles.avcEnabled = it }
             .launchIn(appScope)
-
-        // Auto-detect a USB mass-storage drive on plug-in and offer (via a
-        // notification) to open it in a VM (#287). Runtime receiver — fires only
-        // while the app process is alive, so the notification tap always lands
-        // on a live UI. The open itself is still a deliberate tap, never automatic.
-        registerUsbDriveAttachReceiver()
-
-        // #603: seed the USB mount correlator's "preexisting volumes" set so
-        // the weak (no-attach-baseline) match can never claim a volume that
-        // was already mounted before this process started (e.g. a microSD).
-        appScope.launch { usbMountCorrelator.onAppStarted() }
-    }
-
-    private val usbDriveAttachReceiver = object : android.content.BroadcastReceiver() {
-        override fun onReceive(ctx: Context, intent: Intent) {
-            if (intent.action != android.hardware.usb.UsbManager.ACTION_USB_DEVICE_ATTACHED) return
-            val device: android.hardware.usb.UsbDevice? =
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                    intent.getParcelableExtra(
-                        android.hardware.usb.UsbManager.EXTRA_DEVICE,
-                        android.hardware.usb.UsbDevice::class.java,
-                    )
-                } else {
-                    @Suppress("DEPRECATION")
-                    intent.getParcelableExtra(android.hardware.usb.UsbManager.EXTRA_DEVICE)
-                }
-            if (device == null) return
-            // Off the main thread: the interface scan + notification post touch
-            // USB metadata and the NotificationManager binder, which a stalled
-            // USB stack can make block — never on the broadcast thread.
-            appScope.launch {
-                if (isMassStorageDevice(device)) {
-                    // Record the pre-mount volume set for the #603 route
-                    // correlation BEFORE vold's mount can land (it follows the
-                    // attach by ~0.5–2s). Must stay before the notification so
-                    // a slow snapshot never runs after the mount appears.
-                    usbMountCorrelator.onDeviceAttached(device.deviceName)
-                    postUsbDriveDetectedNotification(device)
-                }
-            }
-        }
-    }
-
-    private fun registerUsbDriveAttachReceiver() {
-        val filter = android.content.IntentFilter(android.hardware.usb.UsbManager.ACTION_USB_DEVICE_ATTACHED)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(usbDriveAttachReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            @Suppress("UnspecifiedRegisterReceiverFlag")
-            registerReceiver(usbDriveAttachReceiver, filter)
-        }
-    }
-
-    private fun isMassStorageDevice(device: android.hardware.usb.UsbDevice): Boolean {
-        for (i in 0 until device.interfaceCount) {
-            if (device.getInterface(i).interfaceClass == USB_CLASS_MASS_STORAGE) return true
-        }
-        return false
-    }
-
-    /**
-     * "USB drive detected — tap to open it" heads-up. The content intent carries
-     * [ACTION_OPEN_USB_DRIVE] + the device name; [MainActivity] re-publishes it
-     * onto the UI command bus (→ Desktop, open the drive). One stable id so
-     * re-plugging coalesces rather than spamming.
-     */
-    private fun postUsbDriveDetectedNotification(device: android.hardware.usb.UsbDevice) {
-        val mgr = NotificationManagerCompat.from(this)
-        if (!mgr.areNotificationsEnabled()) return
-        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (nm.getNotificationChannel(USB_DRIVE_CHANNEL_ID) == null) {
-            nm.createNotificationChannel(
-                NotificationChannel(USB_DRIVE_CHANNEL_ID, "USB drives", NotificationManager.IMPORTANCE_HIGH).apply {
-                    description = "Offers to open a plugged-in USB drive in a small Linux VM so its " +
-                        "files are readable — even Linux-formatted (ext4/GPT) drives Android can't open."
-                },
-            )
-        }
-        val launch = Intent(this, MainActivity::class.java).apply {
-            action = ACTION_OPEN_USB_DRIVE
-            putExtra(EXTRA_USB_DEVICE_NAME, device.deviceName)
-            addFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or
-                    Intent.FLAG_ACTIVITY_SINGLE_TOP,
-            )
-        }
-        val contentIntent = PendingIntent.getActivity(
-            this, ACTION_OPEN_USB_DRIVE.hashCode(), launch,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-        val name = device.productName ?: "USB drive"
-        val builder = NotificationCompat.Builder(this, USB_DRIVE_CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_menu_save)
-            .setContentTitle("USB drive detected")
-            .setContentText("Tap to open $name's files in Haven.")
-            .setStyle(
-                NotificationCompat.BigTextStyle().bigText(
-                    "Tap to open $name in a small on-device Linux VM and browse its files — even " +
-                        "Linux-formatted (ext4/GPT) drives your phone can't read directly. Read-only.",
-                ),
-            )
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setCategory(NotificationCompat.CATEGORY_RECOMMENDATION)
-            .setAutoCancel(true)
-            .setContentIntent(contentIntent)
-        try {
-            mgr.notify(USB_DRIVE_NOTIF_ID, builder.build())
-        } catch (_: SecurityException) {
-            // POST_NOTIFICATIONS revoked between the check and notify; ignore.
-        }
     }
 
     /**
      * Start [SshConnectionService] from the Application context. The
      * service's onStartCommand calls startForeground within Android's
-     * 5-second budget, so this is safe from a non-Activity context
-     * provided the MCP toggle was changed while the app is in the
-     * foreground (it always is — the toggle lives in Settings). If a
-     * background restart ever flips the preference (none currently
-     * does), the OS may refuse the start; the catch keeps Haven alive.
+     * 5-second budget, so this is safe from a non-Activity context. If the
+     * OS refuses the start (none currently does), the catch keeps Haven
+     * alive.
      */
     private fun startSessionServiceIfPossible() {
         try {
             val intent = Intent(this, sh.haven.core.ssh.SshConnectionService::class.java)
             startForegroundService(intent)
         } catch (e: Exception) {
-            android.util.Log.w("HavenApp", "startForegroundService for MCP keep-alive failed: ${e.message}")
+            android.util.Log.w("HavenApp", "startForegroundService failed: ${e.message}")
         }
     }
 
     companion object {
-        private const val USB_DRIVE_CHANNEL_ID = "haven-usb-drive-detected"
-        private const val USB_DRIVE_NOTIF_ID = 287_287
-        private const val USB_CLASS_MASS_STORAGE = 8
-
-        /** Explicit-intent action on the "USB drive detected" notification tap. */
-        const val ACTION_OPEN_USB_DRIVE = "sh.haven.app.action.OPEN_USB_DRIVE"
-        const val EXTRA_USB_DEVICE_NAME = "sh.haven.app.extra.USB_DEVICE_NAME"
     }
 }
 

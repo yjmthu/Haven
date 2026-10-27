@@ -65,7 +65,6 @@ class MainActivity : AppCompatActivity() {
     // be enabled during FIDO2 SSH assertions. Without this, Nitrokey /
     // SoloKey / YubiKey-over-NFC flows never saw a Tag (#15).
     @Inject lateinit var fidoAuthenticator: FidoAuthenticator
-    @Inject lateinit var prootIdleReaper: ProotIdleReaper
     // Cross-tab navigation verbs: HavenNavHost collects from this so an
     // MCP `navigate_sftp_browser` switches the pager to the right tab.
     @Inject lateinit var agentUiCommandBus: sh.haven.core.data.agent.AgentUiCommandBus
@@ -85,9 +84,6 @@ class MainActivity : AppCompatActivity() {
     // long-press shortcut routes the workspace id through onCreate /
     // onNewIntent.
     @Inject lateinit var workspaceLauncher: sh.haven.app.workspace.WorkspaceLauncher
-    // App-window launcher (singleton) — invoked when a home-screen pinned
-    // shortcut routes an app-window def id through onCreate / onNewIntent.
-    @Inject lateinit var appWindowLauncher: sh.haven.app.desktop.AppWindowLauncher
 
     @Inject lateinit var taskerOverlayCoordinator: sh.haven.app.tasker.TaskerOverlayCoordinator
 
@@ -124,13 +120,11 @@ class MainActivity : AppCompatActivity() {
         exitIfDisconnected()
         fidoAuthenticator.setActiveActivity(this)
         biometricGate.setForegroundActive(true)
-        prootIdleReaper.onForeground()
     }
 
     override fun onPause() {
         fidoAuthenticator.clearActiveActivity(this)
         biometricGate.setForegroundActive(false)
-        prootIdleReaper.onBackground()
         super.onPause()
     }
 
@@ -143,11 +137,9 @@ class MainActivity : AppCompatActivity() {
         exitIfDisconnected()
         handleWorkspaceShortcut(intent)
         handleConnectionShortcut(intent)
-        handleAppWindowShortcut(intent)
         handleRenewCertDeepLink(intent)
         handleConnectDeepLink(intent)
         handleStandardSchemeDeepLink(intent)
-        handleOpenUsbDriveIntent(intent)
         handleTaskerRunIntent(intent)
         handleBackupShortcutIntent(intent)
     }
@@ -179,35 +171,6 @@ class MainActivity : AppCompatActivity() {
      * tap that cold-starts Haven still opens the app. The extra is cleared
      * once consumed so a configuration change doesn't relaunch.
      */
-    private fun handleAppWindowShortcut(intent: Intent?) {
-        if (intent?.action != sh.haven.app.desktop.AppWindowShortcutManager.ACTION_LAUNCH_APP_WINDOW) return
-        val defId = intent.getStringExtra(
-            sh.haven.app.desktop.AppWindowShortcutManager.EXTRA_APP_WINDOW_ID,
-        ) ?: return
-        intent.removeExtra(sh.haven.app.desktop.AppWindowShortcutManager.EXTRA_APP_WINDOW_ID)
-        Log.d("MainActivity", "launching app window $defId from shortcut")
-        MainScope().launch {
-            appWindowLauncher.launchById(defId)?.let { userMessageBus.error(it) }
-        }
-    }
-
-    /**
-     * Handle the "USB drive detected" notification tap (#287): [HavenApp]'s
-     * mass-storage attach receiver posts a notification whose content intent
-     * carries [HavenApp.ACTION_OPEN_USB_DRIVE]. Re-publish onto the UI command
-     * bus so HavenNavHost switches to Desktop and DesktopViewModel opens the
-     * drive — the same flow as the in-app "Open USB drive…" tap. The receiver
-     * only fires while the app process is alive, so this lands on a live UI.
-     */
-    private fun handleOpenUsbDriveIntent(intent: Intent?) {
-        if (intent?.action != HavenApp.ACTION_OPEN_USB_DRIVE) return
-        val device = intent.getStringExtra(HavenApp.EXTRA_USB_DEVICE_NAME)
-        intent.removeExtra(HavenApp.EXTRA_USB_DEVICE_NAME)
-        intent.action = null
-        Log.d("MainActivity", "open-usb-drive intent for ${device ?: "(sole drive)"}")
-        agentUiCommandBus.emit(sh.haven.core.data.agent.AgentUiCommand.OpenUsbDrive(device))
-    }
-
     /**
      * Parse `haven://renew-cert/<keyId>` deep links posted by
      * [sh.haven.core.stepca.RenewalNotifier] and re-publish onto the
@@ -357,11 +320,9 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         handleWorkspaceShortcut(intent)
         handleConnectionShortcut(intent)
-        handleAppWindowShortcut(intent)
         handleRenewCertDeepLink(intent)
         handleConnectDeepLink(intent)
         handleStandardSchemeDeepLink(intent)
-        handleOpenUsbDriveIntent(intent)
         handleTaskerRunIntent(intent)
         handleBackupShortcutIntent(intent)
         setContent {

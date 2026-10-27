@@ -186,8 +186,6 @@ fun SettingsScreen(
     val updateCheckEnabled by viewModel.updateCheckEnabled.collectAsState()
     val updateCheckResult by viewModel.updateCheckResult.collectAsState()
     val updateCheckRunning by viewModel.updateCheckRunning.collectAsState()
-    val showLinuxVmCard by viewModel.showLinuxVmCard.collectAsState()
-    val showDesktopsCard by viewModel.showDesktopsCard.collectAsState()
     val lockTimeout by viewModel.lockTimeout.collectAsState()
     val fontSize by viewModel.terminalFontSize.collectAsState()
     val horizontalPadding by viewModel.terminalHorizontalPadding.collectAsState()
@@ -222,7 +220,6 @@ fun SettingsScreen(
     val mouseInputEnabled by viewModel.mouseInputEnabled.collectAsState()
     val remoteClipboardToLocal by viewModel.remoteClipboardToLocalEnabled.collectAsState()
     val desktopInputMode by viewModel.desktopInputMode.collectAsState()
-    val gpuUseVenus by viewModel.gpuUseVenus.collectAsState()
     val bandwidthAutoSuggest by viewModel.bandwidthAutoSuggest.collectAsState()
     val terminalRightClick by viewModel.terminalRightClick.collectAsState()
     val terminalSwipeArrows by viewModel.terminalSwipeArrows.collectAsState()
@@ -238,12 +235,10 @@ fun SettingsScreen(
     val terminalInlineImages by viewModel.terminalInlineImages.collectAsState()
     val showTerminalTabBar by viewModel.showTerminalTabBar.collectAsState()
     val backupStatus by viewModel.backupStatus.collectAsState()
-    val waylandShellCommand by viewModel.waylandShellCommand.collectAsState()
     val mediaExtensions by viewModel.mediaExtensions.collectAsState()
     val terminalPromptChars by viewModel.terminalPromptChars.collectAsState()
     val terminalLocale by viewModel.terminalLocale.collectAsState()
     var showAuditLog by remember { mutableStateOf(false) }
-    var showProotInstallLog by remember { mutableStateOf(false) }
     var showFontUrlDialog by remember { mutableStateOf(false) }
     var showRecommendedFontsDialog by remember { mutableStateOf(false) }
     // Lifted to SettingsScreen scope so a dialog's confirm handler can
@@ -254,9 +249,6 @@ fun SettingsScreen(
     // the launched coroutine produced anything — silent install bug.
     val settingsScope = rememberCoroutineScope()
     var showLanguageDialog by remember { mutableStateOf(false) }
-    var showWaylandShellDialog by remember { mutableStateOf(false) }
-    var showProotIdleDialog by remember { mutableStateOf(false) }
-    val prootIdleMinutes by viewModel.prootIdleTimeoutMinutes.collectAsState()
     var showMediaExtensionsDialog by remember { mutableStateOf(false) }
     var showPromptCharsDialog by remember { mutableStateOf(false) }
     var showLocaleDialog by remember { mutableStateOf(false) }
@@ -392,10 +384,6 @@ fun SettingsScreen(
 
     if (showAuditLog) {
         AuditLogScreen(onBack = { showAuditLog = false })
-        return
-    }
-    if (showProotInstallLog) {
-        ProotInstallLogScreen(onBack = { showProotInstallLog = false })
         return
     }
     if (showFontUrlDialog) {
@@ -877,16 +865,6 @@ fun SettingsScreen(
                 viewModel.setDesktopInputMode(if (enabled) "TOUCHPAD" else "DIRECT")
             },
         )
-        // Selects the GPU stack for the native compositor.
-        if (nativeFeatures.wayland) {
-            SettingsToggleItem(
-                icon = Icons.Filled.DesktopWindows,
-                title = stringResource(R.string.settings_gpu_venus_title),
-                subtitle = stringResource(R.string.settings_gpu_venus_subtitle),
-                checked = gpuUseVenus,
-                onCheckedChange = viewModel::setGpuUseVenus,
-            )
-        }
         SettingsToggleItem(
             icon = Icons.Filled.CloudDownload,
             title = stringResource(R.string.settings_bandwidth_suggest_title),
@@ -897,43 +875,6 @@ fun SettingsScreen(
 
         }
         CollapsibleSettingsSection(stringResource(R.string.settings_section_connections_screen), settingsExpanded[5], { settingsExpanded[5] = !settingsExpanded[5] }) {
-        SettingsToggleItem(
-            icon = Icons.Filled.DesktopWindows,
-            title = stringResource(R.string.settings_show_desktops_title),
-            subtitle = stringResource(R.string.settings_show_desktops_subtitle),
-            checked = showDesktopsCard,
-            onCheckedChange = viewModel::setShowDesktopsCard,
-        )
-        SettingsToggleItem(
-            icon = Icons.Filled.Laptop,
-            title = stringResource(R.string.settings_show_linux_vm_title),
-            subtitle = stringResource(R.string.settings_show_linux_vm_subtitle),
-            checked = showLinuxVmCard,
-            onCheckedChange = viewModel::setShowLinuxVmCard,
-        )
-        // USB-to-guest is a privileged capability: once on, any app in the
-        // Linux guest can reach a USB device the agent attaches. Off by
-        // default; each attach still asks for consent on top of this.
-        val usbGuestExposure by viewModel.usbGuestExposureEnabled.collectAsState()
-        SettingsToggleItem(
-            icon = Icons.Filled.Usb,
-            title = stringResource(R.string.settings_usb_guest_title),
-            subtitle = stringResource(R.string.settings_usb_guest_subtitle),
-            checked = usbGuestExposure,
-            onCheckedChange = viewModel::setUsbGuestExposureEnabled,
-        )
-        // GPS-to-guest mirrors the USB toggle: once on, any process in the
-        // Linux guest can read the phone's GPS position via the NMEA bridge.
-        // Off by default; each attach still asks for consent on top of this.
-        val gpsGuestExposure by viewModel.gpsGuestExposureEnabled.collectAsState()
-        SettingsToggleItem(
-            icon = Icons.Filled.LocationOn,
-            title = stringResource(R.string.settings_gps_guest_title),
-            subtitle = stringResource(R.string.settings_gps_guest_subtitle),
-            checked = gpsGuestExposure,
-            onCheckedChange = viewModel::setGpsGuestExposureEnabled,
-        )
-
         // Tailscale peer discovery (#654): off stops the quad-100 LocalAPI
         // probe reading the peer list during scans; Tailscale itself is
         // untouched. On by default to keep the scan behaviour unchanged.
@@ -944,18 +885,6 @@ fun SettingsScreen(
             subtitle = stringResource(R.string.settings_tailscale_discovery_subtitle),
             checked = tailscaleDiscovery,
             onCheckedChange = viewModel::setTailscaleDiscoveryEnabled,
-        )
-
-        // Audio bridge (#257): play Linux app sound through the speaker via an
-        // in-guest PulseAudio daemon. Experimental — streams continuously while
-        // on, so it's off by default.
-        val audioBridge by viewModel.audioBridgeEnabled.collectAsState()
-        SettingsToggleItem(
-            icon = Icons.Filled.VolumeUp,
-            title = stringResource(R.string.settings_audio_bridge_title),
-            subtitle = stringResource(R.string.settings_audio_bridge_subtitle),
-            checked = audioBridge,
-            onCheckedChange = viewModel::setAudioBridgeEnabled,
         )
 
         }
@@ -994,12 +923,6 @@ fun SettingsScreen(
                 subtitle = stringResource(R.string.settings_view_connection_log_subtitle),
                 onClick = { showAuditLog = true },
             )
-            SettingsItem(
-                icon = Icons.Filled.ListAlt,
-                title = stringResource(R.string.settings_proot_install_log_title),
-                subtitle = stringResource(R.string.settings_proot_install_log_subtitle),
-                onClick = { showProotInstallLog = true },
-            )
             SettingsToggleItem(
                 icon = Icons.Filled.BugReport,
                 title = stringResource(R.string.settings_verbose_logging_title),
@@ -1008,127 +931,8 @@ fun SettingsScreen(
                 onCheckedChange = viewModel::setVerboseLoggingEnabled,
             )
         }
-        run {
-            val context = LocalContext.current
-            val helper = sh.haven.core.local.WaylandSocketHelper
-            var capturing by remember { mutableStateOf(helper.isCapturingLogcat) }
-            // Hoisted out of the onClick callback (lint LocalContextGetResourceValueCall).
-            val logcatSavedMsg = stringResource(R.string.settings_logcat_saved_toast)
-            val logcatStartedMsg = stringResource(R.string.settings_logcat_started_toast)
-            val logcatStartFailedMsg = stringResource(R.string.settings_logcat_start_failed_toast)
-            SettingsItem(
-                icon = Icons.Filled.BugReport,
-                title = stringResource(R.string.settings_logcat_capture_title),
-                subtitle = if (capturing)
-                    stringResource(R.string.settings_logcat_capture_subtitle_on)
-                else
-                    stringResource(R.string.settings_logcat_capture_subtitle_off),
-                onClick = {
-                    if (capturing) {
-                        helper.stopLogcatCapture()
-                        capturing = false
-                        Toast.makeText(context, logcatSavedMsg, Toast.LENGTH_SHORT).show()
-                    } else {
-                        capturing = helper.startLogcatCapture()
-                        if (capturing) {
-                            Toast.makeText(context, logcatStartedMsg, Toast.LENGTH_SHORT).show()
-                        } else {
-                            Toast.makeText(context, logcatStartFailedMsg, Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                },
-            )
-        }
-
         }
         CollapsibleSettingsSection(stringResource(R.string.settings_section_advanced), settingsExpanded[7], { settingsExpanded[7] = !settingsExpanded[7] }) {
-        // The command the native compositor launches.
-        if (nativeFeatures.wayland) {
-            SettingsItem(
-                icon = Icons.Filled.DesktopWindows,
-                title = stringResource(R.string.settings_wayland_shell_title),
-                subtitle = waylandShellCommand,
-                onClick = { showWaylandShellDialog = true },
-            )
-        }
-        SettingsItem(
-            icon = Icons.Filled.Timer,
-            title = stringResource(R.string.settings_proot_idle_title),
-            subtitle = if (prootIdleMinutes <= 0) {
-                stringResource(R.string.settings_proot_idle_off)
-            } else {
-                stringResource(R.string.settings_proot_idle_on, prootIdleMinutes)
-            },
-            onClick = { showProotIdleDialog = true },
-        )
-        run {
-            val context = LocalContext.current
-            val helper = sh.haven.core.local.WaylandSocketHelper
-            val shizukuRunning = helper.isShizukuAvailable()
-            val shizukuInstalled = shizukuRunning || helper.isShizukuInstalled(context)
-            val shizukuGranted = shizukuRunning && helper.hasShizukuPermission()
-            SettingsItem(
-                icon = Icons.Filled.DesktopWindows,
-                title = stringResource(R.string.settings_shizuku_title),
-                subtitle = when {
-                    shizukuGranted -> stringResource(R.string.settings_shizuku_enabled)
-                    shizukuRunning -> stringResource(R.string.settings_shizuku_available)
-                    shizukuInstalled -> stringResource(R.string.settings_shizuku_not_running)
-                    else -> stringResource(R.string.settings_shizuku_not_installed)
-                },
-                onClick = {
-                    when {
-                        shizukuRunning && !shizukuGranted -> {
-                            helper.requestPermission()
-                        }
-                        shizukuInstalled && !shizukuRunning -> {
-                            // Open Shizuku app so user can start it
-                            val intent = context.packageManager.getLaunchIntentForPackage(
-                                "moe.shizuku.privileged.api"
-                            )
-                            if (intent != null) {
-                                context.startActivity(intent)
-                            }
-                        }
-                        !shizukuInstalled -> {
-                            // Open Play Store or browser
-                            val intent = android.content.Intent(
-                                android.content.Intent.ACTION_VIEW,
-                                android.net.Uri.parse("market://details?id=moe.shizuku.privileged.api"),
-                            )
-                            if (intent.resolveActivity(context.packageManager) != null) {
-                                context.startActivity(intent)
-                            } else {
-                                context.startActivity(android.content.Intent(
-                                    android.content.Intent.ACTION_VIEW,
-                                    android.net.Uri.parse("https://shizuku.rikka.app/download/"),
-                                ))
-                            }
-                        }
-                    }
-                },
-            )
-        }
-
-        // Hide the task card from recents while sessions keep running (#239).
-        SettingsToggleItem(
-            icon = Icons.Filled.VisibilityOff,
-            title = stringResource(R.string.settings_exclude_recents_title),
-            subtitle = stringResource(R.string.settings_exclude_recents_subtitle),
-            checked = excludeFromRecents,
-            onCheckedChange = viewModel::setExcludeFromRecents,
-        )
-
-        // Media extensions stays in Advanced.
-        // Which file extensions get ffmpeg previews and streaming.
-        if (nativeFeatures.ffmpeg) {
-            SettingsItem(
-                icon = Icons.Filled.PlayArrow,
-                title = stringResource(R.string.settings_media_extensions_title),
-                subtitle = mediaExtensions,
-                onClick = { showMediaExtensionsDialog = true },
-            )
-        }
         }
 
         CollapsibleSettingsSection(stringResource(R.string.settings_section_backup), settingsExpanded[8], { settingsExpanded[8] = !settingsExpanded[8] }) {
@@ -1427,46 +1231,6 @@ fun SettingsScreen(
         )
     }
 
-    if (showWaylandShellDialog) {
-        var shellCmd by rememberSaveable { mutableStateOf(waylandShellCommand) }
-        val shellOptions = listOf("/bin/sh -l", "/bin/ash -l", "/bin/bash -l", "/bin/zsh", "/bin/fish")
-        AlertDialog(
-            onDismissRequest = { showWaylandShellDialog = false },
-            title = { Text(stringResource(R.string.settings_wayland_dialog_title)) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        stringResource(R.string.settings_wayland_dialog_description),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    OutlinedTextField(
-                        value = shellCmd,
-                        onValueChange = { v -> shellCmd = v },
-                        label = { Text(stringResource(R.string.settings_wayland_shell_command_label)) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    shellOptions.forEach { option ->
-                        FilterChip(
-                            selected = shellCmd == option,
-                            onClick = { shellCmd = option },
-                            label = { Text(option) },
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.setWaylandShellCommand(shellCmd)
-                    showWaylandShellDialog = false
-                }) { Text(stringResource(R.string.common_save)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showWaylandShellDialog = false }) { Text(stringResource(R.string.common_cancel)) }
-            },
-        )
-    }
-
     if (showMediaExtensionsDialog) {
         var extText by rememberSaveable { mutableStateOf(mediaExtensions) }
         AlertDialog(
@@ -1750,17 +1514,6 @@ fun SettingsScreen(
             onConfirm = { newRows ->
                 viewModel.setTerminalScrollbackRows(newRows)
                 showScrollbackRowsDialog = false
-            },
-        )
-    }
-
-    if (showProotIdleDialog) {
-        ProotIdleTimeoutDialog(
-            currentMinutes = prootIdleMinutes,
-            onDismiss = { showProotIdleDialog = false },
-            onConfirm = { minutes ->
-                viewModel.setProotIdleTimeoutMinutes(minutes)
-                showProotIdleDialog = false
             },
         )
     }
@@ -2300,7 +2053,6 @@ private fun AboutDialog(
                     "JSch" to "SSH/SFTP protocol — BSD",
                     "smbj" to "SMB/CIFS protocol — Apache-2.0",
                     "ConnectBot termlib" to "Terminal emulator — Apache-2.0",
-                    "PRoot" to "Local Linux shell — GPL-2.0",
                     "Jetpack Compose" to "UI toolkit — Apache-2.0",
                     "Hack Nerd Font Mono" to "Terminal default font — Hack (MIT/Bitstream Vera) + Nerd Fonts patcher (MIT) + Font Awesome (CC-BY 4.0) + Material Design Icons (Apache-2.0) + Devicons/Octicons/Codicons/Powerline/Pomicons/Seti UI (MIT) + Weather Icons (SIL OFL 1.1) + IEC Power Symbols (Public Domain). See NOTICE-Fonts.md.",
                 )
@@ -2981,62 +2733,6 @@ private fun ScrollbackRowsDialog(
     )
 }
 
-/**
- * Idle-timeout picker for the PRoot auto-stop (#409). Presets in minutes; 0 = off.
- */
-@Composable
-private fun ProotIdleTimeoutDialog(
-    currentMinutes: Int,
-    onDismiss: () -> Unit,
-    onConfirm: (Int) -> Unit,
-) {
-    val presets = listOf(0, 5, 15, 30, 60)
-    var selected by remember { mutableIntStateOf(currentMinutes) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.settings_proot_idle_dialog_title)) },
-        text = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = stringResource(R.string.settings_proot_idle_dialog_body),
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(bottom = 12.dp),
-                )
-                presets.forEach { preset ->
-                    val label = if (preset <= 0) {
-                        stringResource(R.string.settings_proot_idle_off_label)
-                    } else {
-                        pluralStringResource(R.plurals.settings_proot_idle_minutes, preset, preset)
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { selected = preset }
-                            .padding(vertical = 6.dp),
-                    ) {
-                        RadioButton(
-                            selected = selected == preset,
-                            onClick = { selected = preset },
-                        )
-                        Text(label, modifier = Modifier.padding(start = 8.dp))
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(selected) }) {
-                Text(stringResource(R.string.common_ok))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_cancel))
-            }
-        },
-    )
-}
 
 /**
  * Section header rendered above a group of settings rows. Replaces
@@ -3938,76 +3634,6 @@ private fun ToolbarKeyRow(
     }
 }
 
-@Composable
-private fun DevInstallDialog(
-    context: Context,
-    onDismiss: () -> Unit,
-) {
-    var url by rememberSaveable { mutableStateOf("http://192.168.0.:8080/haven-debug.apk") }
-    var status by remember { mutableStateOf<String?>(null) }
-    var installing by remember { mutableStateOf(false) }
-
-    AlertDialog(
-        onDismissRequest = { if (!installing) onDismiss() },
-        title = { Text(stringResource(R.string.settings_dev_install_title)) },
-        text = {
-            Column {
-                Text(
-                    "Download and install APK via Shizuku.\nServe with: python3 -m http.server 8080",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.height(12.dp))
-                OutlinedTextField(
-                    value = url,
-                    onValueChange = { url = it },
-                    label = { Text(stringResource(R.string.settings_dev_install_apk_url)) },
-                    singleLine = true,
-                    enabled = !installing,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                if (status != null) {
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        status!!,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (status!!.startsWith("Error") || status!!.startsWith("pm install"))
-                            MaterialTheme.colorScheme.error
-                        else MaterialTheme.colorScheme.primary,
-                    )
-                }
-                if (installing) {
-                    Spacer(Modifier.height(8.dp))
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    installing = true
-                    status = "Starting..."
-                    sh.haven.core.local.WaylandSocketHelper.installApkFromUrl(
-                        context = context,
-                        url = url.trim(),
-                        onProgress = { msg -> status = msg },
-                        onResult = { success, msg ->
-                            status = msg
-                            installing = false
-                        },
-                    )
-                },
-                enabled = !installing && url.isNotBlank(),
-            ) { Text(stringResource(R.string.common_install)) }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = onDismiss,
-                enabled = !installing,
-            ) { Text(stringResource(R.string.common_cancel)) }
-        },
-    )
-}
 
 /**
  * Dialog asking the user for a TTF/OTF URL. The actual download +

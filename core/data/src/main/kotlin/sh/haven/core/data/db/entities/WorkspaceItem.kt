@@ -8,11 +8,12 @@ import java.util.UUID
 
 /**
  * One launchable element of a [WorkspaceProfile]. The [kind] dictates
- * how the launcher dispatches it; [connectionProfileId] is required for
- * every kind except [Kind.WAYLAND] and is `SET_NULL`-ed when its
- * profile is deleted (the launcher reports such items as failed rather
- * than silently dropping them, so the workspace stays whole).
+ * how the launcher dispatches it; [connectionProfileId] is required and
+ * is `SET_NULL`-ed when its profile is deleted (the launcher reports
+ * such items as failed rather than silently dropping them, so the
+ * workspace stays whole).
  */
+@androidx.room.TypeConverters(WorkspaceKindConverter::class)
 @Entity(
     tableName = "workspace_item",
     foreignKeys = [
@@ -52,7 +53,7 @@ data class WorkspaceItem(
     val sortOrder: Int = 0,
 ) {
     /**
-     * The four launchable surfaces a workspace can compose. The
+     * The launchable surfaces a workspace can compose. The
      * underlying transport (SSH vs. Mosh vs. ET, SFTP vs. SMB vs.
      * Rclone, VNC vs. RDP) derives from the referenced
      * [ConnectionProfile.connectionType], so adding a new transport in
@@ -62,6 +63,22 @@ data class WorkspaceItem(
         TERMINAL,
         FILE_BROWSER,
         DESKTOP,
-        WAYLAND,
     }
+}
+
+/**
+ * Stores [WorkspaceItem.Kind] by name and degrades unknown legacy values
+ * (a kind a build no longer ships) to [WorkspaceItem.Kind.TERMINAL] instead
+ * of throwing while the repository reads the row.
+ */
+object WorkspaceKindConverter {
+    @androidx.room.TypeConverter
+    @JvmStatic
+    fun fromKind(kind: WorkspaceItem.Kind): String = kind.name
+
+    @androidx.room.TypeConverter
+    @JvmStatic
+    fun toKind(value: String): WorkspaceItem.Kind =
+        WorkspaceItem.Kind.entries.firstOrNull { it.name == value }
+            ?: WorkspaceItem.Kind.TERMINAL
 }

@@ -41,4 +41,4 @@ enum class SessionStatus { CONNECTING, CONNECTED, RECONNECTING, DISCONNECTED, ER
 // LOCAL pattern but runs a real kernel as its process.
 // OPENAI is last for the same reason as RCLONE/GUEST (ordinals load-bearing):
 // an HTTP client session — no terminal, no input.
-enum class Transport { SSH, MOSH, ET, LOCAL, RDP, SMB, BTSERIAL, BLESERIAL, USBSERIAL, RCLONE, GUEST }
+enum class Transport { SSH, MOSH, ET, RDP, SMB, BTSERIAL, BLESERIAL, USBSERIAL, RCLONE }

@@ -15,15 +15,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import java.util.concurrent.atomic.AtomicInteger
 import org.json.JSONObject
-import java.io.BufferedReader
-import java.io.FileReader
 import java.net.HttpURLConnection
 import java.net.Inet4Address
 import java.net.InetSocketAddress
@@ -41,15 +37,6 @@ data class DiscoveredHost(
     val source: String, // "mDNS", "scan", "jump", "tailscale", or "localhost"
 )
 
-data class LocalVmStatus(
-    val terminalAppInstalled: Boolean = false,
-    val sshPort: Int? = null,
-    val vncPort: Int? = null,
-    val directIp: String? = null,
-    val directSshPort: Int? = null,
-    val directVncPort: Int? = null,
-)
-
 /**
  * Discovers SSH hosts on the local network via:
  * 1. mDNS/DNS-SD: listens for _ssh._tcp services (Avahi/Bonjour)
@@ -62,9 +49,6 @@ class NetworkDiscovery(private val context: Context) {
 
     private val _smbHosts = MutableStateFlow<List<DiscoveredHost>>(emptyList())
     val smbHosts: StateFlow<List<DiscoveredHost>> = _smbHosts.asStateFlow()
-
-    private val _localVm = MutableStateFlow(LocalVmStatus())
-    val localVm: StateFlow<LocalVmStatus> = _localVm.asStateFlow()
 
     /**
      * Master switch for the Tailscale LocalAPI probe (#654). Set from the
@@ -82,14 +66,12 @@ class NetworkDiscovery(private val context: Context) {
     private val tailscaleHosts = mutableSetOf<DiscoveredHost>()
     private val smbScanHosts = mutableSetOf<DiscoveredHost>()
     private val jumpHosts = mutableSetOf<DiscoveredHost>()
-    private var vmPollingJob: Job? = null
 
     fun start() {
         startMdns()
     }
 
     fun stop() {
-        stopVmPolling()
         stopMdns()
         mdnsHosts.clear()
         arpHosts.clear()
@@ -98,164 +80,6 @@ class NetworkDiscovery(private val context: Context) {
         smbScanHosts.clear()
         _hosts.value = emptyList()
         _smbHosts.value = emptyList()
-        _localVm.value = LocalVmStatus()
-    }
-
-    fun startVmPolling(scope: kotlinx.coroutines.CoroutineScope) {
-        stopVmPolling()
-        vmPollingJob = scope.launch {
-            while (true) {
-                scanLocalVm()
-                delay(5_000)
-            }
-        }
-    }
-
-    fun stopVmPolling() {
-        vmPollingJob?.cancel()
-        vmPollingJob = null
-    }
-
-    /**
-     * Probe localhost for SSH/VNC ports commonly used by the Android Linux VM.
-     * The Terminal app auto-forwards guest TCP ports to localhost via vsock.
-     * Also probes the VM's direct IP on the avf_tap_fixed interface.
-     */
-    suspend fun scanLocalVm() {
-        withContext(Dispatchers.IO) {
-            val terminalInstalled = isTerminalAppInstalled()
-            // Use 100ms timeout for localhost — connections are instant or not there
-            val sshPorts = listOf(8022, 2222, 22)
-            val vncPorts = listOf(5900, 5901, 5902)
-
-            // Probe localhost forwarded ports
-            var sshPort = sshPorts.firstOrNull { probePort("127.0.0.1", it, 100) }
-            var vncPort = vncPorts.firstOrNull { probePort("127.0.0.1", it, 100) }
-
-            // If no localhost SSH but VM exists, try auto-forwarding via Shizuku
-            if (sshPort == null && terminalInstalled) {
-                val helper = sh.haven.core.local.WaylandSocketHelper
-                if (helper.isShizukuAvailable() && helper.hasShizukuPermission()) {
-                    if (helper.tryVsockForward(8022, 22)) {
-                        // Give socat a moment to bind
-                        kotlinx.coroutines.delay(200)
-                        if (probePort("127.0.0.1", 8022, 200)) {
-                            sshPort = 8022
-                            Log.i(TAG, "Auto-forwarded VM SSH via Shizuku: localhost:8022 → vsock:2:22")
-                        }
-                    }
-                }
-            }
-
-            // Probe VM's direct IP (avf_tap_fixed interface)
-            val vmIp = discoverVmDirectIp()
-            var directSshPort: Int? = null
-            var directVncPort: Int? = null
-            if (vmIp != null) {
-                directSshPort = if (probePort(vmIp, 22, 100)) 22 else null
-                directVncPort = vncPorts.firstOrNull { probePort(vmIp, it, 100) }
-            }
-
-            _localVm.value = LocalVmStatus(
-                terminalAppInstalled = terminalInstalled,
-                sshPort = sshPort,
-                vncPort = vncPort,
-                directIp = if (directSshPort != null || directVncPort != null) vmIp else null,
-                directSshPort = directSshPort,
-                directVncPort = directVncPort,
-            )
-            if (terminalInstalled) {
-                Log.d(TAG, "Android Terminal app detected")
-            }
-            if (sshPort != null) {
-                Log.d(TAG, "Local VM SSH detected on port $sshPort")
-            }
-            if (vncPort != null) {
-                Log.d(TAG, "Local VM VNC detected on port $vncPort")
-            }
-            if (vmIp != null && (directSshPort != null || directVncPort != null)) {
-                Log.d(TAG, "VM direct IP $vmIp: SSH=$directSshPort VNC=$directVncPort")
-            }
-        }
-    }
-
-    /**
-     * Discover the VM's direct IP by reading /proc/net/route for avf_tap interfaces.
-     * SELinux blocks /proc/net/route on Android 14+ for untrusted_app, so we try
-     * Shizuku first (reads via shell context), then fall back to direct read.
-     */
-    private fun discoverVmDirectIp(): String? {
-        // Try via Shizuku first (bypasses SELinux proc_net restriction)
-        val helper = sh.haven.core.local.WaylandSocketHelper
-        if (helper.isShizukuAvailable() && helper.hasShizukuPermission()) {
-            try {
-                val method = Class.forName("rikka.shizuku.Shizuku")
-                    .getDeclaredMethod("newProcess", Array<String>::class.java, Array<String>::class.java, String::class.java)
-                method.isAccessible = true
-                val process = method.invoke(null, arrayOf("sh", "-c", "cat /proc/net/route"), null, null) as Process
-                val output = process.inputStream.bufferedReader().readText()
-                process.waitFor()
-                val ip = parseRouteTable(output)
-                if (ip != null) return ip
-            } catch (e: Exception) {
-                Log.d(TAG, "Shizuku route read failed: ${e.message}")
-            }
-        }
-
-        // Fall back to direct read (works on Android < 14 or permissive SELinux)
-        return try {
-            val output = BufferedReader(FileReader("/proc/net/route")).use { it.readText() }
-            parseRouteTable(output)
-        } catch (_: Exception) {
-            null
-        }
-    }
-
-    /** Parse /proc/net/route text for avf_tap interfaces and return the VM IP. */
-    private fun parseRouteTable(routeText: String): String? {
-        for (line in routeText.lines().drop(1)) { // skip header
-            val fields = line.split("\t")
-            if (fields.size >= 3 && fields[0].startsWith("avf_tap")) {
-                val gatewayHex = fields[2]
-                if (gatewayHex != "00000000") {
-                    val ip = hexToIp(gatewayHex)
-                    if (ip != null) return ip
-                }
-                val destHex = fields[1]
-                if (destHex != "00000000") {
-                    val baseIp = hexToIp(destHex)
-                    if (baseIp != null) {
-                        val parts = baseIp.split(".")
-                        if (parts.size == 4) {
-                            return "${parts[0]}.${parts[1]}.${parts[2]}.2"
-                        }
-                    }
-                }
-            }
-        }
-        return null
-    }
-
-    /** Convert little-endian hex IP from /proc/net/route to dotted notation. */
-    private fun hexToIp(hex: String): String? {
-        if (hex.length != 8) return null
-        return try {
-            val n = hex.toLong(16)
-            "${n and 0xFF}.${(n shr 8) and 0xFF}.${(n shr 16) and 0xFF}.${(n shr 24) and 0xFF}"
-        } catch (_: Exception) {
-            null
-        }
-    }
-
-    private fun isTerminalAppInstalled(): Boolean {
-        return try {
-            context.packageManager.getPackageInfo(
-                "com.android.virtualization.terminal", 0,
-            )
-            true
-        } catch (_: Exception) {
-            false
-        }
     }
 
     private fun isTailscaleAppInstalled(): Boolean {

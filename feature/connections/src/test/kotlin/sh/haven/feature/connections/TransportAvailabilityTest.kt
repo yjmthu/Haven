@@ -15,8 +15,6 @@ class TransportAvailabilityTest {
     private val all = listOf(
         "SSH" to "SSH",
         "MOSH" to "Mosh",
-        "LOCAL" to "Local Shell (PRoot)",
-        "GUEST" to "Linux Guest (UML)",
         "VNC" to "VNC (Desktop)",
         "RDP" to "RDP (Desktop)",
         "SMB" to "SMB (File Share)",
@@ -26,8 +24,7 @@ class TransportAvailabilityTest {
     private fun values(
         rdp: Boolean,
         rclone: Boolean = true,
-        uml: Boolean = true,
-    ) = TransportAvailability.offered(all, rdp, rclone, uml).map { it.first }
+    ) = TransportAvailability.offered(all, rdp, rclone).map { it.first }
 
     @Test
     fun `a full build offers everything`() {
@@ -52,7 +49,7 @@ class TransportAvailabilityTest {
         val offered = values(rdp = false)
 
         assertEquals(
-            listOf("SSH", "MOSH", "LOCAL", "GUEST", "VNC", "SMB", "RCLONE"),
+            listOf("SSH", "MOSH", "VNC", "SMB", "RCLONE"),
             offered,
         )
         assertTrue("VNC must survive", "VNC" in offered)
@@ -62,22 +59,9 @@ class TransportAvailabilityTest {
     @Test
     fun `order is preserved`() {
         assertEquals(
-            listOf("SSH", "MOSH", "LOCAL", "GUEST", "VNC", "RDP", "SMB", "RCLONE"),
+            listOf("SSH", "MOSH", "VNC", "RDP", "SMB", "RCLONE"),
             values(rdp = true),
         )
-    }
-
-    /**
-     * Like RDP, the guest is gated on a missing file (libvmlinux.so) —
-     * the terminal flavour drops the kernel and F-Droid builds skip the fetch.
-     */
-    @Test
-    fun `a build without the UML payload drops the guest transport`() {
-        val offered = values(rdp = true, uml = false)
-
-        assertFalse("GUEST", "GUEST" in offered)
-        assertTrue("LOCAL should survive", "LOCAL" in offered)
-        assertTrue("SSH should survive", "SSH" in offered)
     }
 
     /**

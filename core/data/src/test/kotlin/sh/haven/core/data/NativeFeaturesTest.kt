@@ -44,23 +44,7 @@ class NativeFeaturesTest {
 
         assertFalse("rdp", f.rdp)
         assertFalse("ffmpeg", f.ffmpeg)
-        assertFalse("wayland", f.wayland)
         assertFalse("anyDesktop", f.anyDesktop)
-    }
-
-    /**
-     * Wayland is detected from the library file rather than from
-     * WaylandBridge.available, so asking the question never dlopens the
-     * compositor — which matters because Settings asks it just to decide
-     * whether to draw a row.
-     */
-    @Test
-    fun `wayland is reported from the compositor library`() {
-        assertFalse(features().wayland)
-
-        ship("liblabwc_android.so")
-
-        assertTrue(features().wayland)
     }
 
     @Test

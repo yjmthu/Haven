@@ -44,7 +44,6 @@ dependencies {
     implementation(project(":core:bleserial"))
     implementation(project(":core:usbserial"))
     implementation(project(":core:usb"))
-    implementation(project(":core:local"))
     implementation(project(":core:security"))
     // QR / OCR for the paperclip → camera/photo attach flow.
     implementation(project(":core:scan"))

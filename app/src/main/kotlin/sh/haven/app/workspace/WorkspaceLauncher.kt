@@ -58,7 +58,7 @@ private const val TAG = "WorkspaceLauncher"
  *
  * ### Non-terminal kinds
  *
- * WAYLAND / FILE_BROWSER / DESKTOP dispatch over the bus as before,
+ * FILE_BROWSER / DESKTOP dispatch over the bus as before,
  * strictly after the terminal plans settle so tunneled desktops attach
  * to already-up SSH sessions (`tunnelDependents`). Same caveat as the
  * existing `NavigateToSftpPath` verb: emissions for a screen the user
@@ -332,7 +332,6 @@ class WorkspaceLauncher @Inject constructor(
 
     private suspend fun dispatchNonTerminal(item: WorkspaceItem): DispatchOutcome {
         val command = when (item.kind) {
-            WorkspaceItem.Kind.WAYLAND -> AgentUiCommand.OpenWaylandDesktop
             WorkspaceItem.Kind.FILE_BROWSER -> {
                 val profile = item.connectionProfileId?.let { connectionRepository.getById(it) }
                     ?: return DispatchOutcome(false, "profile missing")
@@ -496,7 +495,6 @@ class WorkspaceLauncher @Inject constructor(
 
         private fun kindPriority(kind: WorkspaceItem.Kind): Int = when (kind) {
             WorkspaceItem.Kind.TERMINAL -> 0
-            WorkspaceItem.Kind.WAYLAND -> 1
             WorkspaceItem.Kind.FILE_BROWSER -> 2
             WorkspaceItem.Kind.DESKTOP -> 3
         }

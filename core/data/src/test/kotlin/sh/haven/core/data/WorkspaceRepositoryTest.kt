@@ -27,7 +27,7 @@ class WorkspaceRepositoryTest {
     }
 
     @Test
-    fun saveRequiresProfileForNonWaylandKinds() {
+    fun saveRequiresProfileForEveryKind() {
         val repo = WorkspaceRepository(FakeWorkspaceDao())
         val profile = WorkspaceProfile(name = "Bad")
 
@@ -44,20 +44,6 @@ class WorkspaceRepositoryTest {
             assertThrows(IllegalArgumentException::class.java) {
                 runBlocking { repo.save(profile, listOf(item)) }
             }
-        }
-    }
-
-    @Test
-    fun saveRejectsConnectionProfileOnWaylandKind() {
-        val repo = WorkspaceRepository(FakeWorkspaceDao())
-        val profile = WorkspaceProfile(name = "Bad")
-        val item = WorkspaceItem(
-            workspaceId = profile.id,
-            kind = WorkspaceItem.Kind.WAYLAND,
-            connectionProfileId = "should-be-null",
-        )
-        assertThrows(IllegalArgumentException::class.java) {
-            runBlocking { repo.save(profile, listOf(item)) }
         }
     }
 
@@ -91,7 +77,8 @@ class WorkspaceRepositoryTest {
             WorkspaceItem(
                 id = "c",
                 workspaceId = "stale",
-                kind = WorkspaceItem.Kind.WAYLAND,
+                kind = WorkspaceItem.Kind.DESKTOP,
+                connectionProfileId = "p3",
                 sortOrder = 999,
             ),
         )
@@ -141,12 +128,13 @@ class WorkspaceRepositoryTest {
             listOf(
                 WorkspaceItem(
                     workspaceId = "ws-1",
-                    kind = WorkspaceItem.Kind.WAYLAND,
+                    kind = WorkspaceItem.Kind.DESKTOP,
+                    connectionProfileId = "p1",
                 ),
             ),
         )
         assertEquals(1, dao.items.value.size)
-        assertEquals(WorkspaceItem.Kind.WAYLAND, dao.items.value.single().kind)
+        assertEquals(WorkspaceItem.Kind.DESKTOP, dao.items.value.single().kind)
     }
 
     @Test
@@ -159,7 +147,8 @@ class WorkspaceRepositoryTest {
             listOf(
                 WorkspaceItem(
                     workspaceId = "ws-1",
-                    kind = WorkspaceItem.Kind.WAYLAND,
+                    kind = WorkspaceItem.Kind.DESKTOP,
+                    connectionProfileId = "p1",
                 ),
             ),
         )

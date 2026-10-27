@@ -8,7 +8,6 @@ import dagger.multibindings.IntoSet
 import sh.haven.core.bleserial.BleSerialSessionManager
 import sh.haven.core.btserial.BtSerialSessionManager
 import sh.haven.core.et.EtSessionManager
-import sh.haven.core.local.LocalSessionManager
 import sh.haven.core.mosh.MoshSessionManager
 import sh.haven.core.rclone.RcloneSessionManager
 import sh.haven.core.smb.SmbSessionManager
@@ -16,7 +15,6 @@ import sh.haven.core.ssh.SessionManager
 import sh.haven.core.ssh.SshSessionManager
 import sh.haven.core.ssh.Transport
 import sh.haven.core.ssh.TransportSessionManager
-import sh.haven.core.local.uml.UmlGuestManager
 import sh.haven.core.usbserial.UsbSerialSessionManager
 
 /**
@@ -116,32 +114,6 @@ object TransportSessionManagerModule {
         override val sessions
             get() = m.sessions.value.values.map {
                 UnifiedSession(it.sessionId, it.profileId, it.label, mapStatus(it.status.name), Transport.USBSERIAL)
-            }
-    }
-
-    @Provides @IntoSet
-    fun local(m: LocalSessionManager): TransportSessionManager = object : TransportSessionManager {
-        override val transport = Transport.LOCAL
-        override val inputName = "local"
-        override fun removeAllSessionsForProfile(profileId: String) = m.removeAllSessionsForProfile(profileId)
-        override fun sendInput(sessionId: String, text: String) = m.sendInput(sessionId, text)
-        override val activeSessionCount get() = m.activeSessions.size
-        override val sessions
-            get() = m.sessions.value.values.map {
-                UnifiedSession(it.sessionId, it.profileId, it.label, mapStatus(it.status.name), Transport.LOCAL)
-            }
-    }
-
-    @Provides @IntoSet
-    fun guest(m: UmlGuestManager): TransportSessionManager = object : TransportSessionManager {
-        override val transport = Transport.GUEST
-        override val inputName = "guest"
-        override fun removeAllSessionsForProfile(profileId: String) = m.removeAllSessionsForProfile(profileId)
-        override fun sendInput(sessionId: String, text: String) = m.sendInput(sessionId, text)
-        override val activeSessionCount get() = m.activeSessions.size
-        override val sessions
-            get() = m.sessions.value.values.map {
-                UnifiedSession(it.sessionId, it.profileId, it.label, mapStatus(it.status.name), Transport.GUEST)
             }
     }
 

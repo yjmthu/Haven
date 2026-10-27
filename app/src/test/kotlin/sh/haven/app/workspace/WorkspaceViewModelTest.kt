@@ -161,7 +161,6 @@ class WorkspaceViewModelTest {
         every { registry.allSessions } returns listOf(
             session("ssh-id", "p-ssh", Transport.SSH, SessionStatus.CONNECTED),
             session("mosh-id", "p-mosh", Transport.MOSH, SessionStatus.CONNECTED),
-            session("local-id", "p-local", Transport.LOCAL, SessionStatus.CONNECTED),
             session("smb-id", "p-smb", Transport.SMB, SessionStatus.CONNECTED),
             session("rdp-id", "p-rdp", Transport.RDP, SessionStatus.CONNECTED),
             // Filtered: not connected.
@@ -170,26 +169,23 @@ class WorkspaceViewModelTest {
         )
 
         val drafts = vm.captureFromSingletons("ws-new")
-        // Wayland adds a row only when the JNI lib is loaded, which it
-        // isn't under unit tests — so we assert exactly the 5 connected
-        // session items.
-        assertEquals(5, drafts.size)
+        // Exactly the 4 connected session items.
+        assertEquals(4, drafts.size)
         assertEquals(
-            listOf("p-ssh", "p-mosh", "p-local", "p-smb", "p-rdp"),
+            listOf("p-ssh", "p-mosh", "p-smb", "p-rdp"),
             drafts.map { it.item.connectionProfileId },
         )
         assertEquals(
             listOf(
                 WorkspaceItem.Kind.TERMINAL,    // SSH
                 WorkspaceItem.Kind.TERMINAL,    // MOSH
-                WorkspaceItem.Kind.TERMINAL,    // LOCAL
                 WorkspaceItem.Kind.FILE_BROWSER, // SMB
                 WorkspaceItem.Kind.DESKTOP,      // RDP
             ),
             drafts.map { it.item.kind },
         )
         assertTrue(drafts.all { it.item.workspaceId == "ws-new" })
-        assertEquals(listOf(0, 1, 2, 3, 4), drafts.map { it.item.sortOrder })
+        assertEquals(listOf(0, 1, 2, 3), drafts.map { it.item.sortOrder })
     }
 
     @Test

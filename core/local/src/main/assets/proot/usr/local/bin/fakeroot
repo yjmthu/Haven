@@ -1,9 +1,0 @@
-#!/bin/sh
-# Haven shim (#375): Android kernels lack SysV IPC, so the default
-# fakeroot (sysv) dies under proot with "Function not implemented".
-# Prefer the TCP variant when the distro ships one (Debian/Ubuntu do).
-# Seeded by Haven; delete this file to always use the distro fakeroot.
-if command -v fakeroot-tcp >/dev/null 2>&1; then
-    exec fakeroot-tcp "$@"
-fi
-exec /usr/bin/fakeroot "$@"

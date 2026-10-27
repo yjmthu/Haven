@@ -258,8 +258,6 @@ dependencies {
     implementation(project(":core:ffmpeg"))
     implementation(project(":core:fido"))
     implementation(project(":core:usb"))
-    implementation(project(":core:local"))
-    implementation(project(":core:wayland"))
     implementation(project(":core:terminal-haven"))
     // Direct termlib pull-in so the MCP agent transport can name termlib
     // public types (TerminalEmulator, ScrollController, SelectionController,
