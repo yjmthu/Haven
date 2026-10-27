@@ -314,9 +314,8 @@ class SshSessionManager @Inject constructor(
 
     /**
      * Per-session hooks run once after a successful reconnect (status back to
-     * CONNECTED, forwards re-applied). Used by the USB/IP forwarder to re-run the
-     * host-side `usbip attach` — the device node on the host vanishes when the
-     * tunnel drops, and re-binding the `-R` alone doesn't restore it.
+     * CONNECTED, forwards re-applied), for work that a `-R` re-bind alone does
+     * not restore.
      */
     private val reconnectHooks = ConcurrentHashMap<String, suspend () -> Unit>()
 

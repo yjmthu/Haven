@@ -40,11 +40,6 @@ class TerminalViewModelTest {
     private lateinit var sessionManager: SshSessionManager
     private lateinit var moshSessionManager: MoshSessionManager
     private lateinit var etSessionManager: EtSessionManager
-    private lateinit var btSerialSessionManager: sh.haven.core.btserial.BtSerialSessionManager
-    private lateinit var bleSerialSessionManager: sh.haven.core.bleserial.BleSerialSessionManager
-    private lateinit var bleSerialSessions:
-        MutableStateFlow<Map<String, sh.haven.core.bleserial.BleSerialSessionManager.SessionState>>
-    private lateinit var usbSerialSessionManager: sh.haven.core.usbserial.UsbSerialSessionManager
     private lateinit var sshEmulatorOwner: SshTerminalEmulatorOwner
     private lateinit var connectionRepository: sh.haven.core.data.repository.ConnectionRepository
     private lateinit var attachCoordinator: sh.haven.feature.sftp.attach.TerminalAttachCoordinator
@@ -58,22 +53,6 @@ class TerminalViewModelTest {
             every { sessions } returns MutableStateFlow(emptyMap())
         }
         etSessionManager = mockk<EtSessionManager>(relaxed = true) {
-            every { sessions } returns MutableStateFlow(emptyMap())
-        }
-        btSerialSessionManager = mockk(relaxed = true) {
-            every { sessions } returns MutableStateFlow(emptyMap())
-        }
-        // #465: stubbed ONCE here, then driven by mutating the flow. The
-        // ViewModel's init launches collectors that read these mocks, so a
-        // later `every { sessions } ...` would put MockK into recording mode
-        // while another thread is invoking the same mock — which throws
-        // MockKException rather than failing an assertion, and only when the
-        // collectors happen to be live (CI, loaded runner).
-        bleSerialSessions = MutableStateFlow(emptyMap())
-        bleSerialSessionManager = mockk(relaxed = true) {
-            every { sessions } returns bleSerialSessions
-        }
-        usbSerialSessionManager = mockk(relaxed = true) {
             every { sessions } returns MutableStateFlow(emptyMap())
         }
         // No connect-time bundle in unit tests (the real emulator needs JNI),
@@ -92,10 +71,6 @@ class TerminalViewModelTest {
         mockk(relaxed = true), // SshSessionAttacher
         moshSessionManager,
         etSessionManager,
-        btSerialSessionManager,
-        bleSerialSessionManager,
-        usbSerialSessionManager,
-        mockk<sh.haven.core.usb.UsbBroker>(relaxed = true),
         mockk(relaxed = true), // HostKeyVerifier
         mockk(relaxed = true), // FidoAuthenticator
         mockk(relaxed = true), // KeystoreSshKeySigner
@@ -256,19 +231,6 @@ class TerminalViewModelTest {
         viewModel.closeTab(sessionId)
 
         assertEquals(null, sessionManager.getSession(sessionId))
-    }
-
-    @Test
-    fun `closeTab tears down a BLE-serial session`() {
-        // Regression: removeTabAndSync did not know the serial transports, so a
-        // serial session survived the close and syncSessions rebuilt its tab.
-        val sessionId = "ble-1"
-        // Drive the already-stubbed flow rather than re-stubbing the mock (#465).
-        bleSerialSessions.value = mapOf(sessionId to mockk(relaxed = true))
-
-        viewModel.closeTab(sessionId)
-
-        verify { bleSerialSessionManager.removeSession(sessionId) }
     }
 
     @Test

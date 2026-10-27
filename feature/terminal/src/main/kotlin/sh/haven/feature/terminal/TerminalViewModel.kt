@@ -314,10 +314,6 @@ class TerminalViewModel @Inject constructor(
     private val sshSessionAttacher: sh.haven.core.ssh.SshSessionAttacher,
     private val moshSessionManager: MoshSessionManager,
     private val etSessionManager: EtSessionManager,
-    private val btSerialSessionManager: sh.haven.core.btserial.BtSerialSessionManager,
-    private val bleSerialSessionManager: sh.haven.core.bleserial.BleSerialSessionManager,
-    private val usbSerialSessionManager: sh.haven.core.usbserial.UsbSerialSessionManager,
-    private val usbBroker: sh.haven.core.usb.UsbBroker,
     private val hostKeyVerifier: HostKeyVerifier,
     /**
      * Security-key (FIDO2/SK) authenticator, wired onto the SshClients built
@@ -427,12 +423,6 @@ class TerminalViewModel @Inject constructor(
                             Log.w(TAG, "OpenTerminalSession: profile ${command.profileId} not found")
                         } else {
                             when {
-                                profile.isBtSerial ->
-                                    addBtSerialTabForProfile(profile.id, profile.label)
-                                profile.isBleSerial ->
-                                    addBleSerialTabForProfile(profile.id, profile.label)
-                                profile.isUsbSerial ->
-                                    addUsbSerialTabForProfile(profile.id, profile.label)
                                 profile.isSsh ->
                                     // Adds a tab on an already-live SSH session
                                     // (reusing its connection); toasts and
@@ -478,9 +468,6 @@ class TerminalViewModel @Inject constructor(
                 }
                 "MOSH" -> moshSessionManager.detachTerminalSession(tab.sessionId)
                 "ET" -> etSessionManager.detachTerminalSession(tab.sessionId)
-                "BTSERIAL" -> btSerialSessionManager.detachTerminalSession(tab.sessionId)
-                "BLESERIAL" -> bleSerialSessionManager.detachTerminalSession(tab.sessionId)
-                "USBSERIAL" -> usbSerialSessionManager.detachTerminalSession(tab.sessionId)
             }
         }
         trackedSessionIds.clear()
@@ -987,7 +974,7 @@ class TerminalViewModel @Inject constructor(
 
     /**
      * Serialises the reconcile. syncSessions snapshots the session maps and
-     * then suspends at its profile batch, and nine collectors fire it on
+     * then suspends at its profile batch, and three collectors fire it on
      * different emissions, so two passes interleave across that suspension:
      * a pass whose snapshot predates a new CONNECTED session resumes with a
      * stale activeIds set and its removal logic deletes the tab a concurrent
@@ -1019,15 +1006,6 @@ class TerminalViewModel @Inject constructor(
         }
         viewModelScope.launch {
             etSessionManager.sessions.collect { syncSessions() }
-        }
-        viewModelScope.launch {
-            btSerialSessionManager.sessions.collect { syncSessions() }
-        }
-        viewModelScope.launch {
-            bleSerialSessionManager.sessions.collect { syncSessions() }
-        }
-        viewModelScope.launch {
-            usbSerialSessionManager.sessions.collect { syncSessions() }
         }
         // Inline-image policy (#583): re-police live tabs when the consent
         // preference changes; new emulators read the current value at create.
@@ -1065,9 +1043,6 @@ class TerminalViewModel @Inject constructor(
         val sshSessions = sessionManager.sessions.value
         val moshSessions = moshSessionManager.sessions.value
         val etSessions = etSessionManager.sessions.value
-        val btSerialSessions = btSerialSessionManager.sessions.value
-        val bleSerialSessions = bleSerialSessionManager.sessions.value
-        val usbSerialSessions = usbSerialSessionManager.sessions.value
 
         // Resolve the display config (color scheme, alt-screen, color tag) for
         // every active session's profile in one off-main batch. The per-branch
@@ -1079,9 +1054,6 @@ class TerminalViewModel @Inject constructor(
                 sshSessions.values.forEach { add(it.profileId) }
                 moshSessions.values.forEach { add(it.profileId) }
                 etSessions.values.forEach { add(it.profileId) }
-                btSerialSessions.values.forEach { add(it.profileId) }
-                bleSerialSessions.values.forEach { add(it.profileId) }
-                usbSerialSessions.values.forEach { add(it.profileId) }
             }.associateWith { connectionRepository.getById(it) }
         }
 
@@ -1110,31 +1082,6 @@ class TerminalViewModel @Inject constructor(
             .map { it.sessionId }
             .toSet()
 
-        // Find Bluetooth-serial sessions that are connected
-        val activeBtIds = btSerialSessions.values
-            .filter {
-                it.status == sh.haven.core.btserial.BtSerialSessionManager.SessionState.Status.CONNECTED
-            }
-            .map { it.sessionId }
-            .toSet()
-
-        val activeBleIds = bleSerialSessions.values
-            .filter {
-                it.status == sh.haven.core.bleserial.BleSerialSessionManager.SessionState.Status.CONNECTED
-            }
-            .map { it.sessionId }
-            .toSet()
-
-        // Find USB-serial sessions that are connected
-        val activeUsbIds = usbSerialSessions.values
-            .filter {
-                it.status == sh.haven.core.usbserial.UsbSerialSessionManager.SessionState.Status.CONNECTED
-            }
-            .map { it.sessionId }
-            .toSet()
-
-        val allActiveIds = activeSshIds + activeMoshIds + activeEtIds + activeBtIds + activeBleIds + activeUsbIds
-
         val currentTabs = _tabs.value.toMutableList()
 
         // Remove tabs for disconnected sessions
@@ -1146,12 +1093,6 @@ class TerminalViewModel @Inject constructor(
                     moshSessions[tab.sessionId]?.moshSession == null
                 "ET" -> tab.sessionId !in activeEtIds ||
                     etSessions[tab.sessionId]?.etSession == null
-                "BTSERIAL" -> tab.sessionId !in activeBtIds ||
-                    btSerialSessions[tab.sessionId]?.session == null
-                "BLESERIAL" -> tab.sessionId !in activeBleIds ||
-                    bleSerialSessions[tab.sessionId]?.session == null
-                "USBSERIAL" -> tab.sessionId !in activeUsbIds ||
-                    usbSerialSessions[tab.sessionId]?.session == null
                 else -> true
             }
         }
@@ -1217,247 +1158,6 @@ class TerminalViewModel @Inject constructor(
                 )
             )
             trackedSessionIds.add(sessionId)
-        }
-
-        // Create tabs for new Bluetooth-serial sessions (#406). A raw serial link
-        // has no window-size channel, so resize is a no-op (the console's width is
-        // fixed on the far side).
-        for (sessionId in activeBtIds) {
-            if (sessionId in trackedSessionIds) continue
-            if (!btSerialSessionManager.isReadyForTerminal(sessionId)) continue
-
-            val session = btSerialSessions[sessionId] ?: continue
-            val btProfile = profilesById[session.profileId]
-            val tabLabel = generateTabLabel(session.label, session.profileId, currentTabs)
-
-            lateinit var emulator: TerminalEmulator
-            val btWriteBuffer = EmulatorWriteBuffer({ emulator }, createRecorderIfEnabled(sessionId))
-            val btMouseTracker = MouseModeTracker()
-            val btOscHandler = OscHandler()
-            val btCwdFlow = MutableStateFlow<String?>(null)
-            val btHyperlinkFlow = MutableStateFlow<String?>(null)
-            btOscHandler.onCwdChanged = { btCwdFlow.value = it }
-            btOscHandler.onHyperlink = { uri -> btHyperlinkFlow.value = uri }
-            val btFeedOutput: (ByteArray, Int, Int) -> Unit = { data, offset, length ->
-                synchronized(btOscHandler) {
-                    btOscHandler.process(data, offset, length)
-                    btMouseTracker.process(btOscHandler.outputBuf, 0, btOscHandler.outputLen)
-                    val len = btOscHandler.outputLen
-                    if (len > 0) {
-                        btWriteBuffer.append(btOscHandler.outputBuf, 0, len)
-                    }
-                }
-            }
-            val btSession = btSerialSessionManager.createTerminalSession(
-                sessionId = sessionId,
-                onDataReceived = { data, offset, length -> btFeedOutput(data, offset, length) },
-            ) ?: continue
-
-            val btCoalescer = InputCoalescer { data -> btSession.sendInput(data) }
-            val btScheme = effectiveColorScheme(btProfile)
-            val btInitialScheme = initialEmulatorScheme(btScheme)
-            emulator = TerminalEmulatorFactory.create(
-                autoDetectUrls = true,
-                initialRows = 24,
-                initialCols = 80,
-                defaultForeground = Color(btInitialScheme.foreground),
-                defaultBackground = Color(btInitialScheme.background),
-                enableAltScreen = btProfile?.disableAltScreen != true,
-                onKeyboardInput = { data -> btCoalescer.send(applyModifiers(data)) },
-                onResize = { /* raw serial: no resize channel */ },
-                maxScrollbackLines = terminalScrollbackRows.value,
-                inlineImages = inlineImagesPolicy(terminalInlineImages.value, inlineImageConsent.state(sessionId)),
-                ambiwidthMode = currentTermlibAmbiwidthMode(),
-                onBell = bellCallback(tabLabel),
-            )
-
-            currentTabs.add(
-                TerminalTab(
-                    sessionId = session.sessionId,
-                    profileId = session.profileId,
-                    colorTag = btProfile?.colorTag ?: 0,
-                    label = tabLabel,
-                    transportType = "BTSERIAL",
-                    emulator = emulator,
-                    mouseMode = btMouseTracker.mouseMode,
-                    activeMouseMode = btMouseTracker.activeMouseMode,
-                    bracketPasteMode = btMouseTracker.bracketPasteMode,
-                    altScreen = btMouseTracker.altScreen,
-                    cursorKeyAppMode = btMouseTracker.cursorKeyAppMode,
-                    oscHandler = btOscHandler,
-                    feedOutput = btFeedOutput,
-                    cwd = btCwdFlow,
-                    hyperlinkUri = btHyperlinkFlow,
-                    isReconnecting = MutableStateFlow(false),
-                    stallSeconds = NEVER_STALLS,
-                    sendInput = { data -> btSession.sendInput(data) },
-                    resize = { _, _ -> /* raw serial: no resize channel */ },
-                    close = { btSession.close() },
-                    colorScheme = btScheme,
-                    backgroundOpacity = effectiveOpacity(btProfile),
-                )
-            )
-            trackedSessionIds.add(session.sessionId)
-        }
-
-        // Create tabs for new BLE-serial sessions (GATT). Same transport-agnostic
-        // terminal setup as BTSERIAL; a BLE UART link has no resize channel.
-        for (sessionId in activeBleIds) {
-            if (sessionId in trackedSessionIds) continue
-            if (!bleSerialSessionManager.isReadyForTerminal(sessionId)) continue
-
-            val session = bleSerialSessions[sessionId] ?: continue
-            val bleProfile = profilesById[session.profileId]
-            val tabLabel = generateTabLabel(session.label, session.profileId, currentTabs)
-
-            lateinit var emulator: TerminalEmulator
-            val bleWriteBuffer = EmulatorWriteBuffer({ emulator }, createRecorderIfEnabled(sessionId))
-            val bleMouseTracker = MouseModeTracker()
-            val bleOscHandler = OscHandler()
-            val bleCwdFlow = MutableStateFlow<String?>(null)
-            val bleHyperlinkFlow = MutableStateFlow<String?>(null)
-            bleOscHandler.onCwdChanged = { bleCwdFlow.value = it }
-            bleOscHandler.onHyperlink = { uri -> bleHyperlinkFlow.value = uri }
-            val bleFeedOutput: (ByteArray, Int, Int) -> Unit = { data, offset, length ->
-                synchronized(bleOscHandler) {
-                    bleOscHandler.process(data, offset, length)
-                    bleMouseTracker.process(bleOscHandler.outputBuf, 0, bleOscHandler.outputLen)
-                    val len = bleOscHandler.outputLen
-                    if (len > 0) {
-                        bleWriteBuffer.append(bleOscHandler.outputBuf, 0, len)
-                    }
-                }
-            }
-            val bleSession = bleSerialSessionManager.createTerminalSession(
-                sessionId = sessionId,
-                onDataReceived = { data, offset, length -> bleFeedOutput(data, offset, length) },
-            ) ?: continue
-
-            val bleCoalescer = InputCoalescer { data -> bleSession.sendInput(data) }
-            val bleScheme = effectiveColorScheme(bleProfile)
-            val bleInitialScheme = initialEmulatorScheme(bleScheme)
-            emulator = TerminalEmulatorFactory.create(
-                autoDetectUrls = true,
-                initialRows = 24,
-                initialCols = 80,
-                defaultForeground = Color(bleInitialScheme.foreground),
-                defaultBackground = Color(bleInitialScheme.background),
-                enableAltScreen = bleProfile?.disableAltScreen != true,
-                onKeyboardInput = { data -> bleCoalescer.send(applyModifiers(data)) },
-                onResize = { /* raw serial: no resize channel */ },
-                maxScrollbackLines = terminalScrollbackRows.value,
-                inlineImages = inlineImagesPolicy(terminalInlineImages.value, inlineImageConsent.state(sessionId)),
-                ambiwidthMode = currentTermlibAmbiwidthMode(),
-                onBell = bellCallback(tabLabel),
-            )
-
-            currentTabs.add(
-                TerminalTab(
-                    sessionId = session.sessionId,
-                    profileId = session.profileId,
-                    colorTag = bleProfile?.colorTag ?: 0,
-                    label = tabLabel,
-                    transportType = "BLESERIAL",
-                    emulator = emulator,
-                    mouseMode = bleMouseTracker.mouseMode,
-                    activeMouseMode = bleMouseTracker.activeMouseMode,
-                    bracketPasteMode = bleMouseTracker.bracketPasteMode,
-                    altScreen = bleMouseTracker.altScreen,
-                    cursorKeyAppMode = bleMouseTracker.cursorKeyAppMode,
-                    oscHandler = bleOscHandler,
-                    feedOutput = bleFeedOutput,
-                    cwd = bleCwdFlow,
-                    hyperlinkUri = bleHyperlinkFlow,
-                    isReconnecting = MutableStateFlow(false),
-                    stallSeconds = NEVER_STALLS,
-                    sendInput = { data -> bleSession.sendInput(data) },
-                    resize = { _, _ -> /* raw serial: no resize channel */ },
-                    close = { bleSession.close() },
-                    colorScheme = bleScheme,
-                    backgroundOpacity = effectiveOpacity(bleProfile),
-                )
-            )
-            trackedSessionIds.add(session.sessionId)
-        }
-
-        // Create tabs for new USB-serial sessions (#408). Same transport-agnostic
-        // terminal setup as BTSERIAL; raw serial has no resize channel.
-        for (sessionId in activeUsbIds) {
-            if (sessionId in trackedSessionIds) continue
-            if (!usbSerialSessionManager.isReadyForTerminal(sessionId)) continue
-
-            val session = usbSerialSessions[sessionId] ?: continue
-            val usbProfile = profilesById[session.profileId]
-            val tabLabel = generateTabLabel(session.label, session.profileId, currentTabs)
-
-            lateinit var emulator: TerminalEmulator
-            val usbWriteBuffer = EmulatorWriteBuffer({ emulator }, createRecorderIfEnabled(sessionId))
-            val usbMouseTracker = MouseModeTracker()
-            val usbOscHandler = OscHandler()
-            val usbCwdFlow = MutableStateFlow<String?>(null)
-            val usbHyperlinkFlow = MutableStateFlow<String?>(null)
-            usbOscHandler.onCwdChanged = { usbCwdFlow.value = it }
-            usbOscHandler.onHyperlink = { uri -> usbHyperlinkFlow.value = uri }
-            val usbFeedOutput: (ByteArray, Int, Int) -> Unit = { data, offset, length ->
-                synchronized(usbOscHandler) {
-                    usbOscHandler.process(data, offset, length)
-                    usbMouseTracker.process(usbOscHandler.outputBuf, 0, usbOscHandler.outputLen)
-                    val len = usbOscHandler.outputLen
-                    if (len > 0) {
-                        usbWriteBuffer.append(usbOscHandler.outputBuf, 0, len)
-                    }
-                }
-            }
-            val usbSession = usbSerialSessionManager.createTerminalSession(
-                sessionId = sessionId,
-                onDataReceived = { data, offset, length -> usbFeedOutput(data, offset, length) },
-            ) ?: continue
-
-            val usbCoalescer = InputCoalescer { data -> usbSession.sendInput(data) }
-            val usbScheme = effectiveColorScheme(usbProfile)
-            val usbInitialScheme = initialEmulatorScheme(usbScheme)
-            emulator = TerminalEmulatorFactory.create(
-                autoDetectUrls = true,
-                initialRows = 24,
-                initialCols = 80,
-                defaultForeground = Color(usbInitialScheme.foreground),
-                defaultBackground = Color(usbInitialScheme.background),
-                enableAltScreen = usbProfile?.disableAltScreen != true,
-                onKeyboardInput = { data -> usbCoalescer.send(applyModifiers(data)) },
-                onResize = { /* raw serial: no resize channel */ },
-                maxScrollbackLines = terminalScrollbackRows.value,
-                inlineImages = inlineImagesPolicy(terminalInlineImages.value, inlineImageConsent.state(sessionId)),
-                ambiwidthMode = currentTermlibAmbiwidthMode(),
-                onBell = bellCallback(tabLabel),
-            )
-
-            currentTabs.add(
-                TerminalTab(
-                    sessionId = session.sessionId,
-                    profileId = session.profileId,
-                    colorTag = usbProfile?.colorTag ?: 0,
-                    label = tabLabel,
-                    transportType = "USBSERIAL",
-                    emulator = emulator,
-                    mouseMode = usbMouseTracker.mouseMode,
-                    activeMouseMode = usbMouseTracker.activeMouseMode,
-                    bracketPasteMode = usbMouseTracker.bracketPasteMode,
-                    altScreen = usbMouseTracker.altScreen,
-                    cursorKeyAppMode = usbMouseTracker.cursorKeyAppMode,
-                    oscHandler = usbOscHandler,
-                    feedOutput = usbFeedOutput,
-                    cwd = usbCwdFlow,
-                    hyperlinkUri = usbHyperlinkFlow,
-                    isReconnecting = MutableStateFlow(false),
-                    stallSeconds = NEVER_STALLS,
-                    sendInput = { data -> usbSession.sendInput(data) },
-                    resize = { _, _ -> /* raw serial: no resize channel */ },
-                    close = { usbSession.close() },
-                    colorScheme = usbScheme,
-                    backgroundOpacity = effectiveOpacity(usbProfile),
-                )
-            )
-            trackedSessionIds.add(session.sessionId)
         }
 
         // Create tabs for new Mosh sessions
@@ -1793,7 +1493,7 @@ class TerminalViewModel @Inject constructor(
         // tab presence alone tore those out immediately and broke
         // every snapshot-style MCP tool against agent-owned shells.
         val knownSessionIds = sshSessions.keys +
-            moshSessions.keys + etSessions.keys + btSerialSessions.keys + bleSerialSessions.keys + usbSerialSessions.keys
+            moshSessions.keys + etSessions.keys
         for (id in terminalSessionRegistry.sessions.value.keys.toList()) {
             if (id !in knownSessionIds) terminalSessionRegistry.unregister(id)
         }
@@ -1924,12 +1624,6 @@ class TerminalViewModel @Inject constructor(
             moshSessionManager.removeSession(sessionId)
         } else if (etSessionManager.sessions.value.containsKey(sessionId)) {
             etSessionManager.removeSession(sessionId)
-        } else if (btSerialSessionManager.sessions.value.containsKey(sessionId)) {
-            btSerialSessionManager.removeSession(sessionId)
-        } else if (bleSerialSessionManager.sessions.value.containsKey(sessionId)) {
-            bleSerialSessionManager.removeSession(sessionId)
-        } else if (usbSerialSessionManager.sessions.value.containsKey(sessionId)) {
-            usbSerialSessionManager.removeSession(sessionId)
         }
         trackedSessionIds.remove(sessionId)
         // Removal is synchronous; the tab reconciliation (now suspending, since
@@ -1953,9 +1647,6 @@ class TerminalViewModel @Inject constructor(
         sessionManager.removeAllSessionsForProfile(profileId)
         moshSessionManager.removeAllSessionsForProfile(profileId)
         etSessionManager.removeAllSessionsForProfile(profileId)
-        btSerialSessionManager.removeAllSessionsForProfile(profileId)
-        bleSerialSessionManager.removeAllSessionsForProfile(profileId)
-        usbSerialSessionManager.removeAllSessionsForProfile(profileId)
         trackedSessionIds.removeAll(
             _tabs.value.filter { it.profileId == profileId }.map { it.sessionId }.toSet()
         )
@@ -2080,8 +1771,7 @@ class TerminalViewModel @Inject constructor(
      * True when a plain shell is meaningful for this tab: an SSH profile
      * configured with a session-manager (tmux/zellij/screen/...). The point
      * of the affordance is escaping a multiplexer, so it appears wherever
-     * there is a multiplexer to escape. Serial transports have no
-     * session-manager concept and are left alone.
+     * there is a multiplexer to escape.
      */
     fun canOpenPlainShell(sessionId: String): Boolean {
         val profileId = sessionManager.getSession(sessionId)?.profileId ?: return false
@@ -2099,111 +1789,6 @@ class TerminalViewModel @Inject constructor(
     fun addPlainShellTab(sessionId: String) {
         val profileId = sessionManager.getSession(sessionId)?.profileId ?: return
         addSshTabForProfile(profileId, plain = true)
-    }
-
-    /**
-     * Open a Bluetooth-serial terminal for a BTSERIAL profile (#406): register a
-     * session, open the RFCOMM link (blocking, on IO), then let [syncSessions]
-     * build the tab from the now-CONNECTED session. Mirrors [addLocalTabForProfile].
-     */
-    fun addBtSerialTabForProfile(profileId: String, label: String? = null) {
-        viewModelScope.launch {
-            _newTabLoading.value = true
-            try {
-                val profile = connectionRepository.getById(profileId)
-                    ?: throw IllegalStateException("profile $profileId not found")
-                val resolvedLabel = label ?: profile.label.ifBlank { profile.host }
-                val sessionId = btSerialSessionManager.registerSession(
-                    profileId = profileId,
-                    label = resolvedLabel,
-                    deviceAddress = profile.btDeviceAddress,
-                )
-                btSerialSessionManager.connectSession(sessionId) // opens RFCOMM (IO); throws on failure
-                syncSessions()
-                selectTabBySessionId(sessionId)
-            } catch (e: Exception) {
-                Log.e(TAG, "addBtSerialTabForProfile failed: ${e.message}", e)
-                _newTabMessage.value = appContext.getString(
-                    R.string.terminal_new_tab_connection_failed,
-                    e.message ?: e.javaClass.simpleName,
-                )
-            } finally {
-                _newTabLoading.value = false
-            }
-        }
-    }
-
-    /**
-     * Open a BLE-serial terminal for a BLESERIAL profile: register a session,
-     * open the GATT link (blocking, on IO), then let [syncSessions] build the tab.
-     * Mirrors [addBtSerialTabForProfile]; BLE UART is a separate GATT transport.
-     */
-    fun addBleSerialTabForProfile(profileId: String, label: String? = null) {
-        viewModelScope.launch {
-            _newTabLoading.value = true
-            try {
-                val profile = connectionRepository.getById(profileId)
-                    ?: throw IllegalStateException("profile $profileId not found")
-                val resolvedLabel = label ?: profile.label.ifBlank { profile.host }
-                val sessionId = bleSerialSessionManager.registerSession(
-                    profileId = profileId,
-                    label = resolvedLabel,
-                    deviceAddress = profile.bleDeviceAddress,
-                )
-                bleSerialSessionManager.connectSession(sessionId) // GATT connect (IO); throws on failure
-                syncSessions()
-                selectTabBySessionId(sessionId)
-            } catch (e: Exception) {
-                Log.e(TAG, "addBleSerialTabForProfile failed: ${e.message}", e)
-                _newTabMessage.value = appContext.getString(
-                    R.string.terminal_new_tab_connection_failed,
-                    e.message ?: e.javaClass.simpleName,
-                )
-            } finally {
-                _newTabLoading.value = false
-            }
-        }
-    }
-
-    /** Open a USB-serial terminal tab for a USBSERIAL profile (#408). Resolves the
-     *  attached device by vid:pid, requests USB permission, opens the port. */
-    fun addUsbSerialTabForProfile(profileId: String, label: String? = null) {
-        viewModelScope.launch {
-            _newTabLoading.value = true
-            try {
-                val profile = connectionRepository.getById(profileId)
-                    ?: throw IllegalStateException("profile $profileId not found")
-                val resolvedLabel = label ?: profile.label.ifBlank { profile.host }
-                val key = profile.usbDeviceKey
-                // Resolve + grant USB permission before opening (see connectUsbSerial).
-                val info = usbBroker.listDevices().firstOrNull {
-                    "%04x:%04x".format(it.vendorId, it.productId) == key
-                } ?: throw IllegalStateException("USB device $key is not plugged in")
-                if (!usbBroker.requestPermission(info.deviceName)) {
-                    throw IllegalStateException("USB permission denied")
-                }
-                val sessionId = usbSerialSessionManager.registerSession(
-                    profileId = profileId,
-                    label = resolvedLabel,
-                    deviceKey = key,
-                    params = sh.haven.core.usbserial.UsbSerialParams.fromConfigString(
-                        profile.usbBaudRate,
-                        profile.usbSerialConfig,
-                    ),
-                )
-                usbSerialSessionManager.connectSession(sessionId) // opens the port (IO); throws on failure
-                syncSessions()
-                selectTabBySessionId(sessionId)
-            } catch (e: Exception) {
-                Log.e(TAG, "addUsbSerialTabForProfile failed: ${e.message}", e)
-                _newTabMessage.value = appContext.getString(
-                    R.string.terminal_new_tab_connection_failed,
-                    e.message ?: e.javaClass.simpleName,
-                )
-            } finally {
-                _newTabLoading.value = false
-            }
-        }
     }
 
     /**

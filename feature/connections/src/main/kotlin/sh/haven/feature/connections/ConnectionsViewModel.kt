@@ -202,10 +202,6 @@ class ConnectionsViewModel @Inject constructor(
     private val sshSessionAttacher: sh.haven.core.ssh.SshSessionAttacher,
     private val moshSessionManager: MoshSessionManager,
     private val etSessionManager: EtSessionManager,
-    private val btSerialSessionManager: sh.haven.core.btserial.BtSerialSessionManager,
-    private val bleSerialSessionManager: sh.haven.core.bleserial.BleSerialSessionManager,
-    private val usbSerialSessionManager: sh.haven.core.usbserial.UsbSerialSessionManager,
-    private val usbBroker: sh.haven.core.usb.UsbBroker,
     private val fidoAuthenticator: FidoAuthenticator,
     /** Security-chip SSH keys sign through the Keystore + biometric ceremony. */
     private val keystoreSshKeySigner: KeystoreSshKeySigner,
@@ -224,7 +220,6 @@ class ConnectionsViewModel @Inject constructor(
     private val desktopSessionRegistry: sh.haven.core.data.desktop.DesktopSessionRegistry,
     private val userMessageBus: sh.haven.core.data.message.UserMessageBus,
     private val hostRediscovery: HostRediscovery,
-    private val usbipForwarder: sh.haven.feature.connections.usb.UsbipConnectionForwarder,
     private val biometricGate: sh.haven.core.data.keystore.BiometricGate,
     private val pendingAuthPromptHolder: sh.haven.core.data.agent.PendingAuthPromptHolder,
     private val sessionSelectionHolder: sh.haven.core.data.agent.SessionSelectionHolder,
@@ -241,14 +236,6 @@ class ConnectionsViewModel @Inject constructor(
         biometricGate.request(label = title, detail = subtitle) ==
             sh.haven.core.data.keystore.BiometricGate.Decision.ALLOW
 
-    /** Live USB/IP auto-forwards, keyed by sessionId (Slice 1). Torn down on disconnect. */
-    private val usbForwardHandles =
-        java.util.concurrent.ConcurrentHashMap<String, sh.haven.feature.connections.usb.UsbipConnectionForwarder.Handle>()
-
-    /** Attached phone USB devices `(vidPid, label)` for the SSH USB-forward picker. */
-    fun availableUsbDevices(): List<Pair<String, String>> =
-        usbipForwarder.availableDevices()
-
     /**
      * Re-exposed from [CertRenewalGate] so the Connections screen can
      * render a status banner ("Renewing cert via step-ca…") while a
@@ -260,37 +247,6 @@ class ConnectionsViewModel @Inject constructor(
     private val pendingVerboseLogs = mutableMapOf<String, String>()
 
     init {
-        // Log Bluetooth-serial link drops to the connection log (#406), so a user
-        // whose adapter goes out of range sees a DISCONNECTED entry they can send,
-        // not silence. Watches for a session leaving CONNECTED on its own.
-        viewModelScope.launch {
-            val wasConnected = mutableSetOf<String>()
-            btSerialSessionManager.sessions.collect { map ->
-                map.values.forEach { s ->
-                    val connected = s.status == sh.haven.core.btserial.BtSerialSessionManager.SessionState.Status.CONNECTED
-                    if (connected) {
-                        wasConnected += s.sessionId
-                    } else if (s.sessionId in wasConnected) {
-                        wasConnected -= s.sessionId
-                        connectionLogRepository.logEvent(
-                            s.profileId,
-                            ConnectionLog.Status.DISCONNECTED,
-                            details = "Bluetooth serial link to ${s.deviceAddress} dropped",
-                        )
-                        // Toast the drop while the user is likely on the Terminal
-                        // screen (out-of-range adapter, dongle unplugged). Only an
-                        // UNEXPECTED drop lands here — an intentional disconnect
-                        // removes the session from the map, so it never triggers.
-                        userMessageBus.emit(
-                            sh.haven.core.data.message.UserMessage(
-                                "${s.label}: Bluetooth serial link lost",
-                                sh.haven.core.data.message.UserMessage.Severity.WARNING,
-                            ),
-                        )
-                    }
-                }
-            }
-        }
         // #495: an SSH session that dies within seconds of the app going to the
         // background, while the process and its foreground-service notification
         // are both still alive, is the signature of a vendor background
@@ -300,9 +256,9 @@ class ConnectionsViewModel @Inject constructor(
         // while the thing killing connections sits in a screen it can't read.
         //
         // Deliberately NOT a general SSH-drop log: an intentional disconnect
-        // leaves an SSH session in the map as DISCONNECTED, unlike the serial
-        // transports above, so logging every transition would be noise. Gating
-        // on the background window keeps this to the case it can explain.
+        // leaves an SSH session in the map as DISCONNECTED, so logging every
+        // transition would be noise. Gating on the background window keeps
+        // this to the case it can explain.
         viewModelScope.launch {
             val wasConnected = mutableSetOf<String>()
             var alreadyReported = false
@@ -344,31 +300,6 @@ class ConnectionsViewModel @Inject constructor(
                                 },
                             )
                         }
-                    }
-                }
-            }
-        }
-        // Same out-of-range/drop logging for BLE-serial links.
-        viewModelScope.launch {
-            val wasConnected = mutableSetOf<String>()
-            bleSerialSessionManager.sessions.collect { map ->
-                map.values.forEach { s ->
-                    val connected = s.status == sh.haven.core.bleserial.BleSerialSessionManager.SessionState.Status.CONNECTED
-                    if (connected) {
-                        wasConnected += s.sessionId
-                    } else if (s.sessionId in wasConnected) {
-                        wasConnected -= s.sessionId
-                        connectionLogRepository.logEvent(
-                            s.profileId,
-                            ConnectionLog.Status.DISCONNECTED,
-                            details = "BLE serial link to ${s.deviceAddress} dropped",
-                        )
-                        userMessageBus.emit(
-                            sh.haven.core.data.message.UserMessage(
-                                "${s.label}: BLE serial link lost",
-                                sh.haven.core.data.message.UserMessage.Severity.WARNING,
-                            ),
-                        )
                     }
                 }
             }
@@ -1611,15 +1542,6 @@ class ConnectionsViewModel @Inject constructor(
     }
 
     private fun canAutoConnect(profile: ConnectionProfile, keys: List<SshKey>): Boolean = when {
-        // Connect only on explicit tap: a BT link is slow/blocking and needs the
-        // adapter powered + the device in range (#406).
-        profile.isBtSerial -> false
-        // Connect only on explicit tap: BLE discovery + GATT connect is slow and
-        // the device may be out of range.
-        profile.isBleSerial -> false
-        // Connect only on explicit tap: the device must be plugged in and the
-        // USB permission prompt answered (#408).
-        profile.isUsbSerial -> false
         profile.isVnc -> false
         profile.isRdp -> false
         else -> !profile.sshPassword.isNullOrBlank() || keys.isNotEmpty()
@@ -2008,7 +1930,7 @@ class ConnectionsViewModel @Inject constructor(
         connectAfterIdentity(profile, password, keyOnly, rememberPassword, usernameOverride, sessionName, startupCommand)
     }
 
-    /** Post-identity dispatch: USB-drive preflight, then [connectInner]. */
+    /** Post-identity dispatch to [connectInner]. */
     private fun connectAfterIdentity(
         profile: ConnectionProfile,
         password: String,
@@ -2030,18 +1952,6 @@ class ConnectionsViewModel @Inject constructor(
         sessionName: String? = null,
         startupCommand: String? = null,
     ) {
-        if (profile.isBtSerial) {
-            connectBtSerial(profile)
-            return
-        }
-        if (profile.isBleSerial) {
-            connectBleSerial(profile)
-            return
-        }
-        if (profile.isUsbSerial) {
-            connectUsbSerial(profile)
-            return
-        }
         if (profile.isVnc) {
             connectVnc(profile)
             return
@@ -2177,233 +2087,6 @@ class ConnectionsViewModel @Inject constructor(
             } else {
                 _navigateToRdp.value = RdpNavigation(host, port, username, rdpPassword, domain, profile.rdpSshForward, profileId = profile.id, useNla = profile.rdpUseNla, colorDepth = profile.rdpColorDepth, portKnockSequence = profile.portKnockSequence, portKnockDelayMs = profile.portKnockDelayMs)
             }
-        }
-    }
-
-    /**
-     * Connect a Bluetooth-serial (SPP) profile (#406): open the RFCOMM link to the
-     * paired device, then navigate to the terminal — TerminalViewModel's session
-     * collector builds the tab once the session is CONNECTED. Mirrors [connectLocal].
-     */
-    private fun connectBtSerial(profile: ConnectionProfile) {
-        viewModelScope.launch {
-            val existing = btSerialSessionManager.getSessionsForProfile(profile.id)
-            if (existing.any { it.status == sh.haven.core.btserial.BtSerialSessionManager.SessionState.Status.CONNECTED }) {
-                _navigateToTerminal.value = profile.id
-                return@launch
-            }
-            _connectingProfileId.value = profile.id
-            _error.value = null
-            val addr = profile.btDeviceAddress
-            val startedAt = System.currentTimeMillis()
-            val sessionId = btSerialSessionManager.registerSession(
-                profileId = profile.id,
-                label = profile.label,
-                deviceAddress = addr,
-            )
-            try {
-                btSerialSessionManager.connectSession(sessionId) // opens RFCOMM (blocking, on IO)
-                repository.markConnected(profile.id)
-                connectionLogRepository.logEvent(
-                    profile.id,
-                    ConnectionLog.Status.CONNECTED,
-                    durationMs = System.currentTimeMillis() - startedAt,
-                    details = "Bluetooth serial (SPP/RFCOMM) link up to $addr",
-                )
-                startForegroundServiceIfNeeded()
-                _navigateToTerminal.value = profile.id
-            } catch (e: Exception) {
-                val reason = btSerialFailureHint(e)
-                Log.e(TAG, "connectBtSerial failed: $reason", e)
-                connectionLogRepository.logEvent(
-                    profile.id,
-                    ConnectionLog.Status.FAILED,
-                    durationMs = System.currentTimeMillis() - startedAt,
-                    details = "Bluetooth serial connect to $addr failed: $reason",
-                )
-                btSerialSessionManager.removeSession(sessionId)
-                _error.value = reason
-                // App-global toast: the connect may have been driven from a screen
-                // other than Connections (MCP, workspace launch), where _error is
-                // never shown. UserMessageBus renders over any screen (#406).
-                userMessageBus.error("${profile.label}: $reason")
-            } finally {
-                _connectingProfileId.value = null
-            }
-        }
-    }
-
-    /**
-     * Turn a raw RFCOMM connect exception into something a user can act on, so the
-     * connection log (Settings → connection log, exportable) is self-diagnosable
-     * rather than showing an opaque "read failed" (#406).
-     */
-    private fun btSerialFailureHint(e: Exception): String {
-        val msg = e.message ?: e.javaClass.simpleName
-        return when {
-            e is SecurityException || msg.contains("BLUETOOTH_CONNECT", ignoreCase = true) ->
-                "Bluetooth permission not granted — open this connection's editor and grant it."
-            msg.contains("socket might closed", ignoreCase = true) ||
-                msg.contains("read ret: -1", ignoreCase = true) ||
-                msg.contains("timeout", ignoreCase = true) ->
-                "the device didn't answer — is the adapter powered on and in range? ($msg)"
-            msg.contains("Service discovery failed", ignoreCase = true) ->
-                "the device isn't offering a Bluetooth serial (SPP) service ($msg)"
-            msg.contains("refused", ignoreCase = true) ||
-                msg.contains("host is down", ignoreCase = true) ||
-                msg.contains("unreachable", ignoreCase = true) ->
-                "the device is unreachable ($msg)"
-            msg.contains("Bluetooth adapter", ignoreCase = true) ->
-                "no Bluetooth adapter on this phone"
-            else -> msg
-        }
-    }
-
-    /**
-     * Connect a BLE-serial profile: open the GATT link to the peripheral MAC
-     * (auto-detecting the Nordic UART Service or HM-10), then navigate to the
-     * terminal — TerminalViewModel's session collector builds the tab. Mirrors
-     * [connectBtSerial]; BLE UART is a separate GATT transport from Classic SPP.
-     */
-    private fun connectBleSerial(profile: ConnectionProfile) {
-        viewModelScope.launch {
-            val existing = bleSerialSessionManager.getSessionsForProfile(profile.id)
-            if (existing.any { it.status == sh.haven.core.bleserial.BleSerialSessionManager.SessionState.Status.CONNECTED }) {
-                _navigateToTerminal.value = profile.id
-                return@launch
-            }
-            _connectingProfileId.value = profile.id
-            _error.value = null
-            val addr = profile.bleDeviceAddress
-            val startedAt = System.currentTimeMillis()
-            val sessionId = bleSerialSessionManager.registerSession(
-                profileId = profile.id,
-                label = profile.label,
-                deviceAddress = addr,
-            )
-            try {
-                bleSerialSessionManager.connectSession(sessionId) // GATT connect (blocking, on IO)
-                repository.markConnected(profile.id)
-                connectionLogRepository.logEvent(
-                    profile.id,
-                    ConnectionLog.Status.CONNECTED,
-                    durationMs = System.currentTimeMillis() - startedAt,
-                    details = "BLE serial (GATT) link up to $addr",
-                )
-                startForegroundServiceIfNeeded()
-                _navigateToTerminal.value = profile.id
-            } catch (e: Exception) {
-                val reason = bleSerialFailureHint(e)
-                Log.e(TAG, "connectBleSerial failed: $reason", e)
-                connectionLogRepository.logEvent(
-                    profile.id,
-                    ConnectionLog.Status.FAILED,
-                    durationMs = System.currentTimeMillis() - startedAt,
-                    details = "BLE serial connect to $addr failed: $reason",
-                )
-                bleSerialSessionManager.removeSession(sessionId)
-                _error.value = reason
-                userMessageBus.error("${profile.label}: $reason")
-            } finally {
-                _connectingProfileId.value = null
-            }
-        }
-    }
-
-    /** Human-actionable BLE-serial connect failure, for the connection log. */
-    private fun bleSerialFailureHint(e: Exception): String {
-        val msg = e.message ?: e.javaClass.simpleName
-        return when {
-            e is SecurityException || msg.contains("BLUETOOTH", ignoreCase = true) ->
-                "Bluetooth permission not granted — open this connection's editor and grant it."
-            msg.contains("timed out", ignoreCase = true) ||
-                msg.contains("disconnected before ready", ignoreCase = true) ->
-                "the peripheral didn't answer — is it powered on and in range? ($msg)"
-            msg.contains("No BLE-UART service", ignoreCase = true) ->
-                "this device isn't offering a known BLE-UART service (Nordic UART / HM-10) ($msg)"
-            msg.contains("Bluetooth is off", ignoreCase = true) -> "turn Bluetooth on and retry"
-            msg.contains("adapter", ignoreCase = true) -> "no Bluetooth adapter on this phone"
-            else -> msg
-        }
-    }
-
-    /**
-     * Connect a USB-serial profile (#408): resolve the plugged-in device by its
-     * vendorId:productId, request USB permission (system dialog) if needed, open
-     * the serial port at the profile's baud, then navigate to the terminal —
-     * TerminalViewModel's session collector builds the tab. Mirrors
-     * [connectBtSerial]; USB is the boundary proot can't cross, so it's native.
-     */
-    private fun connectUsbSerial(profile: ConnectionProfile) {
-        viewModelScope.launch {
-            val existing = usbSerialSessionManager.getSessionsForProfile(profile.id)
-            if (existing.any { it.status == sh.haven.core.usbserial.UsbSerialSessionManager.SessionState.Status.CONNECTED }) {
-                _navigateToTerminal.value = profile.id
-                return@launch
-            }
-            _connectingProfileId.value = profile.id
-            _error.value = null
-            val key = profile.usbDeviceKey
-            val startedAt = System.currentTimeMillis()
-            val sessionId = usbSerialSessionManager.registerSession(
-                profileId = profile.id,
-                label = profile.label,
-                deviceKey = key,
-                params = sh.haven.core.usbserial.UsbSerialParams.fromConfigString(
-                    profile.usbBaudRate,
-                    profile.usbSerialConfig,
-                ),
-            )
-            try {
-                // Resolve the attached device to get its deviceName, then request
-                // USB permission BEFORE opening — the port open fails without it.
-                // UsbBroker only grants permission here; the serial port opens it.
-                val info = usbBroker.listDevices().firstOrNull {
-                    "%04x:%04x".format(it.vendorId, it.productId) == key
-                } ?: throw IllegalStateException("USB device $key is not plugged in")
-                if (!usbBroker.requestPermission(info.deviceName)) {
-                    throw IllegalStateException("USB permission denied")
-                }
-                usbSerialSessionManager.connectSession(sessionId) // opens the port (IO)
-                repository.markConnected(profile.id)
-                connectionLogRepository.logEvent(
-                    profile.id,
-                    ConnectionLog.Status.CONNECTED,
-                    durationMs = System.currentTimeMillis() - startedAt,
-                    details = "USB serial ${info.productName ?: key} up at ${profile.usbBaudRate} baud",
-                )
-                startForegroundServiceIfNeeded()
-                _navigateToTerminal.value = profile.id
-            } catch (e: Exception) {
-                val reason = usbSerialFailureHint(e)
-                Log.e(TAG, "connectUsbSerial failed: $reason", e)
-                connectionLogRepository.logEvent(
-                    profile.id,
-                    ConnectionLog.Status.FAILED,
-                    durationMs = System.currentTimeMillis() - startedAt,
-                    details = "USB serial connect to $key failed: $reason",
-                )
-                usbSerialSessionManager.removeSession(sessionId)
-                _error.value = reason
-                userMessageBus.error("${profile.label}: $reason")
-            } finally {
-                _connectingProfileId.value = null
-            }
-        }
-    }
-
-    private fun usbSerialFailureHint(e: Exception): String {
-        val msg = e.message ?: e.javaClass.simpleName
-        return when {
-            msg.contains("not plugged in", ignoreCase = true) ->
-                "the device isn't plugged in — connect it, then allow the USB prompt"
-            msg.contains("permission", ignoreCase = true) ->
-                "USB permission was denied — reconnect and tap Allow on the prompt"
-            msg.contains("No serial driver", ignoreCase = true) ->
-                "not a recognised USB-serial adapter (CDC-ACM / CH34x / FTDI / CP21xx) ($msg)"
-            msg.contains("no ports", ignoreCase = true) ->
-                "the adapter exposes no serial port ($msg)"
-            else -> msg
         }
     }
 
@@ -3734,20 +3417,6 @@ class ConnectionsViewModel @Inject constructor(
         }
         sshSessionManager.updateStatus(sessionId, SshSessionManager.SessionState.Status.CONNECTED)
         repository.markConnected(profileId)
-        // USB/IP auto-forward (Slice 1): if this profile pins a USB device, export
-        // it and attach it on the remote. Off the connect path and best-effort —
-        // it never blocks or fails the connection.
-        viewModelScope.launch(Dispatchers.IO) {
-            val profile = repository.getById(profileId) ?: return@launch
-            val vidPid = profile.usbForwardVidPid
-            if (vidPid.isNullOrBlank() || !profile.isSsh) return@launch
-            if (sshSessionManager.getSession(sessionId) == null) return@launch
-            usbipForwarder.attach(sessionId, vidPid) { msg ->
-                userMessageBus.emit(
-                    sh.haven.core.data.message.UserMessage(msg, sh.haven.core.data.message.UserMessage.Severity.INFO),
-                )
-            }?.let { usbForwardHandles[sessionId] = it }
-        }
         // Persist all open session names for this profile (pipe-delimited)
         sshSessionManager.getSession(sessionId)?.let { session ->
             if (session.sessionManager != SessionManager.NONE) {
@@ -4672,20 +4341,6 @@ class ConnectionsViewModel @Inject constructor(
         val transportLog = listOfNotNull(moshLog, etLog).joinToString("\n").ifEmpty { null }
 
         viewModelScope.launch { connectionLogRepository.logEvent(profileId, ConnectionLog.Status.DISCONNECTED, verboseLog = transportLog) }
-        // Tear down any USB/IP auto-forward this profile holds before the SSH
-        // client goes away (Slice 1). Best-effort; the remote device also detaches
-        // when the forward's socket closes.
-        sshSessionManager.getSessionsForProfile(profileId).forEach { session ->
-            usbForwardHandles.remove(session.sessionId)?.let { handle ->
-                viewModelScope.launch(Dispatchers.IO) {
-                    usbipForwarder.teardown(session.sessionId, handle) { msg ->
-                        userMessageBus.emit(
-                            sh.haven.core.data.message.UserMessage(msg, sh.haven.core.data.message.UserMessage.Severity.INFO),
-                        )
-                    }
-                }
-            }
-        }
         sessionManagerRegistry.disconnectProfile(profileId)
         // Tear down this profile's tunnel-dependent resources: close its VNC/
         // RDP Desktop tab (via the lease's parent-gone callback) AND release

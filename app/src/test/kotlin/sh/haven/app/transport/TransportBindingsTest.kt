@@ -31,9 +31,6 @@ class TransportBindingsTest {
             ssh(manager()),
             mosh(manager()),
             et(manager()),
-            btSerial(manager()),
-            bleSerial(manager()),
-            usbSerial(manager()),
         )
     }
 
@@ -76,7 +73,6 @@ class TransportBindingsTest {
         assertEquals(
             setOf(
                 Transport.SSH, Transport.MOSH, Transport.ET,
-                Transport.BTSERIAL, Transport.BLESERIAL, Transport.USBSERIAL,
             ),
             writable,
         )

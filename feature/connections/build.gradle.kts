@@ -39,12 +39,8 @@ dependencies {
     implementation(project(":feature:tunnel"))
     implementation(project(":core:mosh"))
     implementation(project(":core:et"))
-    implementation(project(":core:btserial"))
-    implementation(project(":core:bleserial"))
-    implementation(project(":core:usbserial"))
     implementation(project(":core:data"))
     implementation(project(":core:fido"))
-    implementation(project(":core:usb"))
     implementation(project(":core:stepca"))
 
     implementation(libs.core.ktx)

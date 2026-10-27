@@ -40,10 +40,6 @@ dependencies {
     implementation(project(":core:tunnel"))
     implementation(project(":core:mosh"))
     implementation(project(":core:et"))
-    implementation(project(":core:btserial"))
-    implementation(project(":core:bleserial"))
-    implementation(project(":core:usbserial"))
-    implementation(project(":core:usb"))
     implementation(project(":core:security"))
     // QR / OCR for the paperclip → camera/photo attach flow.
     // The terminal's paperclip / attach feature reuses the SFTP feature's

@@ -23,7 +23,6 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:usb"))
     // derEcdsaToSshBlob SSOT: sk-ecdsa signatures convert through the same
     // core/security helper the security-chip identity uses (the old module
     // -internal copy was a byte-for-byte duplicate).

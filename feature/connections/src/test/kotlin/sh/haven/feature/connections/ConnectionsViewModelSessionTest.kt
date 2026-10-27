@@ -124,11 +124,6 @@ class ConnectionsViewModelSessionTest {
                 disconnectable(Transport.MOSH) { moshSessionManager.removeAllSessionsForProfile(it) },
                 disconnectable(Transport.ET) { etSessionManager.removeAllSessionsForProfile(it) },
                 disconnectable(Transport.RDP) { rdpSessionManager.removeAllSessionsForProfile(it) },
-                // The three serial transports were anonymous mocks here before
-                // and nothing asserts them; they stay no-ops.
-                disconnectable(Transport.BTSERIAL) {},
-                disconnectable(Transport.BLESERIAL) {},
-                disconnectable(Transport.USBSERIAL) {},
             ),
             keepAlives = emptySet(),
         )
@@ -167,18 +162,6 @@ class ConnectionsViewModelSessionTest {
             sshSessionAttacher = mockk(relaxed = true),
             moshSessionManager = moshSessionManager,
             etSessionManager = etSessionManager,
-            btSerialSessionManager = mockk(relaxed = true) {
-                // init's link-drop observer collects this StateFlow; a bare relaxed
-                // mock returns a relaxed `collect` (declared Nothing) → KotlinNothingValueException.
-                every { sessions } returns kotlinx.coroutines.flow.MutableStateFlow(emptyMap())
-            },
-            bleSerialSessionManager = mockk(relaxed = true) {
-                every { sessions } returns kotlinx.coroutines.flow.MutableStateFlow(emptyMap())
-            },
-            usbSerialSessionManager = mockk(relaxed = true) {
-                every { sessions } returns kotlinx.coroutines.flow.MutableStateFlow(emptyMap())
-            },
-            usbBroker = mockk(relaxed = true),
             fidoAuthenticator = mockk(relaxed = true),
             keystoreSshKeySigner = mockk(relaxed = true),
             sessionManagerRegistry = sessionManagerRegistry,
@@ -215,7 +198,6 @@ class ConnectionsViewModelSessionTest {
             hostRediscovery = mockk(relaxed = true) {
                 coEvery { rediscover(any()) } returns null
             },
-            usbipForwarder = mockk(relaxed = true),
             biometricGate = mockk(relaxed = true),
             pendingAuthPromptHolder = mockk(relaxed = true),
             sessionSelectionHolder = mockk(relaxed = true),

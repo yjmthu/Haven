@@ -248,13 +248,9 @@ dependencies {
 
     implementation(project(":core:mosh"))
     implementation(project(":core:et"))
-    implementation(project(":core:btserial"))
-    implementation(project(":core:bleserial"))
-    implementation(project(":core:usbserial"))
     implementation(project(":core:vnc"))
     implementation(project(":core:rdp"))
     implementation(project(":core:fido"))
-    implementation(project(":core:usb"))
     implementation(project(":core:terminal-haven"))
     // Direct termlib pull-in so the MCP agent transport can name termlib
     // public types (TerminalEmulator, ScrollController, SelectionController,

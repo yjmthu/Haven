@@ -175,7 +175,6 @@ fun ConnectionsScreen(
     val identities by viewModel.identities.collectAsState()
     val totpSecrets by viewModel.totpSecrets.collectAsState()
     val tunnelConfigs by viewModel.tunnelConfigs.collectAsState()
-    val availableUsbDevices = remember { viewModel.availableUsbDevices() }
     var showTunnelsScreen by remember { mutableStateOf(false) }
     // When the user picks "+ New WireGuard tunnel" from a profile's
     // Route-through dropdown, navigate to the Tunnels screen with the
@@ -454,7 +453,6 @@ fun ConnectionsScreen(
             sshKeys = sshKeys,
             totpSecrets = totpSecrets,
             tunnelConfigs = tunnelConfigs,
-            usbDevices = availableUsbDevices,
             onManageTunnels = { preselect ->
                 pendingTunnelAddType = preselect
                 showTunnelsScreen = true
@@ -551,7 +549,6 @@ fun ConnectionsScreen(
             sshKeys = sshKeys,
             totpSecrets = totpSecrets,
             tunnelConfigs = tunnelConfigs,
-            usbDevices = availableUsbDevices,
             embeddedCloudflareTunnel = embeddedCf.value,
             onManageTunnels = { preselect ->
                 pendingTunnelAddType = preselect

@@ -168,15 +168,13 @@ data class CapturedDraft(
 
 /**
  * Map the unified [Transport] enum to its [WorkspaceItem.Kind]:
- * - SSH / Mosh / ET / Reticulum / Local → TERMINAL
+ * - SSH / Mosh / ET → TERMINAL
  * - RDP → DESKTOP
  *
  * VNC is not in [SessionManagerRegistry] (no session manager), so it
  * isn't represented here — automatic capture skips VNC tabs in v1.
  */
 private fun Transport.toWorkspaceKind(): WorkspaceItem.Kind? = when (this) {
-    Transport.SSH, Transport.MOSH, Transport.ET,
-    Transport.BTSERIAL, Transport.BLESERIAL, Transport.USBSERIAL ->
-        WorkspaceItem.Kind.TERMINAL
+    Transport.SSH, Transport.MOSH, Transport.ET -> WorkspaceItem.Kind.TERMINAL
     Transport.RDP -> WorkspaceItem.Kind.DESKTOP
 }

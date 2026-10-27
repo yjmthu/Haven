@@ -73,7 +73,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.Role
@@ -86,7 +85,6 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.hilt.navigation.compose.hiltViewModel
 import sh.haven.core.data.NativeFeatures
 import sh.haven.core.data.db.entities.ConnectionProfile
@@ -135,8 +133,6 @@ fun ConnectionEditDialog(
     sshKeys: List<sh.haven.core.data.db.entities.SshKey> = emptyList(),
     totpSecrets: List<sh.haven.core.data.db.entities.TotpSecret> = emptyList(),
     tunnelConfigs: List<sh.haven.core.data.db.entities.TunnelConfig> = emptyList(),
-    /** Attached phone USB devices `(vidPid, label)` for the SSH USB-forward picker. */
-    usbDevices: List<Pair<String, String>> = emptyList(),
     /**
      * The Cloudflare Tunnel transport row owned by [existing], if any
      * (GH #154). When non-null, the SSH profile editor renders inline CF
@@ -192,9 +188,6 @@ fun ConnectionEditDialog(
     val seed = existing ?: prefill
     // Transport dropdown maps to: connectionType + useMosh + useEternalTerminal
     val initialTransport = when {
-        seed?.isBtSerial == true -> "BTSERIAL"
-        seed?.isBleSerial == true -> "BLESERIAL"
-        seed?.isUsbSerial == true -> "USBSERIAL"
         seed?.isVnc == true -> "VNC"
         seed?.isRdp == true -> "RDP"
         seed?.isEternalTerminal == true -> "ET"
@@ -204,9 +197,6 @@ fun ConnectionEditDialog(
     var selectedTransport by rememberSaveable { mutableStateOf(initialTransport) }
     // Derived connectionType for field visibility
     val connectionType = when (selectedTransport) {
-        "BTSERIAL" -> "BTSERIAL"
-        "BLESERIAL" -> "BLESERIAL"
-        "USBSERIAL" -> "USBSERIAL"
         "VNC" -> "VNC"
         "RDP" -> "RDP"
         else -> "SSH"
@@ -216,22 +206,6 @@ fun ConnectionEditDialog(
     var groupId by rememberSaveable { mutableStateOf(existing?.groupId) }
     var identityId by rememberSaveable { mutableStateOf(existing?.identityId) }
     var host by rememberSaveable { mutableStateOf(seed?.host ?: "") }
-    // Bluetooth-serial selected device MAC (#406); reuses `host` on save.
-    var btDevice by rememberSaveable { mutableStateOf(seed?.takeIf { it.isBtSerial }?.host ?: "") }
-    // BLE-serial selected device MAC (#DoveBoy BLE FR); reuse `host` on save.
-    var bleDevice by rememberSaveable { mutableStateOf(seed?.takeIf { it.isBleSerial }?.host ?: "") }
-    // USB-serial selected device vid:pid and baud (#408); reuse `host`/`port` on save.
-    var usbDevice by rememberSaveable { mutableStateOf(seed?.takeIf { it.isUsbSerial }?.host ?: "") }
-    var usbBaud by rememberSaveable { mutableStateOf((seed?.takeIf { it.isUsbSerial }?.usbBaudRate ?: 115200).toString()) }
-    // USB-serial line format — seeded from the profile's packed config (sshOptions),
-    // held as enum names, re-encoded into sshOptions on save. No schema bump.
-    val usbSeed = seed?.takeIf { it.isUsbSerial }?.let {
-        sh.haven.core.usbserial.UsbSerialParams.fromConfigString(it.usbBaudRate, it.usbSerialConfig)
-    } ?: sh.haven.core.usbserial.UsbSerialParams()
-    var usbDataBits by rememberSaveable { mutableStateOf(usbSeed.dataBits.toString()) }
-    var usbParity by rememberSaveable { mutableStateOf(usbSeed.parity.name) }
-    var usbStopBits by rememberSaveable { mutableStateOf(usbSeed.stopBits.name) }
-    var usbFlow by rememberSaveable { mutableStateOf(usbSeed.flowControl.name) }
     var port by rememberSaveable {
         mutableStateOf(
             when {
@@ -347,8 +321,6 @@ fun ConnectionEditDialog(
     var remoteCommand by rememberSaveable { mutableStateOf(existing?.remoteCommand ?: "") }
     var requestPty by rememberSaveable { mutableStateOf(existing?.requestPty ?: true) }
     var sessionCommandOverride by rememberSaveable { mutableStateOf(existing?.sessionCommandOverride ?: "") }
-    // USB/IP auto-forward: VID:PID of a phone device to export on connect (null = off).
-    var usbForwardVidPid by rememberSaveable { mutableStateOf(existing?.usbForwardVidPid) }
     var disableAltScreen by rememberSaveable { mutableStateOf(existing?.disableAltScreen ?: false) }
     var forwardAgent by rememberSaveable { mutableStateOf(existing?.forwardAgent ?: false) }
     var addressFamily by rememberSaveable { mutableStateOf(existing?.addressFamily ?: "AUTO") }
@@ -986,9 +958,6 @@ fun ConnectionEditDialog(
                     "SSH" to "SSH",
                     "MOSH" to "Mosh",
                     "ET" to "Eternal Terminal",
-                    "BTSERIAL" to "Bluetooth Serial",
-                    "BLESERIAL" to "Bluetooth LE Serial",
-                    "USBSERIAL" to "USB Serial",
                     "VNC" to "VNC (Desktop)",
                     "RDP" to "RDP (Desktop)",
                 )
@@ -1174,41 +1143,7 @@ fun ConnectionEditDialog(
                     Spacer(Modifier.height(4.dp))
                 }
 
-                if (connectionType == "BTSERIAL") {
-                    BtSerialDeviceField(
-                        selectedAddress = btDevice,
-                        onSelect = { address, name ->
-                            btDevice = address
-                            if (label.isBlank()) label = name
-                        },
-                    )
-                } else if (connectionType == "BLESERIAL") {
-                    BleSerialDeviceField(
-                        selectedAddress = bleDevice,
-                        onSelect = { address, name ->
-                            bleDevice = address
-                            if (label.isBlank()) label = name
-                        },
-                    )
-                } else if (connectionType == "USBSERIAL") {
-                    UsbSerialDeviceField(
-                        selectedKey = usbDevice,
-                        baud = usbBaud,
-                        dataBits = usbDataBits,
-                        parity = usbParity,
-                        stopBits = usbStopBits,
-                        flowControl = usbFlow,
-                        onSelectDevice = { key, name ->
-                            usbDevice = key
-                            if (label.isBlank()) label = name
-                        },
-                        onBaudChange = { usbBaud = it },
-                        onDataBitsChange = { usbDataBits = it },
-                        onParityChange = { usbParity = it },
-                        onStopBitsChange = { usbStopBits = it },
-                        onFlowControlChange = { usbFlow = it },
-                    )
-                } else if (connectionType == "VNC") {
+                if (connectionType == "VNC") {
                     ConnectionSection(stringResource(R.string.connections_section_vnc))
                     // VNC: tunnel toggle first (it changes what Host means),
                     // then connection fields.
@@ -1899,56 +1834,6 @@ fun ConnectionEditDialog(
                         )
                     }
 
-                    // USB/IP device forwarding (SSH) — export a phone-attached USB
-                    // device to the remote host on connect (e.g. a YubiKey for
-                    // `ssh-keygen -t ed25519-sk`, touch on the phone).
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        stringResource(R.string.connections_section_usb_forward),
-                        style = MaterialTheme.typography.titleSmall,
-                    )
-                    Text(
-                        stringResource(R.string.connections_helper_usb_forward),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    var usbExpanded by remember { mutableStateOf(false) }
-                    val usbNoneLabel = stringResource(R.string.connections_usb_forward_none)
-                    val usbSelectedLabel = usbDevices.firstOrNull { it.first == usbForwardVidPid }?.second
-                        ?: usbForwardVidPid?.let { stringResource(R.string.connections_usb_forward_unattached, it) }
-                        ?: usbNoneLabel
-                    ExposedDropdownMenuBox(
-                        expanded = usbExpanded,
-                        onExpandedChange = { usbExpanded = it },
-                    ) {
-                        OutlinedTextField(
-                            value = usbSelectedLabel,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text(stringResource(R.string.connections_field_usb_forward)) },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = usbExpanded) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
-                        )
-                        ExposedDropdownMenu(
-                            expanded = usbExpanded,
-                            onDismissRequest = { usbExpanded = false },
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(usbNoneLabel) },
-                                onClick = { usbForwardVidPid = null; usbExpanded = false },
-                            )
-                            usbDevices.forEach { (vidPid, label) ->
-                                DropdownMenuItem(
-                                    text = { Text(label) },
-                                    onClick = { usbForwardVidPid = vidPid; usbExpanded = false },
-                                )
-                            }
-                        }
-                    }
-
                     // File transport picker — Auto / SFTP / SCP (legacy)
                     Spacer(Modifier.height(8.dp))
                     Text(
@@ -2457,9 +2342,6 @@ fun ConnectionEditDialog(
                 portKnockDelayMs.toIntOrNull() ?: KnockSequence.DEFAULT_DELAY_MS,
             ).isSuccess
             val canSave = knockOk && when (connectionType) {
-                "BTSERIAL" -> btDevice.isNotBlank() // a paired device must be picked
-                "BLESERIAL" -> bleDevice.isNotBlank() // a scanned device must be picked
-                "USBSERIAL" -> usbDevice.isNotBlank() && (usbBaud.toIntOrNull() ?: 0) > 0
                 "SSH" -> host.isNotBlank()
                 "VNC" -> host.isNotBlank() && tunnelComplete(vncSshForward, vncSshProfileId)
                 "RDP" -> host.isNotBlank() && rdpUsername.isNotBlank() && tunnelComplete(rdpSshForward, rdpSshProfileId)
@@ -2470,65 +2352,7 @@ fun ConnectionEditDialog(
             // what the form shows.
             fun buildProfile(): ConnectionProfile {
                         val etPortInt = etPort.toIntOrNull() ?: 2022
-                                                val profile = if (connectionType == "BTSERIAL") {
-                            // The paired device MAC lives in `host` (no new column).
-                            (existing ?: ConnectionProfile(
-                                label = label,
-                                host = btDevice,
-                                username = "",
-                            )).copy(
-                                label = label.ifBlank { "Bluetooth: $btDevice" },
-                                host = btDevice,
-                                port = 0,
-                                username = "",
-                                connectionType = "BTSERIAL",
-                                colorTag = colorTag,
-                                groupId = groupId,
-                                identityId = identityId,
-                            )
-                        } else if (connectionType == "BLESERIAL") {
-                            // The BLE device MAC lives in `host` (no new column); the
-                            // GATT UUIDs are auto-detected (NUS / HM-10) at connect.
-                            (existing ?: ConnectionProfile(
-                                label = label,
-                                host = bleDevice,
-                                username = "",
-                            )).copy(
-                                label = label.ifBlank { "BLE: $bleDevice" },
-                                host = bleDevice,
-                                port = 0,
-                                username = "",
-                                connectionType = "BLESERIAL",
-                                colorTag = colorTag,
-                                groupId = groupId,
-                                identityId = identityId,
-                            )
-                        } else if (connectionType == "USBSERIAL") {
-                            // vid:pid → `host`, baud → `port`, the rest of the line
-                            // format (data/parity/stop/flow) → `sshOptions`. No new
-                            // column, mirroring how host/port are repurposed. #408
-                            val usbLineConfig = sh.haven.core.usbserial.UsbSerialParams(
-                                dataBits = usbDataBits.toIntOrNull() ?: 8,
-                                parity = sh.haven.core.usbserial.UsbSerialParams.Parity.valueOf(usbParity),
-                                stopBits = sh.haven.core.usbserial.UsbSerialParams.StopBits.valueOf(usbStopBits),
-                                flowControl = sh.haven.core.usbserial.UsbSerialParams.FlowControl.valueOf(usbFlow),
-                            ).toConfigString()
-                            (existing ?: ConnectionProfile(
-                                label = label,
-                                host = usbDevice,
-                                username = "",
-                            )).copy(
-                                label = label.ifBlank { "USB: $usbDevice" },
-                                host = usbDevice,
-                                port = usbBaud.toIntOrNull() ?: 115200,
-                                sshOptions = usbLineConfig,
-                                username = "",
-                                connectionType = "USBSERIAL",
-                                colorTag = colorTag,
-                                groupId = groupId,
-                                identityId = identityId,
-                            )
-                        } else if (connectionType == "VNC") {
+                                                val profile = if (connectionType == "VNC") {
                             val vncPortInt = port.toIntOrNull() ?: 5900
                             (existing ?: ConnectionProfile(
                                 label = label,
@@ -2664,7 +2488,6 @@ fun ConnectionEditDialog(
                                 remoteCommand = remoteCommand.ifBlank { null },
                                 requestPty = requestPty,
                                 sessionCommandOverride = sessionCommandOverride.ifBlank { null },
-                                usbForwardVidPid = usbForwardVidPid,
                                 disableAltScreen = disableAltScreen,
                                 terminalColorScheme = terminalColorScheme,
                                 terminalBackgroundOpacity = terminalBackgroundOpacity,
@@ -3289,396 +3112,6 @@ private fun AuthMethodsEditor(
                         },
                     )
                 }
-            }
-        }
-    }
-}
-
-/**
- * Paired-Bluetooth-device picker for a BTSERIAL connection (#406). Lists bonded
- * Classic devices (the SPP driver connects only to already-paired ones); requests
- * BLUETOOTH_CONNECT on demand (Android 12+). Reports (address, name) on selection.
- */
-@android.annotation.SuppressLint("MissingPermission") // bonded-device reads are guarded by `granted`
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun BtSerialDeviceField(
-    selectedAddress: String,
-    onSelect: (address: String, name: String) -> Unit,
-) {
-    val context = LocalContext.current
-    val needsRuntimePermission = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
-
-    fun hasPermission(): Boolean = !needsRuntimePermission ||
-        androidx.core.content.ContextCompat.checkSelfPermission(
-            context, android.Manifest.permission.BLUETOOTH_CONNECT,
-        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-
-    var granted by remember { mutableStateOf(hasPermission()) }
-
-    fun bondedDevices(): List<Pair<String, String>> {
-        if (!granted) return emptyList()
-        val adapter = (context.getSystemService(android.content.Context.BLUETOOTH_SERVICE)
-            as? android.bluetooth.BluetoothManager)?.adapter ?: return emptyList()
-        return runCatching {
-            adapter.bondedDevices.orEmpty().map { it.address to (it.name ?: it.address) }
-        }.getOrDefault(emptyList())
-    }
-
-    var devices by remember { mutableStateOf(bondedDevices()) }
-    val permLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { ok ->
-        granted = ok
-        if (ok) devices = bondedDevices()
-    }
-
-    ConnectionSection(stringResource(R.string.connections_section_btserial))
-    Text(
-        stringResource(R.string.connections_btserial_desc),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    Spacer(Modifier.height(8.dp))
-
-    if (!granted) {
-        OutlinedButton(onClick = { permLauncher.launch(android.Manifest.permission.BLUETOOTH_CONNECT) }) {
-            Text(stringResource(R.string.connections_btserial_permission))
-        }
-        return
-    }
-    if (devices.isEmpty()) {
-        Text(
-            stringResource(R.string.connections_btserial_no_devices),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        return
-    }
-
-    var expanded by remember { mutableStateOf(false) }
-    val selectedLabel = devices.firstOrNull { it.first == selectedAddress }
-        ?.let { "${it.second} (${it.first})" } ?: ""
-    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
-        OutlinedTextField(
-            value = selectedLabel,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(stringResource(R.string.connections_btserial_device)) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
-        )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            devices.forEach { (address, name) ->
-                DropdownMenuItem(
-                    text = { Text("$name  ($address)") },
-                    onClick = {
-                        onSelect(address, name)
-                        expanded = false
-                    },
-                )
-            }
-        }
-    }
-}
-
-/**
- * BLE-serial device picker. A BLE-UART peripheral (an nRF board, an HM-10, a BLE
- * RS232 adapter) usually isn't bonded, so it must be discovered by an active
- * scan rather than read from bondedDevices. Requests BLUETOOTH_SCAN (+ pre-31
- * location) on demand, scans while the button is pressed (auto-stopping after a
- * timeout), and reports (address, name) on selection.
- */
-@android.annotation.SuppressLint("MissingPermission") // scan/connect guarded by `granted`
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun BleSerialDeviceField(
-    selectedAddress: String,
-    onSelect: (address: String, name: String) -> Unit,
-) {
-    val context = LocalContext.current
-    val scanPerms = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-        arrayOf(android.Manifest.permission.BLUETOOTH_SCAN, android.Manifest.permission.BLUETOOTH_CONNECT)
-    } else {
-        arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION)
-    }
-    fun hasPerms(): Boolean = scanPerms.all {
-        androidx.core.content.ContextCompat.checkSelfPermission(context, it) ==
-            android.content.pm.PackageManager.PERMISSION_GRANTED
-    }
-    var granted by remember { mutableStateOf(hasPerms()) }
-    var scanning by remember { mutableStateOf(false) }
-    val found = remember { mutableStateMapOf<String, String>() } // MAC -> name
-
-    val permLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions(),
-    ) { result -> granted = result.values.all { it } }
-
-    val scanner = remember {
-        (context.getSystemService(android.content.Context.BLUETOOTH_SERVICE)
-            as? android.bluetooth.BluetoothManager)?.adapter?.bluetoothLeScanner
-    }
-    val callback = remember {
-        object : android.bluetooth.le.ScanCallback() {
-            override fun onScanResult(callbackType: Int, result: android.bluetooth.le.ScanResult) {
-                val dev = result.device
-                val name = result.scanRecord?.deviceName
-                    ?: runCatching { dev.name }.getOrNull()
-                    ?: dev.address
-                found[dev.address] = name
-            }
-        }
-    }
-
-    // Scan only while `scanning`; always stop on leaving composition.
-    androidx.compose.runtime.DisposableEffect(scanning, granted) {
-        if (scanning && granted && scanner != null) {
-            val settings = android.bluetooth.le.ScanSettings.Builder()
-                .setScanMode(android.bluetooth.le.ScanSettings.SCAN_MODE_LOW_LATENCY)
-                .build()
-            runCatching { scanner.startScan(null, settings, callback) }
-        }
-        onDispose { runCatching { scanner?.stopScan(callback) } }
-    }
-    LaunchedEffect(scanning) {
-        if (scanning) {
-            kotlinx.coroutines.delay(12_000)
-            scanning = false
-        }
-    }
-
-    ConnectionSection(stringResource(R.string.connections_section_bleserial))
-    Text(
-        stringResource(R.string.connections_bleserial_desc),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    Spacer(Modifier.height(8.dp))
-
-    if (!granted) {
-        OutlinedButton(onClick = { permLauncher.launch(scanPerms) }) {
-            Text(stringResource(R.string.connections_bleserial_permission))
-        }
-        return
-    }
-
-    OutlinedButton(onClick = { found.clear(); scanning = true }, enabled = !scanning) {
-        Text(
-            stringResource(
-                if (scanning) R.string.connections_bleserial_scanning
-                else R.string.connections_bleserial_scan,
-            ),
-        )
-    }
-    Spacer(Modifier.height(8.dp))
-
-    val entries = found.entries.map { it.key to it.value }.sortedBy { it.second }
-    if (entries.isEmpty()) {
-        if (!scanning) {
-            Text(
-                stringResource(R.string.connections_bleserial_no_devices),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        return
-    }
-
-    var expanded by remember { mutableStateOf(false) }
-    val selectedLabel = entries.firstOrNull { it.first == selectedAddress }
-        ?.let { "${it.second} (${it.first})" }
-        ?: selectedAddress
-    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
-        OutlinedTextField(
-            value = selectedLabel,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(stringResource(R.string.connections_bleserial_device)) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
-        )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            entries.forEach { (address, name) ->
-                DropdownMenuItem(
-                    text = { Text("$name  ($address)") },
-                    onClick = {
-                        onSelect(address, name)
-                        expanded = false
-                    },
-                )
-            }
-        }
-    }
-}
-
-/**
- * USB-serial device + baud picker for a USBSERIAL connection (#408). Lists the
- * currently-attached USB devices (listing needs no permission — only opening the
- * port does, which happens at connect via the Android USB prompt). Reports the
- * vendorId:productId key and a display name on selection.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun UsbSerialDeviceField(
-    selectedKey: String,
-    baud: String,
-    dataBits: String,
-    parity: String,
-    stopBits: String,
-    flowControl: String,
-    onSelectDevice: (key: String, name: String) -> Unit,
-    onBaudChange: (String) -> Unit,
-    onDataBitsChange: (String) -> Unit,
-    onParityChange: (String) -> Unit,
-    onStopBitsChange: (String) -> Unit,
-    onFlowControlChange: (String) -> Unit,
-) {
-    val context = LocalContext.current
-
-    fun usbDevices(): List<Pair<String, String>> {
-        val mgr = context.getSystemService(android.content.Context.USB_SERVICE)
-            as? android.hardware.usb.UsbManager ?: return emptyList()
-        return runCatching {
-            mgr.deviceList.values.map { d ->
-                "%04x:%04x".format(d.vendorId, d.productId) to (d.productName ?: d.deviceName)
-            }
-        }.getOrDefault(emptyList())
-    }
-
-    val devices by remember { mutableStateOf(usbDevices()) }
-
-    ConnectionSection(stringResource(R.string.connections_section_usbserial))
-    Text(
-        stringResource(R.string.connections_usbserial_desc),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    Spacer(Modifier.height(8.dp))
-
-    if (devices.isEmpty()) {
-        Text(
-            stringResource(R.string.connections_usbserial_no_devices),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    } else {
-        var expanded by remember { mutableStateOf(false) }
-        val selectedLabel = devices.firstOrNull { it.first == selectedKey }
-            ?.let { "${it.second} (${it.first})" } ?: selectedKey
-        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
-            OutlinedTextField(
-                value = selectedLabel,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text(stringResource(R.string.connections_usbserial_device)) },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(MenuAnchorType.PrimaryNotEditable),
-            )
-            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                devices.forEach { (key, name) ->
-                    DropdownMenuItem(
-                        text = { Text("$name  ($key)") },
-                        onClick = {
-                            onSelectDevice(key, name)
-                            expanded = false
-                        },
-                    )
-                }
-            }
-        }
-    }
-    Spacer(Modifier.height(8.dp))
-    OutlinedTextField(
-        value = baud,
-        onValueChange = { onBaudChange(it.filter(Char::isDigit)) },
-        label = { Text(stringResource(R.string.connections_usbserial_baud)) },
-        singleLine = true,
-        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-            keyboardType = androidx.compose.ui.text.input.KeyboardType.Number,
-        ),
-        modifier = Modifier.fillMaxWidth(),
-    )
-    Spacer(Modifier.height(8.dp))
-    SerialOptionDropdown(
-        label = stringResource(R.string.connections_usbserial_databits),
-        options = listOf("5" to "5", "6" to "6", "7" to "7", "8" to "8"),
-        selectedValue = dataBits,
-        onSelect = onDataBitsChange,
-    )
-    Spacer(Modifier.height(8.dp))
-    SerialOptionDropdown(
-        label = stringResource(R.string.connections_usbserial_parity),
-        options = listOf(
-            "NONE" to stringResource(R.string.connections_usbserial_none),
-            "ODD" to stringResource(R.string.connections_usbserial_parity_odd),
-            "EVEN" to stringResource(R.string.connections_usbserial_parity_even),
-            "MARK" to stringResource(R.string.connections_usbserial_parity_mark),
-            "SPACE" to stringResource(R.string.connections_usbserial_parity_space),
-        ),
-        selectedValue = parity,
-        onSelect = onParityChange,
-    )
-    Spacer(Modifier.height(8.dp))
-    SerialOptionDropdown(
-        label = stringResource(R.string.connections_usbserial_stopbits),
-        options = listOf("ONE" to "1", "ONE_POINT_FIVE" to "1.5", "TWO" to "2"),
-        selectedValue = stopBits,
-        onSelect = onStopBitsChange,
-    )
-    Spacer(Modifier.height(8.dp))
-    SerialOptionDropdown(
-        label = stringResource(R.string.connections_usbserial_flowcontrol),
-        options = listOf(
-            "NONE" to stringResource(R.string.connections_usbserial_none),
-            "RTS_CTS" to stringResource(R.string.connections_usbserial_flow_rtscts),
-            "XON_XOFF" to stringResource(R.string.connections_usbserial_flow_xonxoff),
-        ),
-        selectedValue = flowControl,
-        onSelect = onFlowControlChange,
-    )
-}
-
-/**
- * A compact labelled dropdown for one serial line-format option. [options] maps
- * a stored value (enum name / number) to its display label; [selectedValue] is
- * the stored value, [onSelect] reports the newly chosen stored value.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SerialOptionDropdown(
-    label: String,
-    options: List<Pair<String, String>>,
-    selectedValue: String,
-    onSelect: (String) -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    val selectedLabel = options.firstOrNull { it.first == selectedValue }?.second ?: selectedValue
-    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
-        OutlinedTextField(
-            value = selectedLabel,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(label) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
-        )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            options.forEach { (value, text) ->
-                DropdownMenuItem(
-                    text = { Text(text) },
-                    onClick = {
-                        onSelect(value)
-                        expanded = false
-                    },
-                )
             }
         }
     }

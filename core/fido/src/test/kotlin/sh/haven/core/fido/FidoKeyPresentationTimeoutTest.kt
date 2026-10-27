@@ -53,7 +53,7 @@ class FidoKeyPresentationTimeoutTest {
         val context = mockk<Context>(relaxed = true) {
             every { getSystemService(Context.USB_SERVICE) } returns usbManager
         }
-        return FidoAuthenticator(context, mockk(relaxed = true))
+        return FidoAuthenticator(context)
     }
 
     private suspend fun FidoAuthenticator.sign(nonInteractive: Boolean) =

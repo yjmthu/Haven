@@ -54,9 +54,6 @@ class SessionManagerRegistryInputTest {
         Transport.SSH to "SSH",
         Transport.MOSH to "mosh",
         Transport.ET to "ET",
-        Transport.BTSERIAL to "Bluetooth-serial",
-        Transport.BLESERIAL to "BLE-serial",
-        Transport.USBSERIAL to "USB-serial",
     )
 
     private fun registry(vararg overrides: TransportSessionManager): SessionManagerRegistry {
