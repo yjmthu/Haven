@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.runBlocking
 import sh.haven.core.data.preferences.UserPreferencesRepository
-import sh.haven.core.stepca.CertRenewalWorker
 import java.io.File
 import javax.inject.Inject
 
@@ -46,10 +45,8 @@ class HavenApp : Application(), Configuration.Provider {
     /**
      * Required by [Configuration.Provider] so the Hilt-aware worker
      * factory is wired before any [androidx.work.WorkManager] lookup.
-     * [CertRenewalWorker] (#133 phase 2b) needs `@AssistedInject` deps,
-     * which require this. Other workers (e.g. ReticulumWorker) keep
-     * working unchanged — plain-constructor workers don't go through
-     * the factory.
+     * Workers that declare `@AssistedInject` deps require this; plain-
+     * constructor workers don't go through the factory.
      */
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
@@ -112,11 +109,6 @@ class HavenApp : Application(), Configuration.Provider {
         // "Open <workspace>" entries from the home screen. Self-observing —
         // recomputes on every repo change.
         launcherShortcutManager.start()
-
-        // Schedule the daily step-ca cert-renewal check (#133 phase 2b).
-        // Idempotent (KEEP policy); cheap when the user has no CAs
-        // configured — the worker enumerates SshKeys and exits early.
-        CertRenewalWorker.schedule(this)
 
         // Auto-push backup watch (#359) — same pattern: inert until the user
         // enables auto-sync in Settings → Backup → Sync to a remote.

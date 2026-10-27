@@ -53,7 +53,6 @@ import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.Pin
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.TouchApp
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.VpnKey
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
@@ -119,7 +118,6 @@ import java.util.Locale
 
 // Section ids for the collapsed-set preference (#460). Stable strings, not
 // enum ordinals or resource ids — they are persisted.
-internal const val SECTION_CA = "ca"
 internal const val SECTION_SSH = "ssh"
 internal const val SECTION_PASSWORDS = "passwords"
 internal const val SECTION_TOTP = "totp"
@@ -141,7 +139,6 @@ internal const val SECTION_DRIVE = "drive"
  * toggled a section; see [KeysViewModel.collapsedSections].
  */
 internal val DEFAULT_COLLAPSED_SECTIONS = setOf(
-    SECTION_CA,
     SECTION_SSH,
     SECTION_PASSWORDS,
     SECTION_AGE,
@@ -182,22 +179,15 @@ fun KeysScreen(
 
     var showAddKeyDialog by remember { mutableStateOf(false) }
     var showGenerateDialog by remember { mutableStateOf(false) }
-    var showStepCaDialog by remember { mutableStateOf(false) }
     var showSecurityKeyChooser by remember { mutableStateOf(false) }
     var showRegisterSkDialog by remember { mutableStateOf(false) }
     var showGenerateAgeDialog by remember { mutableStateOf(false) }
-    val stepCaConfigs by viewModel.stepCaConfigs.collectAsState()
     val totpSecrets by viewModel.totpSecrets.collectAsState()
     val ageIdentities by viewModel.ageIdentities.collectAsState()
     val sshIdentities by viewModel.sshIdentities.collectAsState()
     // Non-null while the identity editor is open: an existing row to edit, or
     // a fresh blank row to create (#360).
     var editingIdentity by remember { mutableStateOf<sh.haven.core.data.db.entities.SshIdentity?>(null) }
-    // CA section ViewModel — separate hilt instance, shared with the
-    // section composable inside the LazyColumn. (#133 phase 2b — CA
-    // management moved out of Settings into the Keys tab.)
-    val stepCaConfigsViewModel: StepCaConfigsViewModel = hiltViewModel()
-    val stepCaSectionConfigs by stepCaConfigsViewModel.configs.collectAsState()
     var contextMenuKeyId by remember { mutableStateOf<String?>(null) }
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -317,16 +307,10 @@ fun KeysScreen(
             }
         },
     ) { innerPadding ->
-        // The CA section must always be reachable. Earlier this branched
-        // on a "nothing here" condition and rendered a centered empty-
-        // state instead — but the empty-state hid the Certificate
-        // authorities section too, so a fresh-install user who wanted
-        // to start with a step-ca-issued key had no way to register a
-        // CA first (#133). Now the LazyColumn always renders, with the
-        // empty-state hint as an item below the CA section when there
-        // are no keys, passwords, or CA configs yet.
-        val nothingButCa = keys.isEmpty() && passwordEntries.isEmpty() &&
-            stepCaSectionConfigs.isEmpty() && totpSecrets.isEmpty() && ageIdentities.isEmpty() && !generating
+        // The empty-state hint renders below the sections when there are no
+        // keys, passwords, or other credentials yet.
+        val nothingYet = keys.isEmpty() && passwordEntries.isEmpty() &&
+            totpSecrets.isEmpty() && ageIdentities.isEmpty() && !generating
         // One invocation shared by the user-keys and drive-keys sections — the
         // row and its menu behave identically, only reorderability differs.
         val sshKeyRow: @Composable (SshKey, Boolean, Boolean) -> Unit = { sshKey, canMoveUp, canMoveDown ->
@@ -358,7 +342,6 @@ fun KeysScreen(
                 onAttachCertificate = { viewModel.requestAttachCertificate(sshKey.id) },
                 onRemoveCertificate = { viewModel.removeCertificate(sshKey.id) },
                 onExportCertificate = { viewModel.requestCertExport(sshKey.id) },
-                onRegenerateViaStepCa = { viewModel.regenerateViaStepCa(sshKey.id) },
                 canMoveUp = canMoveUp,
                 canMoveDown = canMoveDown,
                 onMoveUp = { viewModel.moveKey(sshKey.id, up = true) },
@@ -377,15 +360,7 @@ fun KeysScreen(
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            item(key = "stepca-ca-section") {
-                StepCaConfigsSectionContent(
-                    viewModel = stepCaConfigsViewModel,
-                    expanded = SECTION_CA !in collapsedSections,
-                    onToggleExpanded = { viewModel.toggleSection(SECTION_CA) },
-                )
-                HorizontalDivider()
-            }
-            if (nothingButCa) {
+            if (nothingYet) {
                 item(key = "empty-state") {
                     Column(
                         modifier = Modifier
@@ -639,14 +614,9 @@ fun KeysScreen(
         // provider appearing mid-dialog is not worth a live watch.
         val keyProviders = remember { viewModel.openKeychainProviders() }
         AddKeyChooser(
-            stepCaConfigCount = stepCaConfigs.size,
             onGenerate = {
                 showAddKeyDialog = false
                 showGenerateDialog = true
-            },
-            onGenerateStepCa = {
-                showAddKeyDialog = false
-                showStepCaDialog = true
             },
             onImport = {
                 showAddKeyDialog = false
@@ -744,17 +714,6 @@ fun KeysScreen(
                 if (hardwareBacked) viewModel.generateHardwareKey(label)
                 else viewModel.generateKey(label, keyType)
                 showGenerateDialog = false
-            },
-        )
-    }
-
-    if (showStepCaDialog && stepCaConfigs.isNotEmpty()) {
-        GenerateStepCaDialog(
-            cas = stepCaConfigs,
-            onDismiss = { showStepCaDialog = false },
-            onGenerate = { label, caId, principals ->
-                viewModel.generateViaStepCa(label, caId, principals)
-                showStepCaDialog = false
             },
         )
     }
@@ -1073,9 +1032,7 @@ private fun SshIdentityDialog(
 
 @Composable
 private fun AddKeyChooser(
-    stepCaConfigCount: Int,
     onGenerate: () -> Unit,
-    onGenerateStepCa: () -> Unit,
     onImport: () -> Unit,
     onSecurityKey: () -> Unit,
     /** Apps that can hold a key for Haven; empty hides the option (#487). */
@@ -1101,32 +1058,6 @@ private fun AddKeyChooser(
                     supportingContent = { Text(stringResource(R.string.keys_generate_key_types)) },
                     leadingContent = {
                         Icon(Icons.Filled.Add, contentDescription = null)
-                    },
-                )
-                ListItem(
-                    modifier = if (stepCaConfigCount > 0) {
-                        Modifier.clickable { onGenerateStepCa() }
-                    } else Modifier,
-                    headlineContent = { Text(stringResource(R.string.keys_generate_via_stepca)) },
-                    supportingContent = {
-                        Text(
-                            stringResource(
-                                if (stepCaConfigCount > 0) R.string.keys_generate_via_stepca_hint
-                                else R.string.keys_generate_via_stepca_no_ca,
-                            ),
-                            color = if (stepCaConfigCount == 0)
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            else MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    },
-                    leadingContent = {
-                        Icon(
-                            Icons.Filled.VpnKey,
-                            contentDescription = null,
-                            tint = if (stepCaConfigCount > 0)
-                                MaterialTheme.colorScheme.onSurface
-                            else MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
                     },
                 )
                 ListItem(
@@ -1775,7 +1706,6 @@ private fun SshKeyAuditRow(
     onAttachCertificate: () -> Unit,
     onRemoveCertificate: () -> Unit,
     onExportCertificate: () -> Unit,
-    onRegenerateViaStepCa: () -> Unit,
     canMoveUp: Boolean,
     canMoveDown: Boolean,
     onMoveUp: () -> Unit,
@@ -2059,15 +1989,6 @@ private fun SshKeyAuditRow(
                     onRemoveCertificate = onRemoveCertificate,
                     onAttachCertificate = onAttachCertificate,
                 )
-                // Regenerate (step-ca-minted keys only). Same flow as the
-                // first Generate; updates the existing row in place. (#133 2b)
-                if (sshKey.caConfigId != null) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.keys_regenerate_via_stepca)) },
-                        onClick = { onMenuDismiss(); onRegenerateViaStepCa() },
-                        leadingIcon = { Icon(Icons.Filled.Refresh, contentDescription = null) },
-                    )
-                }
             }
             DropdownMenuItem(
                 text = {

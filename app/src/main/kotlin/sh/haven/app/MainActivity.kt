@@ -71,10 +71,6 @@ class MainActivity : AppCompatActivity() {
     // App-global user-facing messages (e.g. shell-closed connect errors);
     // HavenNavHost shows these in a root snackbar over every screen (#215 follow-up).
     @Inject lateinit var userMessageBus: sh.haven.core.data.message.UserMessageBus
-    // Cert renewal request bus: notifications fire haven://renew-cert/<id>
-    // intents which land here and we re-publish via the existing
-    // AgentUiCommandBus so HavenNavHost flips to Keys and KeysViewModel
-    // picks up the regenerate request. (#133 phase 2b)
     // Keystore biometric gate: a fetch on a BIOMETRIC_PROTECTED entry
     // queues a request here, this Activity collects, runs
     // BiometricPrompt, and posts the decision back. Foreground tracking
@@ -137,7 +133,6 @@ class MainActivity : AppCompatActivity() {
         exitIfDisconnected()
         handleWorkspaceShortcut(intent)
         handleConnectionShortcut(intent)
-        handleRenewCertDeepLink(intent)
         handleConnectDeepLink(intent)
         handleStandardSchemeDeepLink(intent)
         handleTaskerRunIntent(intent)
@@ -172,13 +167,6 @@ class MainActivity : AppCompatActivity() {
      * once consumed so a configuration change doesn't relaunch.
      */
     /**
-     * Parse `haven://renew-cert/<keyId>` deep links posted by
-     * [sh.haven.core.stepca.RenewalNotifier] and re-publish onto the
-     * existing UI command bus. The notifier never imports the bus
-     * directly — that would couple core/stepca to core/data — so the
-     * Activity bridges the two.
-     */
-    /**
      * True the first time a given deep-link URI is seen, false for a repeat
      * within [DEEP_LINK_DEDUPE_MS].
      *
@@ -206,18 +194,6 @@ class MainActivity : AppCompatActivity() {
         }
         lastDeepLink = key to now
         return true
-    }
-
-    private fun handleRenewCertDeepLink(intent: Intent?) {
-        val data = intent?.data ?: return
-        if (data.scheme != "haven" || data.host != "renew-cert") return
-        if (!isFreshDeepLink(data)) return
-        val keyId = data.lastPathSegment ?: return
-        Log.d("MainActivity", "renew-cert deep link for key $keyId")
-        agentUiCommandBus.emit(
-            sh.haven.core.data.agent.AgentUiCommand.RegenerateStepCaCert(keyId),
-        )
-        intent.data = null
     }
 
     /**
@@ -320,7 +296,6 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         handleWorkspaceShortcut(intent)
         handleConnectionShortcut(intent)
-        handleRenewCertDeepLink(intent)
         handleConnectDeepLink(intent)
         handleStandardSchemeDeepLink(intent)
         handleTaskerRunIntent(intent)
@@ -442,7 +417,6 @@ class MainActivity : AppCompatActivity() {
      */
     fun handleDeepLinkUri(uri: android.net.Uri) {
         val intent = Intent().apply { data = uri }
-        handleRenewCertDeepLink(intent)
         handleConnectDeepLink(intent)
         handleStandardSchemeDeepLink(intent)
     }

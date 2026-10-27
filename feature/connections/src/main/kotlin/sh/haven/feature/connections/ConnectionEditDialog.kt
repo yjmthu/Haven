@@ -89,8 +89,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import sh.haven.core.data.NativeFeatures
 import sh.haven.core.data.db.entities.ConnectionProfile
 import sh.haven.core.data.preferences.UserPreferencesRepository
-import sh.haven.core.knock.KnockSequence
-import sh.haven.core.spa.SpaConfig
 import sh.haven.feature.tunnel.CloudflareAccessLoginContract
 import sh.haven.feature.tunnel.CloudflareInlineFields
 import sh.haven.feature.tunnel.TunnelViewModel
@@ -156,13 +154,6 @@ fun ConnectionEditDialog(
     jumpScanning: Boolean = false,
     jumpScanError: String? = null,
     onScanSubnetViaJump: (jumpProfileId: String) -> Unit = {},
-    /** Optional callback wired by the screen to fire a test knock and
-     *  return `(ok, message)`. When null the "Test knock" button is
-     *  hidden — useful for previews / tests. */
-    onTestKnock: (suspend (host: String, sequence: String, delayMs: Int) -> Pair<Boolean, String>)? = null,
-    /** Optional callback to fire a test SPA packet, returning `(ok, message)`.
-     *  When null the "Test SPA" button is hidden. */
-    onTestSpa: (suspend (host: String, config: SpaConfig) -> Pair<Boolean, String>)? = null,
     onDismiss: () -> Unit,
     /**
      * Save callback. The second argument carries inline Cloudflare Tunnel
@@ -348,12 +339,6 @@ fun ConnectionEditDialog(
         mutableStateOf(existing?.reconnectOnNetworkChange ?: true)
     }
     var tunnelOnly by rememberSaveable { mutableStateOf(existing?.tunnelOnly ?: false) }
-    // Port knocking — see core/knock module. Stored on ConnectionProfile,
-    // applied per-protocol at the transport layer (ConnectionsViewModel
-    // and DesktopViewModel). Honoured only on the direct-dial path.
-    var portKnockSequence by rememberSaveable {
-        mutableStateOf(existing?.portKnockSequence ?: "")
-    }
     // Collapsible-section state for the SSH form (#dialog tidy-up). New
     // users see the essentials (Connection, Terminal, Authentication)
     // expanded; the rest start folded. rememberSaveable so toggles survive
@@ -363,21 +348,6 @@ fun ConnectionEditDialog(
     var secAuthExpanded by rememberSaveable { mutableStateOf(false) }
     var secReliabilityExpanded by rememberSaveable { mutableStateOf(false) }
     var secEmbeddedVncExpanded by rememberSaveable { mutableStateOf(false) }
-    var portKnockDelayMs by rememberSaveable {
-        mutableStateOf((existing?.portKnockDelayMs ?: 100).toString())
-    }
-    // fwknop Single Packet Authorization (#156). Like the knock, only applied
-    // on the direct-dial path; ignored on SSH/SOCKS-tunneled connects.
-    var spaKey by rememberSaveable { mutableStateOf(existing?.spaKey ?: "") }
-    var spaKeyBase64 by rememberSaveable { mutableStateOf(existing?.spaKeyBase64 ?: false) }
-    var spaHmacKey by rememberSaveable { mutableStateOf(existing?.spaHmacKey ?: "") }
-    var spaHmacKeyBase64 by rememberSaveable { mutableStateOf(existing?.spaHmacKeyBase64 ?: false) }
-    var spaAccessSpec by rememberSaveable { mutableStateOf(existing?.spaAccessSpec ?: "") }
-    var spaAllowMode by rememberSaveable { mutableStateOf(existing?.spaAllowMode ?: "SOURCE") }
-    var spaExplicitIp by rememberSaveable { mutableStateOf(existing?.spaExplicitIp ?: "") }
-    var spaPort by rememberSaveable {
-        mutableStateOf((existing?.spaPort ?: SpaConfig.DEFAULT_SPA_PORT).toString())
-    }
 
     val isEdit = existing != null
     val title = if (isEdit) stringResource(R.string.connections_dialog_edit) else stringResource(R.string.connections_dialog_new)
@@ -388,9 +358,9 @@ fun ConnectionEditDialog(
         modifier = Modifier.fillMaxWidth(0.92f),
         title = { Text(title) },
         text = {
-        // #166/dialog-tidy: routing + port-knock content as reusable
-        // closures so SSH renders them inside Connection / Authentication
-        // while VNC/RDP keep them as their own sections below.
+        // #166/dialog-tidy: routing content as a reusable closure so SSH
+        // renders it inside Connection / Authentication while VNC/RDP keep
+        // it as their own section below.
         val routingBody: @Composable () -> Unit = {
                     var proxyExpanded by remember { mutableStateOf(false) }
                     val selectedTunnel = tunnelConfigs.firstOrNull { it.id == tunnelConfigId }
@@ -717,234 +687,6 @@ fun ConnectionEditDialog(
                             modifier = Modifier.padding(top = 4.dp),
                         )
                     }
-        }
-        val portKnockBody: @Composable () -> Unit = {
-                    val parsedKnock = KnockSequence.parse(
-                        portKnockSequence,
-                        portKnockDelayMs.toIntOrNull() ?: KnockSequence.DEFAULT_DELAY_MS,
-                    )
-                    val knockError = parsedKnock.exceptionOrNull()?.message
-                    OutlinedTextField(
-                        value = portKnockSequence,
-                        onValueChange = { portKnockSequence = it },
-                        label = { Text(stringResource(R.string.connections_field_port_knock_sequence)) },
-                        placeholder = { Text(stringResource(R.string.connections_hint_port_knock_sequence)) },
-                        isError = knockError != null,
-                        supportingText = {
-                            if (knockError != null) {
-                                Text(knockError, color = MaterialTheme.colorScheme.error)
-                            } else if (portKnockSequence.isNotBlank()) {
-                                Text(stringResource(R.string.connections_helper_port_knock_active))
-                            } else {
-                                Text(stringResource(R.string.connections_helper_port_knock_blank))
-                            }
-                        },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    if (portKnockSequence.isNotBlank()) {
-                        Spacer(Modifier.height(4.dp))
-                        OutlinedTextField(
-                            value = portKnockDelayMs,
-                            onValueChange = { v ->
-                                portKnockDelayMs = v.filter { c -> c.isDigit() }.take(5)
-                            },
-                            label = { Text(stringResource(R.string.connections_field_port_knock_delay)) },
-                            placeholder = { Text("100") },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.width(200.dp),
-                        )
-                        if (onTestKnock != null) {
-                            val scope = rememberCoroutineScope()
-                            var testRunning by remember { mutableStateOf(false) }
-                            var testResult by remember { mutableStateOf<Pair<Boolean, String>?>(null) }
-                            Spacer(Modifier.height(4.dp))
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                TextButton(
-                                    enabled = !testRunning && knockError == null && host.isNotBlank(),
-                                    onClick = {
-                                        testRunning = true
-                                        testResult = null
-                                        scope.launch {
-                                            val r = onTestKnock(
-                                                host,
-                                                portKnockSequence,
-                                                portKnockDelayMs.toIntOrNull()
-                                                    ?: KnockSequence.DEFAULT_DELAY_MS,
-                                            )
-                                            testResult = r
-                                            testRunning = false
-                                        }
-                                    },
-                                ) {
-                                    if (testRunning) {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.size(14.dp),
-                                            strokeWidth = 2.dp,
-                                        )
-                                        Spacer(Modifier.width(8.dp))
-                                        Text(stringResource(R.string.connections_button_test_knock_running))
-                                    } else {
-                                        Text(stringResource(R.string.connections_button_test_knock))
-                                    }
-                                }
-                                Spacer(Modifier.width(8.dp))
-                                testResult?.let { (ok, msg) ->
-                                    Text(
-                                        msg,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = if (ok) MaterialTheme.colorScheme.primary
-                                        else MaterialTheme.colorScheme.error,
-                                    )
-                                }
-                            }
-                        }
-                    }
-        }
-        val spaBody: @Composable () -> Unit = {
-            val parsedSpa = SpaConfig.parse(
-                key = spaKey,
-                keyIsBase64 = spaKeyBase64,
-                hmacKey = spaHmacKey,
-                hmacKeyIsBase64 = spaHmacKeyBase64,
-                accessSpec = spaAccessSpec,
-                allowMode = spaAllowMode,
-                explicitIp = spaExplicitIp,
-                spaPort = spaPort.toIntOrNull() ?: SpaConfig.DEFAULT_SPA_PORT,
-            )
-            val spaError = parsedSpa.exceptionOrNull()?.message
-            val spaConfig = parsedSpa.getOrNull()
-            OutlinedTextField(
-                value = spaKey,
-                onValueChange = { spaKey = it },
-                label = { Text(stringResource(R.string.connections_field_spa_key)) },
-                supportingText = {
-                    when {
-                        spaError != null -> Text(spaError, color = MaterialTheme.colorScheme.error)
-                        spaConfig != null -> Text(stringResource(R.string.connections_helper_spa_active))
-                        else -> Text(stringResource(R.string.connections_helper_spa_blank))
-                    }
-                },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            if (spaKey.isNotBlank()) {
-                BooleanToggleRow(
-                    label = stringResource(R.string.connections_toggle_spa_key_base64),
-                    checked = spaKeyBase64,
-                    onCheckedChange = { spaKeyBase64 = it },
-                )
-                Spacer(Modifier.height(4.dp))
-                OutlinedTextField(
-                    value = spaAccessSpec,
-                    onValueChange = { spaAccessSpec = it },
-                    label = { Text(stringResource(R.string.connections_field_spa_access_spec)) },
-                    placeholder = { Text(stringResource(R.string.connections_hint_spa_access_spec)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(Modifier.height(4.dp))
-                OutlinedTextField(
-                    value = spaHmacKey,
-                    onValueChange = { spaHmacKey = it },
-                    label = { Text(stringResource(R.string.connections_field_spa_hmac_key)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                if (spaHmacKey.isNotBlank()) {
-                    BooleanToggleRow(
-                        label = stringResource(R.string.connections_toggle_spa_hmac_key_base64),
-                        checked = spaHmacKeyBase64,
-                        onCheckedChange = { spaHmacKeyBase64 = it },
-                    )
-                }
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    stringResource(R.string.connections_field_spa_allow_mode),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Spacer(Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    FilterChip(
-                        selected = spaAllowMode == "SOURCE",
-                        onClick = { spaAllowMode = "SOURCE" },
-                        label = { Text(stringResource(R.string.connections_spa_allow_source)) },
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    FilterChip(
-                        selected = spaAllowMode == "RESOLVE",
-                        onClick = { spaAllowMode = "RESOLVE" },
-                        label = { Text(stringResource(R.string.connections_spa_allow_resolve)) },
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    FilterChip(
-                        selected = spaAllowMode == "EXPLICIT",
-                        onClick = { spaAllowMode = "EXPLICIT" },
-                        label = { Text(stringResource(R.string.connections_spa_allow_explicit)) },
-                    )
-                }
-                if (spaAllowMode == "EXPLICIT") {
-                    Spacer(Modifier.height(4.dp))
-                    OutlinedTextField(
-                        value = spaExplicitIp,
-                        onValueChange = { spaExplicitIp = it },
-                        label = { Text(stringResource(R.string.connections_field_spa_explicit_ip)) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-                Spacer(Modifier.height(4.dp))
-                OutlinedTextField(
-                    value = spaPort,
-                    onValueChange = { v -> spaPort = v.filter { c -> c.isDigit() }.take(5) },
-                    label = { Text(stringResource(R.string.connections_field_spa_port)) },
-                    placeholder = { Text(SpaConfig.DEFAULT_SPA_PORT.toString()) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.width(200.dp),
-                )
-                if (onTestSpa != null) {
-                    val scope = rememberCoroutineScope()
-                    var spaTestRunning by remember { mutableStateOf(false) }
-                    var spaTestResult by remember { mutableStateOf<Pair<Boolean, String>?>(null) }
-                    Spacer(Modifier.height(4.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        TextButton(
-                            enabled = !spaTestRunning && spaConfig != null && host.isNotBlank(),
-                            onClick = {
-                                val cfg = spaConfig ?: return@TextButton
-                                spaTestRunning = true
-                                spaTestResult = null
-                                scope.launch {
-                                    spaTestResult = onTestSpa(host, cfg)
-                                    spaTestRunning = false
-                                }
-                            },
-                        ) {
-                            if (spaTestRunning) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(14.dp),
-                                    strokeWidth = 2.dp,
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                Text(stringResource(R.string.connections_button_test_spa_running))
-                            } else {
-                                Text(stringResource(R.string.connections_button_test_spa))
-                            }
-                        }
-                        Spacer(Modifier.width(8.dp))
-                        spaTestResult?.let { (ok, msg) ->
-                            Text(
-                                msg,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = if (ok) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.error,
-                            )
-                        }
-                    }
-                }
-            }
         }
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 ConnectionSection(stringResource(R.string.connections_section_general))
@@ -2173,15 +1915,6 @@ fun ConnectionEditDialog(
                         description = stringResource(R.string.connections_helper_password_only),
                     )
 
-                    // Saved VNC settings (shown when the SSH profile has had
-                    // VNC configured via the terminal's VNC quick-dialog with
-                    // "Save for this connection" ticked). Without this block
-                    // the only way to edit was to delete and recreate the
-                    // profile — #104.
-                    ConnectionSection(stringResource(R.string.connections_section_port_knock))
-                    portKnockBody()
-                    ConnectionSection(stringResource(R.string.connections_section_spa))
-                    spaBody()
                     }
 
                     CollapsibleSection("Reliability", secReliabilityExpanded, { secReliabilityExpanded = !secReliabilityExpanded }) {
@@ -2312,17 +2045,9 @@ fun ConnectionEditDialog(
 
                 }
 
-                // Port knocking. Visible for any profile with a remote
-                // TCP host.
                 if (connectionType in setOf("VNC", "RDP")) {
                     ConnectionSection(stringResource(R.string.connections_section_routing))
                     routingBody()
-                }
-                if (connectionType in setOf("VNC", "RDP")) {
-                    ConnectionSection(stringResource(R.string.connections_section_port_knock))
-                    portKnockBody()
-                    ConnectionSection(stringResource(R.string.connections_section_spa))
-                    spaBody()
                 }
 
                 // Route through — shared picker for SOCKS / HTTP proxy and
@@ -2337,11 +2062,7 @@ fun ConnectionEditDialog(
             }
         },
         confirmButton = {
-            val knockOk = KnockSequence.parse(
-                portKnockSequence,
-                portKnockDelayMs.toIntOrNull() ?: KnockSequence.DEFAULT_DELAY_MS,
-            ).isSuccess
-            val canSave = knockOk && when (connectionType) {
+            val canSave = when (connectionType) {
                 "SSH" -> host.isNotBlank()
                 "VNC" -> host.isNotBlank() && tunnelComplete(vncSshForward, vncSshProfileId)
                 "RDP" -> host.isNotBlank() && rdpUsername.isNotBlank() && tunnelComplete(rdpSshForward, rdpSshProfileId)
@@ -2373,18 +2094,6 @@ fun ConnectionEditDialog(
                                 colorTag = colorTag,
                                 groupId = groupId,
                                 identityId = identityId,
-                                portKnockSequence = portKnockSequence.ifBlank { null },
-                                portKnockDelayMs = portKnockDelayMs.toIntOrNull()
-                                    ?.coerceAtLeast(0) ?: KnockSequence.DEFAULT_DELAY_MS,
-                                spaKey = spaKey.ifBlank { null },
-                                spaKeyBase64 = spaKeyBase64,
-                                spaHmacKey = spaHmacKey.ifBlank { null },
-                                spaHmacKeyBase64 = spaHmacKeyBase64,
-                                spaAccessSpec = spaAccessSpec.ifBlank { null },
-                                spaAllowMode = spaAllowMode,
-                                spaExplicitIp = spaExplicitIp.ifBlank { null },
-                                spaPort = spaPort.toIntOrNull()?.takeIf { it in 1..65535 }
-                                    ?: SpaConfig.DEFAULT_SPA_PORT,
                             ).withRoutingSelection(
                                 proxyType, proxyHost, proxyPort, proxyUser, proxyPassword, tunnelConfigId,
                             )
@@ -2411,18 +2120,6 @@ fun ConnectionEditDialog(
                                 colorTag = colorTag,
                                 groupId = groupId,
                                 identityId = identityId,
-                                portKnockSequence = portKnockSequence.ifBlank { null },
-                                portKnockDelayMs = portKnockDelayMs.toIntOrNull()
-                                    ?.coerceAtLeast(0) ?: KnockSequence.DEFAULT_DELAY_MS,
-                                spaKey = spaKey.ifBlank { null },
-                                spaKeyBase64 = spaKeyBase64,
-                                spaHmacKey = spaHmacKey.ifBlank { null },
-                                spaHmacKeyBase64 = spaHmacKeyBase64,
-                                spaAccessSpec = spaAccessSpec.ifBlank { null },
-                                spaAllowMode = spaAllowMode,
-                                spaExplicitIp = spaExplicitIp.ifBlank { null },
-                                spaPort = spaPort.toIntOrNull()?.takeIf { it in 1..65535 }
-                                    ?: SpaConfig.DEFAULT_SPA_PORT,
                             ).withRoutingSelection(
                                 proxyType, proxyHost, proxyPort, proxyUser, proxyPassword, tunnelConfigId,
                             )
@@ -2512,18 +2209,6 @@ fun ConnectionEditDialog(
                                 colorTag = colorTag,
                                 groupId = groupId,
                                 identityId = identityId,
-                                portKnockSequence = portKnockSequence.ifBlank { null },
-                                portKnockDelayMs = portKnockDelayMs.toIntOrNull()
-                                    ?.coerceAtLeast(0) ?: KnockSequence.DEFAULT_DELAY_MS,
-                                spaKey = spaKey.ifBlank { null },
-                                spaKeyBase64 = spaKeyBase64,
-                                spaHmacKey = spaHmacKey.ifBlank { null },
-                                spaHmacKeyBase64 = spaHmacKeyBase64,
-                                spaAccessSpec = spaAccessSpec.ifBlank { null },
-                                spaAllowMode = spaAllowMode,
-                                spaExplicitIp = spaExplicitIp.ifBlank { null },
-                                spaPort = spaPort.toIntOrNull()?.takeIf { it in 1..65535 }
-                                    ?: SpaConfig.DEFAULT_SPA_PORT,
                             )
                         } else {
                             error("Unsupported connection type: $connectionType")

@@ -38,7 +38,6 @@ dependencies {
     implementation(project(":core:ssh"))
     implementation(project(":core:data"))
     implementation(project(":core:fido"))
-    implementation(project(":core:stepca"))
     implementation(libs.coroutines.core)
 
     implementation(libs.activity.compose)

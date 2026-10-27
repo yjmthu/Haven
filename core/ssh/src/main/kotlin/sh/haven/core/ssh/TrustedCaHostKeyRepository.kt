@@ -5,8 +5,8 @@ import com.jcraft.jsch.HostKeyRepository
 import com.jcraft.jsch.UserInfo
 
 /**
- * A JSch [HostKeyRepository] that serves ONLY `@cert-authority` entries — the
- * trusted SSH host-CA public keys from the user's step-ca configs (#133).
+ * A JSch [HostKeyRepository] that serves ONLY `@cert-authority` entries — a
+ * supplied list of trusted SSH host-CA public keys (#133).
  *
  * Installing this on a session activates JSch's native OpenSSH host-certificate
  * verification (`OpenSshCertificateHostKeyVerifier`): when the server presents

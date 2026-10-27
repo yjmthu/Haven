@@ -225,7 +225,6 @@ fun ConnectionsScreen(
     val showMoshSetupGuide by viewModel.showMoshSetupGuide.collectAsState()
     val showMoshClientMissing by viewModel.showMoshClientMissing.collectAsState()
     val groupLaunchState by viewModel.groupLaunchState.collectAsState()
-    val certRenewing by viewModel.certRenewing.collectAsState()
 
     LaunchedEffect(navigateToTerminal) {
         navigateToTerminal?.let { profileId ->
@@ -463,12 +462,6 @@ fun ConnectionsScreen(
             jumpScanning = jumpScanning,
             jumpScanError = jumpScanError,
             onScanSubnetViaJump = { jumpId -> viewModel.scanSubnetViaJump(jumpId) },
-            onTestKnock = { host, sequence, delayMs ->
-                viewModel.testKnock(host, sequence, delayMs)
-            },
-            onTestSpa = { host, config ->
-                viewModel.testSpa(host, config)
-            },
             onDismiss = {
                 showAddDialog = false
                 prefillDraft = null
@@ -560,12 +553,6 @@ fun ConnectionsScreen(
             jumpScanning = jumpScanning,
             jumpScanError = jumpScanError,
             onScanSubnetViaJump = { jumpId -> viewModel.scanSubnetViaJump(jumpId) },
-            onTestKnock = { host, sequence, delayMs ->
-                viewModel.testKnock(host, sequence, delayMs)
-            },
-            onTestSpa = { host, config ->
-                viewModel.testSpa(host, config)
-            },
             onDismiss = { editingProfileId = null },
             onSave = { updated, cfTunnel ->
                 viewModel.saveProfileWithEmbeddedCloudflareTunnel(updated, cfTunnel)
@@ -869,34 +856,6 @@ fun ConnectionsScreen(
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            // step-ca cert renewal banner — visible only while CertRenewalGate
-            // is mid-flight. Tells the user why the OS browser just popped
-            // over the connect spinner. (#133 phase 2b)
-            certRenewing?.let { renewing ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.tertiaryContainer)
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp,
-                    )
-                    Spacer(Modifier.width(12.dp))
-                    Text(
-                        text = stringResource(
-                            R.string.connections_renewing_cert,
-                            renewing.keyLabel,
-                            renewing.caName,
-                        ),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onTertiaryContainer,
-                    )
-                }
-            }
-
             // Quick connect bar
             val quickConnectError = stringResource(R.string.connections_quick_connect_error)
             OutlinedTextField(

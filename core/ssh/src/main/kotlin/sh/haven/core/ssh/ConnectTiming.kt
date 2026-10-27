@@ -17,7 +17,7 @@ package sh.haven.core.ssh
  *  - `setup`     — building the JSch session: auth methods, host-CA repository,
  *                  ssh_config options. Cheap unless loading a key hits the
  *                  Android keystore, a biometric gate, or another app.
- *  - `knock`     — the port-knock hook, when one is configured.
+ *  - `knock`     — the optional pre-connect hook, when one is supplied.
  *  - `handshake` — JSch's own connect: TCP, key exchange and authentication.
  *                  JSch does not expose those separately, so they share a bucket.
  *

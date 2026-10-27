@@ -22,13 +22,9 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import sh.haven.core.data.agent.AgentUiCommand
-import sh.haven.core.data.agent.AgentUiCommandBus
 import sh.haven.core.data.db.entities.SshKey
-import sh.haven.core.data.db.entities.StepCaConfig
 import sh.haven.core.data.repository.ConnectionRepository
 import sh.haven.core.data.repository.SshKeyRepository
-import sh.haven.core.data.repository.StepCaConfigRepository
 import sh.haven.core.fido.SkKeyData
 import sh.haven.core.fido.SkKeyParser
 import sh.haven.core.security.Keystore
@@ -43,7 +39,6 @@ import sh.haven.core.ssh.openkeychain.OpenKeychainKeyData
 import sh.haven.core.ssh.openkeychain.OpenKeychainProvider
 import sh.haven.core.ssh.SshKeyExporter
 import sh.haven.core.ssh.SshKeyImporter
-import sh.haven.core.stepca.StepCaSignFlow
 import javax.inject.Inject
 import sh.haven.core.redact.LogRedact
 
@@ -81,8 +76,6 @@ class KeysViewModel @Inject constructor(
     private val repository: SshKeyRepository,
     private val connectionRepository: ConnectionRepository,
     private val keystore: Keystore,
-    private val stepCaConfigRepository: StepCaConfigRepository,
-    private val stepCaSignFlow: StepCaSignFlow,
     private val fidoAuthenticator: sh.haven.core.fido.FidoAuthenticator,
     @dagger.hilt.android.qualifiers.ApplicationContext private val appContext: Context,
     private val totpSecretRepository: sh.haven.core.data.repository.TotpSecretRepository,
@@ -92,26 +85,7 @@ class KeysViewModel @Inject constructor(
     // Strong-biometry gate for hardware key generation (m2): chip keys are
     // per-op BIOMETRIC_STRONG; no Class 3 biometric enrolled → no key.
     private val biometricAuthenticator: sh.haven.core.security.BiometricAuthenticator,
-    agentUiCommandBus: AgentUiCommandBus,
 ) : ViewModel() {
-
-    init {
-        // Notification deep-link → MainActivity emits RegenerateStepCaCert
-        // → we react. (#133 phase 2b)
-        viewModelScope.launch {
-            agentUiCommandBus.commands.collect { command ->
-                if (command is AgentUiCommand.RegenerateStepCaCert) {
-                    regenerateViaStepCa(command.keyId)
-                }
-            }
-        }
-    }
-
-    /** Registered step-ca CAs (#133 phase 2). The Keys "Generate via
-     *  step-ca" affordance disables itself when this is empty and links
-     *  the user to Settings. */
-    val stepCaConfigs: StateFlow<List<StepCaConfig>> = stepCaConfigRepository.observeAll()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /** age file-encryption identities (VISION §2). Only the public recipient is shown. */
     val ageIdentities: StateFlow<List<sh.haven.core.data.db.entities.AgeIdentityEntity>> =
@@ -410,126 +384,6 @@ class KeysViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e("KeysViewModel", "Hardware key generation failed", e)
                 _error.value = e.message ?: "Key generation failed"
-            } finally {
-                _generating.value = false
-            }
-        }
-    }
-
-    /**
-     * Generate an Ed25519 keypair locally, run the OIDC handshake against
-     * [caConfigId], post the public key to step-ca, and persist the
-     * resulting key+cert as a single [SshKey] row. (#133 phase 2)
-     *
-     * @param principalsOverride if non-empty, replaces the CA's
-     *   defaultPrincipals for this one mint.
-     */
-    fun generateViaStepCa(
-        label: String,
-        caConfigId: String,
-        principalsOverride: List<String> = emptyList(),
-    ) {
-        viewModelScope.launch {
-            _generating.value = true
-            _error.value = null
-            try {
-                val caConfig = stepCaConfigRepository.getById(caConfigId)
-                    ?: run {
-                        _error.value = "step-ca config not found"
-                        return@launch
-                    }
-                val generated = withContext(Dispatchers.Default) {
-                    SshKeyGenerator.generate(SshKeyGenerator.KeyType.ED25519, label)
-                }
-                val signResult = stepCaSignFlow.run(
-                    caConfig = caConfig,
-                    publicKeyOpenSsh = generated.publicKeyOpenSsh,
-                    keyLabel = label,
-                    principalsOverride = principalsOverride.takeIf { it.isNotEmpty() },
-                )
-                when (signResult) {
-                    is StepCaSignFlow.Result.Failure -> {
-                        _error.value = signResult.message
-                        return@launch
-                    }
-                    is StepCaSignFlow.Result.Success -> {
-                        val entity = SshKey(
-                            label = label,
-                            keyType = generated.type.sshName,
-                            privateKeyBytes = generated.privateKeyBytes,
-                            publicKeyOpenSsh = generated.publicKeyOpenSsh,
-                            fingerprintSha256 = generated.fingerprintSha256,
-                            certificateBytes = signResult.certBytes,
-                            caConfigId = caConfig.id,
-                            certIssuedAt = System.currentTimeMillis(),
-                        )
-                        repository.save(entity)
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e("KeysViewModel", "step-ca generate failed", e)
-                _error.value = e.message ?: "step-ca generation failed"
-            } finally {
-                _generating.value = false
-            }
-        }
-    }
-
-    /**
-     * Re-mint the cert for an existing step-ca-minted [SshKey]. Same
-     * shape as [generateViaStepCa] but updates the existing row rather
-     * than inserting a new one — preserves the id, label, isEncrypted,
-     * and biometricProtected flags. (#133 phase 2b)
-     *
-     * Triggered by:
-     *  - the "Regenerate" action on a key row's overflow menu
-     *  - a renewal-notification deep-link (via AgentUiCommandBus)
-     */
-    fun regenerateViaStepCa(keyId: String) {
-        viewModelScope.launch {
-            _generating.value = true
-            _error.value = null
-            try {
-                val existing = repository.getById(keyId) ?: run {
-                    _error.value = "Key no longer exists"
-                    return@launch
-                }
-                val caConfigId = existing.caConfigId ?: run {
-                    _error.value = "Key was not minted via step-ca; nothing to regenerate"
-                    return@launch
-                }
-                val caConfig = stepCaConfigRepository.getById(caConfigId) ?: run {
-                    _error.value =
-                        "step-ca CA used to mint '${existing.label}' has been removed"
-                    return@launch
-                }
-                val generated = withContext(Dispatchers.Default) {
-                    SshKeyGenerator.generate(SshKeyGenerator.KeyType.ED25519, existing.label)
-                }
-                val signResult = stepCaSignFlow.run(
-                    caConfig = caConfig,
-                    publicKeyOpenSsh = generated.publicKeyOpenSsh,
-                    keyLabel = existing.label,
-                )
-                when (signResult) {
-                    is StepCaSignFlow.Result.Failure -> {
-                        _error.value = signResult.message
-                        return@launch
-                    }
-                    is StepCaSignFlow.Result.Success -> {
-                        val updated = existing.copy(
-                            privateKeyBytes = generated.privateKeyBytes,
-                            publicKeyOpenSsh = generated.publicKeyOpenSsh,
-                            fingerprintSha256 = generated.fingerprintSha256,
-                            certificateBytes = signResult.certBytes,
-                            certIssuedAt = System.currentTimeMillis(),
-                        )
-                        repository.save(updated)
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e("KeysViewModel", "step-ca regenerate failed", e)
-                _error.value = e.message ?: "step-ca regeneration failed"
             } finally {
                 _generating.value = false
             }

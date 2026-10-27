@@ -376,7 +376,8 @@ data class ConnectionProfile(
      * Optional port-knock sequence sent before the real socket open.
      * Format: whitespace- or comma-separated `port[/proto]` tokens, e.g.
      * `"7000 8000 9000"` (all TCP) or `"7000/tcp 8000/udp 9000/tcp"`.
-     * Empty / null = knocking disabled. Parsed by `KnockSequence.parse`.
+     * Empty / null = knocking disabled. Legacy column: Haven no longer
+     * sends knocks, but the value is preserved for backups.
      * Only meaningful for protocols with a remote TCP host (SSH, Mosh,
      * ET, VNC, RDP, SMB) — ignored for LOCAL/RCLONE/RETICULUM.
      */
@@ -388,11 +389,9 @@ data class ConnectionProfile(
      */
     val portKnockDelayMs: Int = 100,
     /**
-     * fwknop Single Packet Authorization (#156) — the cryptographic
-     * alternative to port knocking. When [spaKey] and [spaAccessSpec] are
-     * both set, Haven sends one AES-encrypted, HMAC-authenticated UDP packet
-     * before the real connect (same `preConnect` hook as the knock). Parsed
-     * by `SpaConfig.parse`; empty [spaKey]/[spaAccessSpec] = SPA disabled.
+     * fwknop Single Packet Authorization (#156) — a cryptographic
+     * alternative to port knocking. Legacy column: Haven no longer sends
+     * SPA packets, but the values are preserved for backups.
      *
      * [spaKey] is the Rijndael/AES key (encrypted at rest like passwords).
      */

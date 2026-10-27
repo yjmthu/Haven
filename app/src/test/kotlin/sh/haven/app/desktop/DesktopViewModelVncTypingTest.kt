@@ -48,7 +48,6 @@ class DesktopViewModelVncTypingTest {
             preferencesRepository = mockk(relaxed = true),
             connectionRepository = mockk(relaxed = true),
             tunnelResolver = mockk(relaxed = true),
-            portKnocker = mockk(relaxed = true),
             agentUiCommandBus = commandBus,
             desktopSessionRegistry = mockk(relaxed = true),
             tlsCertVerifier = mockk(relaxed = true),

@@ -87,18 +87,6 @@
             android:excludeFromRecents="true"
             android:taskAffinity=""
             android:theme="@android:style/Theme.Translucent.NoTitleBar">
-            <!-- step-ca renewal notification deep-link: tapping the
-                 "cert expiring" notification fires haven://renew-cert/<keyId>
-                 which lands here, then the activity hands the keyId off to
-                 KeysScreen with a flag to auto-trigger regenerate. (#133 phase 2b) -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="haven"
-                    android:host="renew-cert" />
-            </intent-filter>
             <!-- haven://connect deep-link: launch a connection from URI params,
                  e.g. haven://connect?host=h&user=u&port=p&transport=mosh&session=s
                  A matched saved profile connects (after a confirm); an unmatched

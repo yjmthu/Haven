@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
-import sh.haven.core.data.agent.AgentUiCommandBus
 import sh.haven.core.data.db.entities.SshKey
 import sh.haven.core.data.preferences.UserPreferencesRepository
 import sh.haven.core.data.repository.ConnectionRepository
@@ -24,10 +23,8 @@ import sh.haven.core.data.repository.SshKeyRepository
 import sh.haven.core.fido.FidoAuthenticator
 import sh.haven.core.security.BiometricAuthenticator
 import sh.haven.core.security.Keystore
-import sh.haven.core.stepca.StepCaSignFlow
 import sh.haven.core.data.repository.AgeIdentityRepository
 import sh.haven.core.data.repository.SshIdentityRepository
-import sh.haven.core.data.repository.StepCaConfigRepository
 import sh.haven.core.data.repository.TotpSecretRepository
 
 /**
@@ -62,8 +59,6 @@ class KeysViewModelHardwareKeyTest {
             repository = repository,
             connectionRepository = mockk(relaxed = true),
             keystore = mockk(relaxed = true),
-            stepCaConfigRepository = mockk(relaxed = true),
-            stepCaSignFlow = mockk<StepCaSignFlow>(relaxed = true),
             fidoAuthenticator = mockk<FidoAuthenticator>(relaxed = true),
             appContext = appContext,
             totpSecretRepository = mockk<TotpSecretRepository>(relaxed = true),
@@ -71,7 +66,6 @@ class KeysViewModelHardwareKeyTest {
             sshIdentityRepository = mockk<SshIdentityRepository>(relaxed = true),
             preferencesRepository = preferences,
             biometricAuthenticator = biometrics,
-            agentUiCommandBus = AgentUiCommandBus(),
         )
     }
 

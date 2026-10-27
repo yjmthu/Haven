@@ -22,9 +22,9 @@ import java.net.SocketTimeoutException
  * socket and then blocks for the server's identification string. So
  * **"Read timed out" is proof the TCP handshake succeeded** — something accepted
  * the connection and then stayed silent. That rules out every "the port is
- * closed" theory (a failed SPA packet, a knock that didn't land, a firewall
- * drop) and points at a middlebox, a forward aimed at the wrong backend, or a
- * filter that accepts and holds.
+ * closed" theory (a firewall drop, a forward aimed nowhere) and points at a
+ * middlebox, a forward aimed at the wrong backend, or a filter that accepts
+ * and holds.
  *
  * None of that reached the user: the raw JSch string was surfaced verbatim, so a
  * reporter had to guess, and the address actually dialled — the resolved IP,

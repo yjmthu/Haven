@@ -28,10 +28,7 @@ import org.junit.Before
 import org.junit.Test
 import sh.haven.core.data.preferences.UserPreferencesRepository
 import sh.haven.core.data.repository.ConnectionRepository
-import sh.haven.core.spa.SpaSender
-import sh.haven.core.spa.SpaResult
 import sh.haven.core.data.repository.ConnectionLogRepository
-import sh.haven.core.data.db.entities.ConnectionLog
 import org.junit.Assert.assertNotNull
 import sh.haven.core.data.repository.PortForwardRepository
 import sh.haven.core.data.repository.DecryptedKeys
@@ -71,7 +68,6 @@ class ConnectionsViewModelSessionTest {
 
     private lateinit var appContext: Context
     private val connectionLogRepository: ConnectionLogRepository = mockk(relaxed = true)
-    private val spaSender: SpaSender = mockk(relaxed = true)
     private lateinit var repository: ConnectionRepository
     private lateinit var portForwardRepository: PortForwardRepository
     private lateinit var sshSessionManager: SshSessionManager
@@ -81,10 +77,6 @@ class ConnectionsViewModelSessionTest {
     private lateinit var sessionManagerRegistry: SessionManagerRegistry
     private lateinit var sshKeyRepository: SshKeyRepository
     private lateinit var preferencesRepository: UserPreferencesRepository
-    // Field (not just a constructor argument): the pinned-chip-key test
-    // scripts ensureFresh on it — a relaxed default would return a relaxed
-    // SshKey and break the row the test means to resolve.
-    private lateinit var certRenewalGate: sh.haven.core.stepca.CertRenewalGate
     private val tunnelResolver: sh.haven.core.tunnel.TunnelResolver = mockk(relaxed = true)
     private lateinit var viewModel: ConnectionsViewModel
 
@@ -132,14 +124,6 @@ class ConnectionsViewModelSessionTest {
             every { observeAll() } returns flowOf(emptyList())
         }
 
-        certRenewalGate = mockk(relaxed = true) {
-            every { renewing } returns kotlinx.coroutines.flow.MutableStateFlow(null)
-            // Default pass-through: none of these tests renews anything, and a
-            // relaxed ensureFresh would return a proxy row that derails the
-            // hardwareAlias branch (same trap as pinnedSoftwareKey).
-            coEvery { ensureFresh(any(), any(), any()) } answers { firstArg<SshKey>() }
-        }
-
         preferencesRepository = mockk(relaxed = true) {
             every { sessionManager } returns flowOf(mockk(relaxed = true) {
                 every { label } returns "None"
@@ -182,12 +166,9 @@ class ConnectionsViewModelSessionTest {
             hostKeyVerifier = mockk(relaxed = true),
             connectionLogRepository = connectionLogRepository,
             tunnelResolver = tunnelResolver,
-            portKnocker = mockk(relaxed = true),
-            spaSender = spaSender,
             tunnelConfigRepository = mockk(relaxed = true) {
                 every { observeAll() } returns flowOf(emptyList())
             },
-            certRenewalGate = certRenewalGate,
             desktopSessionRegistry = mockk(relaxed = true) {
                 every { statuses } returns kotlinx.coroutines.flow.MutableStateFlow(emptyMap())
             },
@@ -531,54 +512,6 @@ class ConnectionsViewModelSessionTest {
         assertTrue(viewModel.isKeyRefusal(KeyUnlockDeclinedException("denied")))
         assertFalse(viewModel.isKeyRefusal(java.io.IOException("socket reset")))
         assertFalse(viewModel.isKeyRefusal(IllegalStateException("wiring")))
-    }
-
-    // --- #557: a pre-connect gate that fails must not be invisible ---------
-    //
-    // SPA/knock failures are deliberately non-fatal, so the connect proceeds
-    // and dies later as an ordinary read timeout against a port nothing
-    // opened. Before this, the only trace was a VERBOSE log line — a reporter
-    // chasing exactly this saw a connection log holding the hostname and a
-    // socket exception, with nothing about the packet that never left.
-
-    private fun spaProfile() = ConnectionProfile(
-        id = "spa-profile", label = "spa", host = "example.invalid", username = "u",
-        connectionType = "SSH",
-        spaKey = "0123456789abcdef",
-        spaAccessSpec = "tcp/22",
-        spaPort = 62201,
-    )
-
-    @Test
-    fun `a failed SPA packet is written to the ordinary connection log`() = runTest {
-        coEvery { spaSender.send(any(), any()) } returns
-            SpaResult(packetLen = 0, totalDurationMs = 5021, error = java.io.IOException("network unreachable"))
-
-        val hook = viewModel.buildKnockHook(spaProfile(), verboseLogger = null)
-        assertNotNull(hook)
-        hook!!.invoke()
-
-        coVerify {
-            connectionLogRepository.logEvent(
-                profileId = "spa-profile",
-                status = ConnectionLog.Status.FAILED,
-                details = match { it != null && it.startsWith("[spa]") && it.contains("failed") },
-            )
-        }
-    }
-
-    // The other half of the property: success stays quiet. A FAILED row per
-    // successful connect would be worse than the silence it replaced.
-    @Test
-    fun `a successful SPA packet writes no connection-log row`() = runTest {
-        coEvery { spaSender.send(any(), any()) } returns
-            SpaResult(packetLen = 152, totalDurationMs = 1043, error = null)
-
-        viewModel.buildKnockHook(spaProfile(), verboseLogger = null)!!.invoke()
-
-        coVerify(exactly = 0) {
-            connectionLogRepository.logEvent(any(), ConnectionLog.Status.FAILED, any(), any(), any())
-        }
     }
 
     // --- #559: a declined key unlock must stop the connect ---------------

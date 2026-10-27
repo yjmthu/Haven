@@ -512,8 +512,8 @@ class SshClient : SshConnection {
         // to JSch's internal keys and handles +/-/^ list prefixes — see #155.
         SshOptionsApplier.apply(sess, config.sshOptions)
 
-        // Port-knock hook (when configured): runs after socket params are set
-        // but before JSch opens the TCP connection. Throwing here aborts the
+        // Optional pre-connect hook: runs after socket params are set but
+        // before JSch opens the TCP connection. Throwing here aborts the
         // connect cleanly without leaving a half-built session behind.
         timing.mark("setup")
         preConnect?.invoke()

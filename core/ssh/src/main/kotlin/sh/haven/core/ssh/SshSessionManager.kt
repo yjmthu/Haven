@@ -1099,13 +1099,11 @@ class SshSessionManager @Inject constructor(
                 val hostKeyEntry = newClient.connectBlocking(
                     config,
                     proxy = proxy,
-                    trustedHostCaKeys = runBlocking { hostKeyVerifier.trustedHostCaKeys() },
                 )
 
                 // Silent TOFU on reconnect: auto-accept new, abort on change.
-                // A null entry means the host presented a certificate that
-                // JSch verified against a trusted host CA (#133) — nothing
-                // to TOFU.
+                // A null entry means JSch already verified the host (no TOFU
+                // needed) — nothing to check here.
                 if (hostKeyEntry != null) {
                     val hkResult = runBlocking { hostKeyVerifier.verify(hostKeyEntry) }
                     when (hkResult) {

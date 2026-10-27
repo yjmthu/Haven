@@ -26,7 +26,6 @@ android {
 dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:vnc"))
-    implementation(project(":core:knock"))
     implementation(project(":core:ssh"))
     implementation(project(":core:mosh"))
     implementation(project(":core:et"))

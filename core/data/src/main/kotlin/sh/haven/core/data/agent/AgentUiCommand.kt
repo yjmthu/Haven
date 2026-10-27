@@ -78,21 +78,6 @@ sealed class AgentUiCommand {
     ) : AgentUiCommand()
 
     /**
-     * Re-mint a step-ca-signed SSH cert for [keyId]. Posted by
-     * `MainActivity` when the user taps the "cert expiring soon"
-     * notification (#133 phase 2b). HavenNavHost switches to the Keys
-     * tab; KeysViewModel collects the same bus, finds the key by id,
-     * and runs the OIDC + sign flow against the same CA the original
-     * cert was minted from.
-     *
-     * Tap-equivalent: same effect as the user opening the key row's
-     * overflow menu and choosing Regenerate.
-     */
-    data class RegenerateStepCaCert(
-        val keyId: String,
-    ) : AgentUiCommand()
-
-    /**
      * Initiate a connection for a saved profile. Picked up by
      * [ConnectionsViewModel], which dispatches to the right transport
      * (SSH / Mosh / ET / VNC / RDP / SMB / rclone / Reticulum / local)

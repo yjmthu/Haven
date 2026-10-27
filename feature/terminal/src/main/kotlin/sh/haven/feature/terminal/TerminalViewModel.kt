@@ -1878,7 +1878,7 @@ class TerminalViewModel @Inject constructor(
                     val proxy = connectionRepository.getById(profileId)
                         ?.let { tunnelResolver.havenProxy(it) }
                     val hostKeyEntry = withContext(Dispatchers.IO) {
-                        client.connect(config, proxy = proxy, trustedHostCaKeys = hostKeyVerifier.trustedHostCaKeys())
+                        client.connect(config, proxy = proxy)
                     }
 
                     // Silent TOFU is fail-closed: a new tab never silently trusts
@@ -2019,7 +2019,7 @@ class TerminalViewModel @Inject constructor(
                     // Route through the profile's tunnel / proxy (see addSshTabForProfile).
                     val proxy = connectionRepository.getById(profileId)
                         ?.let { tunnelResolver.havenProxy(it) }
-                    val hostKeyEntry = withContext(Dispatchers.IO) { client.connect(config, proxy = proxy, trustedHostCaKeys = hostKeyVerifier.trustedHostCaKeys()) }
+                    val hostKeyEntry = withContext(Dispatchers.IO) { client.connect(config, proxy = proxy) }
                     when (val hkResult = if (hostKeyEntry == null) HostKeyResult.Trusted else hostKeyVerifier.verify(hostKeyEntry)) {
                         is HostKeyResult.Trusted -> {}
                         is HostKeyResult.NewHost -> {

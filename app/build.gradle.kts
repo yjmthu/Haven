@@ -257,10 +257,7 @@ dependencies {
     // SelectionRange, AgentSnapshot) by class. core:terminal-haven uses
     // `implementation(libs.termlib)` so the dependency doesn't leak.
     implementation(libs.termlib)
-    implementation(project(":core:stepca"))
     implementation(project(":core:tunnel"))
-    implementation(project(":core:knock"))
-    implementation(project(":core:spa"))
 
     implementation(project(":feature:connections"))
     implementation(project(":feature:terminal"))

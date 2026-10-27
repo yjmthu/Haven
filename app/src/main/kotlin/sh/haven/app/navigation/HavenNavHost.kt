@@ -288,7 +288,6 @@ fun HavenNavHost(
                 is sh.haven.core.data.agent.AgentUiCommand.FocusTerminalSession -> Screen.Terminal
                 is sh.haven.core.data.agent.AgentUiCommand.OpenTerminalSession -> Screen.Terminal
                 is sh.haven.core.data.agent.AgentUiCommand.OpenRemoteDesktop -> Screen.Desktop
-                is sh.haven.core.data.agent.AgentUiCommand.RegenerateStepCaCert -> Screen.Keys
                 is sh.haven.core.data.agent.AgentUiCommand.EncryptFile -> Screen.Sftp
                 is sh.haven.core.data.agent.AgentUiCommand.DecryptFile -> Screen.Sftp
                 is sh.haven.core.data.agent.AgentUiCommand.ConnectProfile ->

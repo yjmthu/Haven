@@ -66,14 +66,8 @@ import sh.haven.core.et.EtSessionManager
 import sh.haven.core.fido.FidoAuthenticator
 import sh.haven.core.fido.FidoTouchPrompt
 import sh.haven.core.security.Totp
-import sh.haven.core.knock.KnockResult
-import sh.haven.core.knock.KnockSequence
-import sh.haven.core.knock.PortKnocker
-import sh.haven.core.spa.SpaConfig
-import sh.haven.core.spa.SpaResult
 import sh.haven.core.security.CredentialEncryption
 import sh.haven.feature.connections.R
-import sh.haven.core.stepca.CertRenewalGate
 import android.util.Log
 import sh.haven.core.ssh.HavenProxy
 import java.io.File
@@ -212,10 +206,7 @@ class ConnectionsViewModel @Inject constructor(
     private val hostKeyVerifier: HostKeyVerifier,
     private val connectionLogRepository: ConnectionLogRepository,
     private val tunnelResolver: sh.haven.core.tunnel.TunnelResolver,
-    private val portKnocker: PortKnocker,
-    private val spaSender: sh.haven.core.spa.SpaSender,
     private val tunnelConfigRepository: sh.haven.core.data.repository.TunnelConfigRepository,
-    private val certRenewalGate: CertRenewalGate,
     private val agentUiCommandBus: sh.haven.core.data.agent.AgentUiCommandBus,
     private val desktopSessionRegistry: sh.haven.core.data.desktop.DesktopSessionRegistry,
     private val userMessageBus: sh.haven.core.data.message.UserMessageBus,
@@ -235,13 +226,6 @@ class ConnectionsViewModel @Inject constructor(
     suspend fun authToRevealPassword(title: String, subtitle: String): Boolean =
         biometricGate.request(label = title, detail = subtitle) ==
             sh.haven.core.data.keystore.BiometricGate.Decision.ALLOW
-
-    /**
-     * Re-exposed from [CertRenewalGate] so the Connections screen can
-     * render a status banner ("Renewing cert via step-ca…") while a
-     * connect-time renewal is in flight. (#133 phase 2b)
-     */
-    val certRenewing: StateFlow<CertRenewalGate.Renewing?> = certRenewalGate.renewing
 
     /** Verbose SSH log captured during connect, keyed by sessionId. Consumed by finishConnect. */
     private val pendingVerboseLogs = mutableMapOf<String, String>()
@@ -756,9 +740,8 @@ class ConnectionsViewModel @Inject constructor(
      * way on fresh contact, key change, and (post-fix) auth-failure-after-KEX.
      */
     /**
-     * Silent-path variant of the TOFU decision: a null [entry] can only come
-     * from [SshClient.connect]'s fail-closed CA path (#133) — the host cert
-     * verified against a trusted host CA during KEX — and is Trusted.
+     * Silent-path variant of the TOFU decision: a null [entry] means the
+     * host presented a certificate JSch already validated, so it is Trusted.
      */
     private suspend fun verifyOrCaTrusted(entry: KnownHostEntry?): HostKeyResult =
         if (entry == null) HostKeyResult.Trusted else hostKeyVerifier.verify(entry)
@@ -772,9 +755,8 @@ class ConnectionsViewModel @Inject constructor(
     ) {
         if (entry == null) {
             // SshClient.connect returned null: the host presented a certificate
-            // that JSch verified against a trusted host CA (#133). Nothing to
-            // TOFU — trust was established cryptographically during KEX.
-            Log.i(TAG, "Host verified by trusted host CA — no TOFU prompt")
+            // that JSch verified during KEX. Nothing to TOFU.
+            Log.i(TAG, "Host verified by supplied CA key — no TOFU prompt")
             return
         }
         when (val result = hostKeyVerifier.verify(entry)) {
@@ -842,17 +824,12 @@ class ConnectionsViewModel @Inject constructor(
         val sshSessionId: String? = null,
         val profileId: String? = null,
         val colorDepth: String = "BPP_24_TRUE",
-        /** Optional knock sequence; honoured only on the direct path
-         *  (sshForward=false) since SSH-tunneled connects can't reach
-         *  the remote firewall from this device. */
-        val portKnockSequence: String? = null,
-        val portKnockDelayMs: Int = 100,
     )
     private val _navigateToVnc = MutableStateFlow<VncNavigation?>(null)
     val navigateToVnc: StateFlow<VncNavigation?> = _navigateToVnc.asStateFlow()
 
     /** Emitted to navigate to RDP screen with connection params. */
-    data class RdpNavigation(val host: String, val port: Int, val username: String, val password: String, val domain: String, val sshForward: Boolean = false, val sshSessionId: String? = null, val profileId: String? = null, val useNla: Boolean = true, val colorDepth: Int = 32, val portKnockSequence: String? = null, val portKnockDelayMs: Int = 100)
+    data class RdpNavigation(val host: String, val port: Int, val username: String, val password: String, val domain: String, val sshForward: Boolean = false, val sshSessionId: String? = null, val profileId: String? = null, val useNla: Boolean = true, val colorDepth: Int = 32)
     private val _navigateToRdp = MutableStateFlow<RdpNavigation?>(null)
     val navigateToRdp: StateFlow<RdpNavigation?> = _navigateToRdp.asStateFlow()
 
@@ -1362,185 +1339,6 @@ class ConnectionsViewModel @Inject constructor(
      * VNC/RDP are excluded (they navigate to non-terminal screens).
      * SSH/Mosh/ET require a saved password or SSH keys.
      */
-    /**
-     * Build the pre-connect "knock" hook for a profile, or `null` if the
-     * profile has no knock sequence configured (or the saved sequence
-     * fails to parse — we keep that as a no-op rather than blocking the
-     * connect, since the parser already gates the save button and an
-     * unparseable string here means hand-edited / corrupted state).
-     *
-     * The returned suspend lambda fires the SPA packet and/or knock and writes
-     * a one-line summary into [verboseLogger]. On failure it ALSO writes a
-     * FAILED row to the ordinary connection log — these gates are non-fatal, so
-     * without that a packet that never left is invisible and the connection
-     * dies later as a plain read timeout against a port nothing ever opened
-     * (#557). It still returns normally: the real connect attempt is left to
-     * surface the actual symptom (timeout / connection refused / etc.), because
-     * aborting here would mask cases where the firewall already opened the port
-     * from a prior successful knock.
-     */
-    @androidx.annotation.VisibleForTesting
-    internal fun buildKnockHook(
-        profile: ConnectionProfile,
-        verboseLogger: SshVerboseLogger?,
-    ): (suspend () -> Unit)? {
-        val spa = parseSpaConfig(profile)
-        val sequence = KnockSequence.parse(
-            profile.portKnockSequence,
-            delayMs = profile.portKnockDelayMs,
-        ).getOrNull()
-        if (spa == null && sequence == null) return null
-        return {
-            // SPA runs first — it's the packet that opens the port. A knock
-            // sequence, if also configured, stays a legacy fallback.
-            if (spa != null) {
-                recordSpaResult(profile.id, verboseLogger, spa, spaSender.send(profile.host, spa))
-            }
-            if (sequence != null) {
-                recordKnockResult(profile.id, verboseLogger, sequence, portKnocker.knock(profile.host, sequence))
-            }
-        }
-    }
-
-    /** Parse a profile's SPA fields into a [SpaConfig], or null when SPA is disabled/invalid. */
-    private fun parseSpaConfig(profile: ConnectionProfile): SpaConfig? =
-        SpaConfig.parse(
-            key = profile.spaKey,
-            keyIsBase64 = profile.spaKeyBase64,
-            hmacKey = profile.spaHmacKey,
-            hmacKeyIsBase64 = profile.spaHmacKeyBase64,
-            accessSpec = profile.spaAccessSpec,
-            allowMode = profile.spaAllowMode,
-            explicitIp = profile.spaExplicitIp,
-            spaPort = profile.spaPort,
-        ).getOrNull()
-
-    private suspend fun recordSpaResult(
-        profileId: String,
-        verboseLogger: SshVerboseLogger?,
-        config: SpaConfig,
-        result: SpaResult,
-    ) {
-        val line = if (result.ok) {
-            "[spa] ${config.accessSpec} -> sent ${result.packetLen}B in ${result.totalDurationMs}ms"
-        } else {
-            "[spa] ${config.accessSpec} -> failed after ${result.totalDurationMs}ms: ${result.error?.message}"
-        }
-        Log.d(TAG, line)
-        verboseLogger?.logInfo(line)
-        if (!result.ok) recordGateFailure(profileId, line)
-    }
-
-    private suspend fun recordKnockResult(
-        profileId: String,
-        verboseLogger: SshVerboseLogger?,
-        sequence: KnockSequence,
-        result: KnockResult,
-    ) {
-        val line = if (result.ok) {
-            "[knock] ${sequence.format()} -> ok in ${result.totalDurationMs}ms"
-        } else {
-            "[knock] ${sequence.format()} -> failed after ${result.totalDurationMs}ms " +
-                "(sent ${result.sentSteps}/${sequence.steps.size}): ${result.error?.message}"
-        }
-        Log.d(TAG, line)
-        verboseLogger?.logInfo(line)
-        if (!result.ok) recordGateFailure(profileId, line)
-    }
-
-    /**
-     * Surface a failed pre-connect gate (SPA packet, port knock) in the NORMAL
-     * connection log, not only the verbose one.
-     *
-     * These gates are deliberately non-fatal: the connect proceeds even when
-     * the packet never left. That means a failure produces no error of its own
-     * and the connection dies later as an ordinary connect timeout against a
-     * port that was never opened — indistinguishable from the network being
-     * down (#557). The step that guards the connection should not need a debug
-     * setting switched on before anyone can discover it didn't happen.
-     *
-     * Correcting the claim this comment shipped with: a closed port does *not*
-     * produce `SocketTimeoutException: Read timed out`. That message is a read
-     * timeout on an already-established socket, so it means the opposite — the
-     * port was open and something answered. See [SshConnectDiagnosis], which
-     * now tells the two apart in the error the user actually sees.
-     *
-     * A FAILED row here can legitimately be followed by CONNECTED: the gate
-     * failed, the connect was attempted regardless, and it may still succeed
-     * (a knock is a no-op when the port is already open). The row records the
-     * step, not the verdict on the session.
-     */
-    private suspend fun recordGateFailure(profileId: String, line: String) {
-        connectionLogRepository.logEvent(
-            profileId = profileId,
-            status = ConnectionLog.Status.FAILED,
-            details = line,
-        )
-    }
-
-    /**
-     * One-shot port-knock against [host] using a freshly-parsed [sequenceText].
-     * Used by the connection-edit dialog's "Test knock" button to verify
-     * the user's knockd config without committing the profile or
-     * attempting a real service connect.
-     *
-     * Returns `(ok, message)` for the UI to render. Never throws.
-     */
-    suspend fun testKnock(
-        host: String,
-        sequenceText: String,
-        delayMs: Int,
-    ): Pair<Boolean, String> {
-        val parsed = KnockSequence.parse(sequenceText, delayMs)
-        val seq = parsed.getOrElse {
-            return false to appContext.getString(
-                R.string.connections_knock_invalid_sequence, it.message ?: "",
-            )
-        } ?: return false to appContext.getString(R.string.connections_knock_empty)
-        if (host.isBlank()) {
-            return false to appContext.getString(R.string.connections_knock_host_blank)
-        }
-        val result = portKnocker.knock(host, seq)
-        return if (result.ok) {
-            true to appContext.getString(
-                R.string.connections_knock_success,
-                result.sentSteps,
-                result.totalDurationMs.toInt(),
-            )
-        } else {
-            false to appContext.getString(
-                R.string.connections_knock_failed,
-                result.totalDurationMs.toInt(),
-                result.error?.message ?: "unknown",
-            )
-        }
-    }
-
-    /**
-     * One-shot SPA send against [host] using a pre-validated [config]. Used by
-     * the connection-edit dialog's "Test SPA" button. Returns `(ok, message)`
-     * for the UI; never throws.
-     */
-    suspend fun testSpa(host: String, config: SpaConfig): Pair<Boolean, String> {
-        if (host.isBlank()) {
-            return false to appContext.getString(R.string.connections_spa_host_blank)
-        }
-        val result = spaSender.send(host, config)
-        return if (result.ok) {
-            true to appContext.getString(
-                R.string.connections_spa_success,
-                result.packetLen,
-                result.totalDurationMs.toInt(),
-            )
-        } else {
-            false to appContext.getString(
-                R.string.connections_spa_failed,
-                result.totalDurationMs.toInt(),
-                result.error?.message ?: "unknown",
-            )
-        }
-    }
-
     private fun canAutoConnect(profile: ConnectionProfile, keys: List<SshKey>): Boolean = when {
         profile.isVnc -> false
         profile.isRdp -> false
@@ -2020,11 +1818,6 @@ class ConnectionsViewModel @Inject constructor(
                         sshSessionId = sshSessionId,
                         profileId = profile.id,
                         colorDepth = profile.vncColorDepth,
-                        // Knock not honoured on the SSH-forward path, but
-                        // pass it through so the field stays a single
-                        // source of truth at the call site.
-                        portKnockSequence = profile.portKnockSequence,
-                        portKnockDelayMs = profile.portKnockDelayMs,
                     )
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to connect SSH tunnel host for VNC", e)
@@ -2038,8 +1831,6 @@ class ConnectionsViewModel @Inject constructor(
                     sshForward = profile.vncSshForward,
                     profileId = profile.id,
                     colorDepth = profile.vncColorDepth,
-                    portKnockSequence = profile.portKnockSequence,
-                    portKnockDelayMs = profile.portKnockDelayMs,
                 )
             }
         }
@@ -2075,8 +1866,6 @@ class ConnectionsViewModel @Inject constructor(
                         profileId = profile.id,
                         useNla = profile.rdpUseNla,
                         colorDepth = profile.rdpColorDepth,
-                        portKnockSequence = profile.portKnockSequence,
-                        portKnockDelayMs = profile.portKnockDelayMs,
                     )
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to connect SSH tunnel host for RDP", e)
@@ -2085,7 +1874,7 @@ class ConnectionsViewModel @Inject constructor(
                     _connectingProfileId.value = null
                 }
             } else {
-                _navigateToRdp.value = RdpNavigation(host, port, username, rdpPassword, domain, profile.rdpSshForward, profileId = profile.id, useNla = profile.rdpUseNla, colorDepth = profile.rdpColorDepth, portKnockSequence = profile.portKnockSequence, portKnockDelayMs = profile.portKnockDelayMs)
+                _navigateToRdp.value = RdpNavigation(host, port, username, rdpPassword, domain, profile.rdpSshForward, profileId = profile.id, useNla = profile.rdpUseNla, colorDepth = profile.rdpColorDepth)
             }
         }
     }
@@ -2339,8 +2128,6 @@ class ConnectionsViewModel @Inject constructor(
                                 keyboardInteractivePrompter = keyboardInteractivePrompter,
                                 totpCodeProvider = buildTotpCodeProvider(profile),
                                 confirmOtp = profile.totpConfirmBeforeSend,
-                                preConnect = buildKnockHook(profile, verboseLogger),
-                                trustedHostCaKeys = hostKeyVerifier.trustedHostCaKeys(),
                             )
                             runTofuVerification(hostKeyEntry, clientToDisconnectOnReject = client, autoAccept = profile.usbDriveSerial != null)
                         } catch (e: HostKeyAuthFailure) {
@@ -2550,8 +2337,6 @@ class ConnectionsViewModel @Inject constructor(
                     keyboardInteractivePrompter = keyboardInteractivePrompter,
                     totpCodeProvider = buildTotpCodeProvider(profile),
                     confirmOtp = profile.totpConfirmBeforeSend,
-                    preConnect = buildKnockHook(profile, verboseLogger),
-                    trustedHostCaKeys = hostKeyVerifier.trustedHostCaKeys(),
                 )
                 runTofuVerification(hostKeyEntry, clientToDisconnectOnReject = sshClient)
             } catch (e: HostKeyAuthFailure) {
@@ -2562,8 +2347,6 @@ class ConnectionsViewModel @Inject constructor(
             val hostKeyEntry = sshClient.connect(
                 config,
                 proxy = proxy,
-                preConnect = buildKnockHook(profile, verboseLogger),
-                trustedHostCaKeys = hostKeyVerifier.trustedHostCaKeys(),
             )
             when (verifyOrCaTrusted(hostKeyEntry)) {
                 is HostKeyResult.Trusted -> {}
@@ -3317,7 +3100,6 @@ class ConnectionsViewModel @Inject constructor(
                         keyboardInteractivePrompter = keyboardInteractivePrompter,
                         totpCodeProvider = buildTotpCodeProvider(jumpProfile),
                         confirmOtp = jumpProfile.totpConfirmBeforeSend,
-                        trustedHostCaKeys = hostKeyVerifier.trustedHostCaKeys(),
                     )
                     Log.d(TAG, "Jump host SSH connected, verifying host key...")
                     runTofuVerification(
@@ -3868,11 +3650,10 @@ class ConnectionsViewModel @Inject constructor(
         keyId: String,
         password: String,
     ): ConnectionConfig.AuthMethod? {
-        // Fetch row metadata first (no biometric prompt yet) so the
-        // cert-renewal gate can run before we trigger the biometric prompt
-        // and the JSch connect. (#133 phase 2b)
-        val originalKey = sshKeyRepository.getById(keyId)
-        val key = if (originalKey != null) certRenewalGate.ensureFresh(originalKey) else null
+        // Fetch row metadata first (no biometric prompt yet) so nothing
+        // prompts before we trigger the biometric prompt and the JSch
+        // connect.
+        val key = sshKeyRepository.getById(keyId)
         if (key != null && key.hardwareAlias != null) {
             // Hardware-resident: no local bytes exist to fetch or prompt for —
             // the biometric ceremony happens per signature inside
@@ -4514,8 +4295,6 @@ class ConnectionsViewModel @Inject constructor(
                     val hostKeyEntry = client.connect(
                         config,
                         proxy = proxy,
-                        preConnect = buildKnockHook(profile, verboseLogger = null),
-                        trustedHostCaKeys = hostKeyVerifier.trustedHostCaKeys(),
                     )
                     runTofuVerification(hostKeyEntry, clientToDisconnectOnReject = client)
                 } catch (e: HostKeyAuthFailure) {
@@ -4668,8 +4447,6 @@ class ConnectionsViewModel @Inject constructor(
                 val hostKeyEntry = client.connect(
                     config,
                     proxy = proxy,
-                    preConnect = buildKnockHook(profile, verboseLogger),
-                    trustedHostCaKeys = hostKeyVerifier.trustedHostCaKeys(),
                 )
 
                 // Silent TOFU is fail-closed: a background / workspace connect

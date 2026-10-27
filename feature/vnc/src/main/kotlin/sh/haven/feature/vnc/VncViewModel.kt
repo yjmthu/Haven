@@ -15,8 +15,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import sh.haven.core.et.EtSessionManager
-import sh.haven.core.knock.KnockSequence
-import sh.haven.core.knock.PortKnocker
 import sh.haven.core.mosh.MoshSessionManager
 import sh.haven.core.ssh.SshClient
 import sh.haven.core.ssh.SshConnection
@@ -41,7 +39,6 @@ class VncViewModel @Inject constructor(
     private val sshSessionManager: SshSessionManager,
     private val moshSessionManager: MoshSessionManager,
     private val etSessionManager: EtSessionManager,
-    private val portKnocker: PortKnocker,
     private val tlsCertVerifier: sh.haven.core.data.agent.TlsCertVerifier,
     private val preferencesRepository: sh.haven.core.data.preferences.UserPreferencesRepository,
     @ApplicationContext private val appContext: Context,
@@ -125,35 +122,18 @@ class VncViewModel @Inject constructor(
         port: Int,
         password: String?,
         username: String? = null,
-        portKnockSequence: String? = null,
-        portKnockDelayMs: Int = 100,
     ) {
         // Guard: skip if already connected to the same target
         if (_connected.value && client?.running == true) return
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _error.value = null
-                runKnockIfConfigured(host, portKnockSequence, portKnockDelayMs)
                 doConnect(host, port, password, username = username, displayHost = host, displayPort = port)
             } catch (e: Exception) {
                 Log.e(TAG, "VNC connect failed", e)
                 _error.value = describeError(e, host, port)
             }
         }
-    }
-
-    /** Optional pre-connect port knock. Failures are logged but not raised
-     *  — the real socket open will surface the actual symptom if the
-     *  firewall didn't open. */
-    private suspend fun runKnockIfConfigured(host: String, sequenceText: String?, delayMs: Int) {
-        val seq = KnockSequence.parse(sequenceText, delayMs).getOrNull() ?: return
-        val result = portKnocker.knock(host, seq)
-        val msg = if (result.ok) {
-            "[knock] ${seq.format()} -> ok in ${result.totalDurationMs}ms"
-        } else {
-            "[knock] ${seq.format()} -> failed after ${result.totalDurationMs}ms: ${result.error?.message}"
-        }
-        Log.d(TAG, msg)
     }
 
     private fun doConnect(

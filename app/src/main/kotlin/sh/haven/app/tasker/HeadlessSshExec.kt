@@ -38,9 +38,8 @@ import sh.haven.core.redact.LogRedact
  *    is refused, never silently trusted — trust is established by
  *    connecting the profile interactively once, #5), exec, disconnect.
  *
- * Not covered (v1): port-knock/SPA-guarded profiles and tunnel-routed
- * profiles on the headless path — connect those interactively and let the
- * reuse path serve them.
+ * Not covered (v1): tunnel-routed profiles on the headless path — connect
+ * those interactively and let the reuse path serve them.
  */
 @Singleton
 class HeadlessSshExec @Inject constructor(
@@ -109,7 +108,7 @@ class HeadlessSshExec @Inject constructor(
         val client = clientFactory()
         try {
             val hostKeyEntry = try {
-                client.connect(config, trustedHostCaKeys = hostKeyVerifier.trustedHostCaKeys())
+                client.connect(config)
             } catch (e: Exception) {
                 // #376: a network failure on a private address may just mean
                 // DHCP moved the device — follow its host key once, so
@@ -123,7 +122,7 @@ class HeadlessSshExec @Inject constructor(
                 }
                 Log.i(TAG, "'${LogRedact.of(profile.label)}' host rediscovered ${LogRedact.of(profile.host)} → ${LogRedact.of(newHost)} — retrying")
                 try {
-                    client.connect(config.copy(host = newHost), trustedHostCaKeys = hostKeyVerifier.trustedHostCaKeys())
+                    client.connect(config.copy(host = newHost))
                 } catch (e2: Exception) {
                     throw HeadlessSshExecException("Connect to '${profile.label}' failed after host rediscovery ($newHost): ${e2.message ?: e2.javaClass.simpleName}")
                 }
