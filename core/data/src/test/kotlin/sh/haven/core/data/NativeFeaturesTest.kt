@@ -43,33 +43,17 @@ class NativeFeaturesTest {
         val f = features()
 
         assertFalse("rdp", f.rdp)
-        assertFalse("ffmpeg", f.ffmpeg)
         assertFalse("anyDesktop", f.anyDesktop)
     }
 
     @Test
     fun `shipping the libraries reports them`() {
-        ship(
-            "librdp_transport.so",
-            "libffmpeg.so", "libffprobe.so", "libavcodec.so",
-        )
+        ship("librdp_transport.so")
+
         val f = features()
 
         assertTrue("rdp", f.rdp)
-        assertTrue("ffmpeg", f.ffmpeg)
         assertTrue("anyDesktop", f.anyDesktop)
-    }
-
-    /**
-     * The executables are thin wrappers since the shared-libav change — the
-     * codec code lives in libavcodec.so. ffmpeg present without it would pass
-     * a naive check and then fail at exec with "library not found".
-     */
-    @Test
-    fun `ffmpeg needs its shared libraries, not just the executables`() {
-        ship("libffmpeg.so", "libffprobe.so")
-
-        assertFalse(features().ffmpeg)
     }
 
     /** A file that is present but not executable is not a usable library. */
@@ -95,7 +79,6 @@ class NativeFeaturesTest {
         val f = NativeFeatures(context)
 
         assertFalse("rdp", f.rdp)
-        assertFalse("ffmpeg", f.ffmpeg)
         assertFalse("anyDesktop", f.anyDesktop)
     }
 

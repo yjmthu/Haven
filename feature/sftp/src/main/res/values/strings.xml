@@ -62,9 +62,6 @@
     <string name="sftp_no_app_to_open">No app found to open this file</string>
     <string name="sftp_path_copied">Path copied</string>
 
-    <!-- Media playback -->
-    <string name="sftp_preview">Preview</string>
-
     <!-- Folder sync -->
     <string name="sftp_dry_run_results">Dry Run Results</string>
     <string name="sftp_start_for_real">Start for real</string>
@@ -75,7 +72,6 @@
     <string name="sftp_directory_icon">Directory</string>
     <string name="sftp_file_icon">File</string>
     <string name="sftp_download">Download</string>
-    <string name="sftp_convert">Convert</string>
     <string name="sftp_encrypt">Encrypt (age)</string>
     <string name="sftp_encrypt_sub">Encrypt to an age key — readable anywhere with the age tool</string>
     <string name="sftp_decrypt">Decrypt (age)</string>
@@ -85,16 +81,6 @@
     <string name="sftp_encrypt_action">Encrypt</string>
     <string name="sftp_age_no_identity">No age identity. Create one in the Keys tab, or paste a recipient.</string>
     <string name="sftp_age_failed">age operation failed — wrong key or corrupt file</string>
-    <string name="sftp_stream">Stream</string>
-    <string name="sftp_play_in_browser">Play in browser</string>
-    <string name="sftp_stream_to_network">Stream to network</string>
-    <string name="sftp_streaming">Streaming on %s</string>
-    <string name="sftp_stream_stop">Stop</string>
-    <string name="sftp_convert_title">Convert media</string>
-    <string name="sftp_convert_format">Output format</string>
-    <string name="sftp_converting">Converting %s</string>
-    <string name="sftp_convert_done">Saved to %s</string>
-    <string name="sftp_downloading_for_convert">Downloading for conversion…</string>
     <string name="sftp_cut">Cut</string>
     <string name="sftp_copy_path">Copy path</string>
 
@@ -128,53 +114,6 @@
     <string name="sftp_ownership_label">Owner</string>
     <string name="sftp_ownership_hint">Enter user, group, or user:group. Name resolution happens on the remote. Typically requires root.</string>
     <string name="sftp_ownership_apply">Apply</string>
-
-    <!-- Media action sheet & dialogs -->
-    <string name="sftp_media">Media…</string>
-    <string name="sftp_stream_folder">Stream folder playlist</string>
-    <string name="sftp_output_filename">Output filename</string>
-    <string name="sftp_convert_sub">Re-encode video or audio with filters</string>
-
-    <string name="sftp_media_info">Media info</string>
-    <string name="sftp_media_info_sub">Codec, duration, streams</string>
-    <string name="sftp_media_info_probing">Probing…</string>
-    <string name="sftp_media_info_failed">ffprobe failed: %s</string>
-    <string name="sftp_media_info_container">Container</string>
-    <string name="sftp_media_info_duration">Duration</string>
-    <string name="sftp_media_info_bitrate">Bitrate</string>
-    <string name="sftp_media_info_size">Size</string>
-    <string name="sftp_media_info_video_streams">Video</string>
-    <string name="sftp_media_info_audio_streams">Audio</string>
-    <string name="sftp_media_info_subtitle_streams">Subtitles</string>
-    <string name="sftp_media_info_video">Video</string>
-    <string name="sftp_media_info_audio">Audio</string>
-    <string name="sftp_media_info_subtitle">Subtitle</string>
-    <string name="sftp_media_info_chapters">Chapters: %d</string>
-    <string name="sftp_media_info_copy">Copy JSON</string>
-
-    <string name="sftp_trim">Trim (lossless)</string>
-    <string name="sftp_trim_sub">Cut a clip without re-encoding</string>
-    <string name="sftp_trim_title">Trim clip</string>
-    <string name="sftp_trim_explain">Start and end as H:MM:SS. Stream-copy, no re-encode.</string>
-    <string name="sftp_trim_start">Start</string>
-    <string name="sftp_trim_end">End</string>
-    <string name="sftp_trim_action">Trim</string>
-
-    <string name="sftp_extract_audio">Extract audio</string>
-    <string name="sftp_extract_audio_sub">Save soundtrack as MP3/AAC/Opus/FLAC</string>
-    <string name="sftp_extract_audio_title">Extract audio</string>
-    <string name="sftp_extract_audio_format">Format</string>
-    <string name="sftp_extract_audio_bitrate">Bitrate: %d kbps</string>
-    <string name="sftp_extract_audio_action">Extract</string>
-
-    <string name="sftp_contact_sheet">Contact sheet</string>
-    <string name="sftp_contact_sheet_sub">Grid of thumbnails sampled across the file</string>
-    <string name="sftp_contact_sheet_title">Contact sheet</string>
-    <string name="sftp_contact_sheet_explain">Samples frames evenly across the clip into a tiled PNG.</string>
-    <string name="sftp_contact_sheet_cols">Columns</string>
-    <string name="sftp_contact_sheet_rows">Rows</string>
-    <string name="sftp_contact_sheet_tile">Tile size: %1$d × %2$d</string>
-    <string name="sftp_contact_sheet_action">Build sheet</string>
 
     <!-- SortDropdown -->
     <string name="sftp_sort_name_asc">Name A-Z</string>
@@ -223,7 +162,7 @@
 
     <!-- Storage permission banner -->
     <string name="sftp_storage_permission_title">Storage access required</string>
-    <string name="sftp_storage_permission_body">Tap to grant access to local files — media features, browsing, and transfers need this permission.</string>
+    <string name="sftp_storage_permission_body">Tap to grant access to local files — browsing and transfers need this permission.</string>
 
     <!-- Unfinished paste banner -->
     <string name="sftp_paste_unfinished">Unfinished paste</string>
@@ -231,62 +170,28 @@
     <!-- Agent-served file chip -->
     <string name="sftp_agent_chip">Agent</string>
 
-    <!-- Convert dialog: destination options -->
-    <string name="sftp_convert_dest_downloads">Downloads (this device)</string>
-    <string name="sftp_convert_dest_same_folder_local">Same folder as source</string>
-    <string name="sftp_convert_dest_same_folder_server">Back to server (same folder)</string>
-
-    <!-- Convert dialog: preview area -->
-    <string name="sftp_preview_preparing_long">Preparing preview…</string>
-    <string name="sftp_preview_fetching_cloud">☁ Fetching from cloud…</string>
-    <string name="sftp_preview_tap_to_refresh">Tap Preview to refresh</string>
-
     <!-- Filter chip labels (Glob/Regex) -->
     <string name="sftp_filter_mode_glob">Glob</string>
     <string name="sftp_filter_mode_regex">Regex</string>
 
     <!-- ViewModel snackbar messages -->
-    <string name="sftp_saved_file">Saved %1$s</string>
     <string name="sftp_saved_file_to">Saved %1$s to %2$s</string>
     <string name="sftp_downloaded_file">Downloaded %1$s</string>
-    <string name="sftp_location_downloads">Downloads</string>
-    <string name="sftp_file_too_large_for_editor">File is too large to open in the editor (%1$s). The limit is 20 MB.</string>
-
-    <!-- Image processing labels (used in Processing state label) -->
-    <string name="sftp_processing_perspective">Applying perspective…</string>
-    <string name="sftp_processing_crop">Cropping…</string>
-    <string name="sftp_processing_rotate">Rotating…</string>
 
     <!-- Paste conflict dialog -->
     <string name="sftp_conflict_size_summary">Existing: %1$s  ·  New: %2$s</string>
     <string name="sftp_conflict_resume_hint">Existing file is smaller than the source — resume continues from the current offset.</string>
     <string name="sftp_conflict_apply_to_all">Apply to all remaining files</string>
 
-    <!-- #135 third pass: hardcoded literals in SftpScreen + media UI -->
+    <!-- #135 third pass: hardcoded literals in SftpScreen -->
     <string name="sftp_attach_use_folder">Use this folder</string>
     <string name="sftp_paste_discard">Discard</string>
     <string name="sftp_paste_resume">Resume</string>
     <string name="sftp_paste_discard_title">Discard unfinished paste?</string>
     <string name="sftp_paste_discard_body">Pending files will be removed from the queue. This cannot be undone.</string>
     <string name="sftp_paste_keep">Keep</string>
-    <string name="sftp_preview_frame_desc">Preview frame — tap for fullscreen</string>
-    <string name="sftp_convert_container">Container</string>
-    <string name="sftp_convert_video_encoder">Video encoder</string>
-    <string name="sftp_convert_audio_encoder">Audio encoder</string>
-    <string name="sftp_convert_save_to">Save to</string>
-    <string name="sftp_preview_stop">Stop</string>
-    <string name="sftp_preview_preparing">Preparing…</string>
-    <string name="sftp_preview_play5s">Play 5s preview</string>
-    <string name="sftp_fullscreen_preview">Fullscreen preview</string>
     <string name="sftp_conflict_title">File already exists</string>
     <string name="sftp_conflict_overwrite">Overwrite</string>
     <string name="sftp_conflict_keep_both">Keep both (rename)</string>
     <string name="sftp_conflict_skip">Skip</string>
-    <string name="sftp_compression_quick_presets">Quick presets</string>
-    <string name="sftp_compression_resolution">Resolution</string>
-    <string name="sftp_compression_quality">Quality (CRF %1$d)</string>
-    <string name="sftp_compression_speed">Encode speed</string>
-    <string name="sftp_compression_audio_bitrate">Audio bitrate</string>
-    <string name="sftp_filter_title">Filters</string>
-    <string name="sftp_filter_rotation">Rotation</string>
 </resources>

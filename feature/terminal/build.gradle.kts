@@ -46,7 +46,6 @@ dependencies {
     implementation(project(":core:usb"))
     implementation(project(":core:security"))
     // QR / OCR for the paperclip → camera/photo attach flow.
-    implementation(project(":core:scan"))
     // The terminal's paperclip / attach feature reuses the SFTP feature's
     // upload pipeline (TerminalAttachCoordinator) — depending on the SFTP
     // module is therefore intentional, not a layering accident.

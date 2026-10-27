@@ -19,9 +19,9 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 private const val TAG = "SftpStreamServer"
 
 /**
- * Loopback HTTP server that exposes SFTP files to ffmpeg so it can read
- * them with Range requests rather than having the caller download the
- * whole file to cache first.
+ * Loopback HTTP server that exposes SFTP files to external apps so they
+ * can read them with Range requests rather than having the caller
+ * download the whole file to cache first.
  *
  * Callers register one file at a time via [publish], passing a per-file
  * [Opener] that knows how to re-open an InputStream at a given byte
@@ -31,8 +31,8 @@ private const val TAG = "SftpStreamServer"
  *
  * SFTP channels are not safe to read from concurrently, so all body
  * writes are serialized on an internal lock. That's acceptable for
- * single-stream playback: ffmpeg issues one Range request at a time per
- * input.
+ * single-stream consumption: a reader issues one Range request at a time
+ * per input.
  */
 @Singleton
 class SftpStreamServer @Inject constructor() : Closeable {

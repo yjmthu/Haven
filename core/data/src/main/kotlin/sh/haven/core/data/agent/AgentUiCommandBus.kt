@@ -80,8 +80,6 @@ class AgentUiCommandBus @Inject constructor() {
 
     private fun AgentUiCommand.isSftpTargeted(): Boolean = when (this) {
         is AgentUiCommand.NavigateToSftpPath,
-        is AgentUiCommand.OpenConvertDialog,
-        is AgentUiCommand.OpenInEditor,
         is AgentUiCommand.EncryptFile,
         is AgentUiCommand.DecryptFile,
         -> true

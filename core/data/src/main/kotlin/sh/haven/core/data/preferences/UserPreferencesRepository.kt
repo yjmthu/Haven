@@ -143,7 +143,6 @@ class UserPreferencesRepository @Inject constructor(
     private val batteryPromptDismissedKey = booleanPreferencesKey("battery_prompt_dismissed")
     private val batteryPromptNeverAskKey = booleanPreferencesKey("battery_prompt_never_ask")
     private val batteryLastKnownExemptKey = booleanPreferencesKey("battery_last_known_exempt")
-    private val mediaExtensionsKey = stringPreferencesKey("media_extensions")
     private val desktopInputModeKey = stringPreferencesKey("desktop_input_mode")
     // Trackpad-mode speed multiplier (#696). 1f = the 1:1 finger→cursor ratio.
     private val desktopTouchpadSensitivityKey = floatPreferencesKey("desktop_touchpad_sensitivity")
@@ -165,7 +164,6 @@ class UserPreferencesRepository @Inject constructor(
     private val updateCheckLastRunKey = longPreferencesKey("update_check_last_run_ms")
     private val updateCheckLastNotifiedKey = stringPreferencesKey("update_check_last_notified_version")
     private val bandwidthAutoSuggestKey = booleanPreferencesKey("bandwidth_auto_suggest")
-    private val lastMediaServerPortKey = intPreferencesKey("last_media_server_port")
 
     val biometricEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
         prefs[biometricEnabledKey] ?: false
@@ -986,27 +984,7 @@ class UserPreferencesRepository @Inject constructor(
     }
 
     /** Space-separated file extensions to treat as streamable media (e.g. "mp3 mp4 flac"). */
-    val mediaExtensions: Flow<String> = dataStore.data.map { prefs ->
-        prefs[mediaExtensionsKey] ?: DEFAULT_MEDIA_EXTENSIONS
-    }
-
-    suspend fun setMediaExtensions(extensions: String) {
-        dataStore.edit { prefs ->
-            prefs[mediaExtensionsKey] = extensions
-        }
-    }
-
     /** Last port used by the media streaming server (for reconnection after restart). */
-    val lastMediaServerPort: Flow<Int> = dataStore.data.map { prefs ->
-        prefs[lastMediaServerPortKey] ?: 0
-    }
-
-    suspend fun setLastMediaServerPort(port: Int) {
-        dataStore.edit { prefs ->
-            prefs[lastMediaServerPortKey] = port
-        }
-    }
-
 
     val terminalFontSize: Flow<Int> = dataStore.data.map { prefs ->
         prefs[terminalFontSizeKey] ?: DEFAULT_FONT_SIZE
@@ -1949,7 +1927,6 @@ class UserPreferencesRepository @Inject constructor(
         const val DEFAULT_RETICULUM_PORT = 37428
         const val DEFAULT_TOOLBAR_ROW1 = "keyboard,esc,tab,shift,ctrl,alt" // legacy
         const val DEFAULT_TOOLBAR_ROW2 = "arrow_left,arrow_up,arrow_down,arrow_right,sym_pipe,sym_tilde,sym_slash,sym_backslash,sym_backtick" // legacy
-        const val DEFAULT_MEDIA_EXTENSIONS = "mp3 flac ogg opus m4a aac wma wav aiff alac ape mka mp4 mkv avi mov wmv flv webm m4v ts mpg mpeg 3gp"
         const val DEFAULT_TERMINAL_LOCALE = "en_US.UTF-8"
     }
 }

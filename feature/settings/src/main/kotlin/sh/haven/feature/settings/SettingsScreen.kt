@@ -235,7 +235,6 @@ fun SettingsScreen(
     val terminalInlineImages by viewModel.terminalInlineImages.collectAsState()
     val showTerminalTabBar by viewModel.showTerminalTabBar.collectAsState()
     val backupStatus by viewModel.backupStatus.collectAsState()
-    val mediaExtensions by viewModel.mediaExtensions.collectAsState()
     val terminalPromptChars by viewModel.terminalPromptChars.collectAsState()
     val terminalLocale by viewModel.terminalLocale.collectAsState()
     var showAuditLog by remember { mutableStateOf(false) }
@@ -249,7 +248,6 @@ fun SettingsScreen(
     // the launched coroutine produced anything — silent install bug.
     val settingsScope = rememberCoroutineScope()
     var showLanguageDialog by remember { mutableStateOf(false) }
-    var showMediaExtensionsDialog by remember { mutableStateOf(false) }
     var showPromptCharsDialog by remember { mutableStateOf(false) }
     var showLocaleDialog by remember { mutableStateOf(false) }
     var showFontSizeDialog by remember { mutableStateOf(false) }
@@ -1227,44 +1225,6 @@ fun SettingsScreen(
             onSave = { newOrder, vis ->
                 viewModel.setNavigationTabs(newOrder.map { it.route }, vis)
                 showScreenOrderDialog = false
-            },
-        )
-    }
-
-    if (showMediaExtensionsDialog) {
-        var extText by rememberSaveable { mutableStateOf(mediaExtensions) }
-        AlertDialog(
-            onDismissRequest = { showMediaExtensionsDialog = false },
-            title = { Text(stringResource(R.string.settings_media_extensions_title)) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        stringResource(R.string.settings_media_extensions_description),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    OutlinedTextField(
-                        value = extText,
-                        onValueChange = { extText = it },
-                        label = { Text(stringResource(R.string.settings_media_extensions_label)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        minLines = 3,
-                        maxLines = 5,
-                    )
-                    TextButton(onClick = {
-                        extText = UserPreferencesRepository.DEFAULT_MEDIA_EXTENSIONS
-                    }) {
-                        Text(stringResource(R.string.common_reset))
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.setMediaExtensions(extText.trim())
-                    showMediaExtensionsDialog = false
-                }) { Text(stringResource(R.string.common_save)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showMediaExtensionsDialog = false }) { Text(stringResource(R.string.common_cancel)) }
             },
         )
     }

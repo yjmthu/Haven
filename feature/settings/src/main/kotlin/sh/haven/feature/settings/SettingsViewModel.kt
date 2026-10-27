@@ -1112,15 +1112,6 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    val mediaExtensions: StateFlow<String> = preferencesRepository.mediaExtensions
-        .stateIn(viewModelScope, SharingStarted.Eagerly, UserPreferencesRepository.DEFAULT_MEDIA_EXTENSIONS)
-
-    fun setMediaExtensions(extensions: String) {
-        viewModelScope.launch {
-            preferencesRepository.setMediaExtensions(extensions)
-        }
-    }
-
     val terminalPromptChars: StateFlow<String> = preferencesRepository.terminalPromptChars
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 

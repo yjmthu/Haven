@@ -88,7 +88,6 @@ class KeysViewModel @Inject constructor(
     private val totpSecretRepository: sh.haven.core.data.repository.TotpSecretRepository,
     private val ageIdentityRepository: sh.haven.core.data.repository.AgeIdentityRepository,
     private val sshIdentityRepository: sh.haven.core.data.repository.SshIdentityRepository,
-    private val barcodeDecoder: sh.haven.core.scan.BarcodeDecoder,
     private val preferencesRepository: sh.haven.core.data.preferences.UserPreferencesRepository,
     // Strong-biometry gate for hardware key generation (m2): chip keys are
     // per-op BIOMETRIC_STRONG; no Class 3 biometric enrolled → no key.
@@ -1166,32 +1165,6 @@ class KeysViewModel @Inject constructor(
         saveTotp(parsed)
     }
 
-    /** Decode an `otpauth://` QR from a picked image, then store the secret. */
-    fun addTotpFromImage(context: Context, uri: Uri) {
-        viewModelScope.launch {
-            try {
-                val decoded = withContext(Dispatchers.Default) {
-                    val bitmap = context.contentResolver.openInputStream(uri)?.use {
-                        android.graphics.BitmapFactory.decodeStream(it)
-                    } ?: throw IllegalStateException("Could not read image")
-                    barcodeDecoder.decode(bitmap)
-                }
-                if (decoded == null) {
-                    _error.value = "No QR code found in the image"
-                    return@launch
-                }
-                val parsed = sh.haven.core.security.OtpAuthUri.parse(decoded)
-                if (parsed == null) {
-                    _error.value = "QR code is not a TOTP (otpauth://totp) code"
-                    return@launch
-                }
-                saveTotp(parsed)
-            } catch (e: Exception) {
-                Log.e("KeysViewModel", "TOTP QR scan failed", e)
-                _error.value = "Could not scan QR: ${e.message}"
-            }
-        }
-    }
 
     private fun saveTotp(parsed: sh.haven.core.security.OtpAuthUri.Parsed) {
         viewModelScope.launch {

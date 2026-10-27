@@ -109,12 +109,8 @@ include(":core:vnc")
 include(":core:rdp")
 include(":core:fido")
 include(":core:usb")
-include(":core:ffmpeg")
-include(":core:scan")
 
 include(":feature:settings")
-include(":feature:editor")
-include(":feature:imagetools")
 include(":feature:vnc")
 include(":feature:rdp")
 

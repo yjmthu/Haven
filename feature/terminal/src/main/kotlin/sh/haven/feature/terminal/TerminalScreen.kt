@@ -636,16 +636,11 @@ fun TerminalScreen(
     }
     val dictateUnavailableMessage = stringResource(R.string.terminal_dictate_unavailable)
 
-    // Paperclip → bottom sheet → camera / gallery → recognise → paste.
+    // Paperclip → bottom sheet → send a file or take a photo.
     //
-    // The bottom sheet hosts the SAF "send file" entry alongside four
-    // image-recognition flows (QR / OCR × Camera / Gallery). Two launchers
-    // back the four entries: TakePicture writes into a FileProvider cache
-    // URI we control; PickVisualMedia returns whatever URI the picker hands
-    // back. A single `pendingScanMode` decides which recogniser the result
-    // is routed to so we don't need four separate launchers.
+    // TakePicture writes into a FileProvider cache URI we control; the
+    // result rides the same upload path as an SAF pick.
     var attachSheetVisible by remember { mutableStateOf(false) }
-    var pendingScanMode by remember { mutableStateOf<TerminalViewModel.ScanMode?>(null) }
     var cameraOutputUri by remember { mutableStateOf<Uri?>(null) }
 
     // Floating text-input dialog (ported from ConnectBot). Both pieces of
@@ -662,71 +657,33 @@ fun TerminalScreen(
     var textInputDialogVisible by rememberSaveable { mutableStateOf(false) }
     var textInputDrafts by rememberSaveable { mutableStateOf(HashMap<String, String>()) }
 
-    val cameraScanLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+    val cameraLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.TakePicture()
     ) { success ->
         val uri = cameraOutputUri
-        val mode = pendingScanMode
         cameraOutputUri = null
-        pendingScanMode = null
         if (success && uri != null) {
-            if (mode != null) {
-                viewModel.runScanFlow(uri, mode)
-            } else {
-                // Photo-attach (the sheet's TAKE_PHOTO): no recogniser — the
-                // capture rides the SEND_FILE path, upload happens on the
-                // Files tab and the shell-quoted path lands at the cursor.
-                val activeProfileId = viewModel.tabs.value
-                    .getOrNull(viewModel.activeTabIndex.value)?.profileId
-                val (fileName, fileSize) = viewModel.attachCoordinator.queryFileInfo(uri)
-                onNavigateToSftp()
-                viewModel.runAttachFlow(
-                    sourceUri = uri,
-                    fileName = fileName,
-                    fileSize = fileSize,
-                    initialProfileId = activeProfileId,
-                )
-            }
+            // Photo-attach (the sheet's TAKE_PHOTO): the capture rides the
+            // SEND_FILE path, upload happens on the Files tab and the
+            // shell-quoted path lands at the cursor.
+            val activeProfileId = viewModel.tabs.value
+                .getOrNull(viewModel.activeTabIndex.value)?.profileId
+            val (fileName, fileSize) = viewModel.attachCoordinator.queryFileInfo(uri)
+            onNavigateToSftp()
+            viewModel.runAttachFlow(
+                sourceUri = uri,
+                fileName = fileName,
+                fileSize = fileSize,
+                initialProfileId = activeProfileId,
+            )
         }
-    }
-
-    val galleryScanLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
-        androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia()
-    ) { uri ->
-        val mode = pendingScanMode
-        pendingScanMode = null
-        if (uri != null && mode != null) {
-            viewModel.runScanFlow(uri, mode)
-        }
-    }
-
-    // Inject recognised text at the cursor on the active tab, honouring
-    // bracket-paste so a runaway newline can't be mis-interpreted as Enter
-    // by the remote app. Drains the StateFlow via consumeScanInjection so
-    // a second result doesn't fire on recomposition.
-    val noActiveTabMessage = stringResource(R.string.terminal_paste_no_active_tab)
-    val pendingScanInjection by viewModel.pendingScanInjection.collectAsState()
-    LaunchedEffect(pendingScanInjection) {
-        val text = pendingScanInjection ?: return@LaunchedEffect
-        val tab = viewModel.tabs.value.getOrNull(viewModel.activeTabIndex.value)
-        if (tab != null) {
-            val payload = if (tab.bracketPasteMode.value) {
-                "[200~$text[201~"
-            } else {
-                text
-            }
-            tab.sendInput(payload.toByteArray())
-        } else {
-            viewModel.showNewTabMessage(noActiveTabMessage)
-        }
-        viewModel.consumeScanInjection()
     }
 
     // Inject the uploaded file's remote path at the cursor on the active
     // tab once the Attach → "Send a file" flow finishes, honouring
-    // bracket-paste the same way pendingScanInjection does above. Drains
-    // the StateFlow via consumeAttachInjection so a second attach doesn't
-    // fire on recomposition.
+    // bracket-paste. Drains the StateFlow via consumeAttachInjection so a
+    // second attach doesn't fire on recomposition.
+    val noActiveTabMessage = stringResource(R.string.terminal_paste_no_active_tab)
     val pendingAttachInjection by viewModel.pendingAttachInjection.collectAsState()
     LaunchedEffect(pendingAttachInjection) {
         val text = pendingAttachInjection ?: return@LaunchedEffect
@@ -745,8 +702,8 @@ fun TerminalScreen(
     }
 
     // Read at composition time — stringResource is @Composable and so
-    // can't be invoked from inside the click-time launchCameraScan
-    // callback below. Lint also bans context.getString from a Compose
+    // can't be invoked from inside the click-time camera callback below.
+    // Lint also bans context.getString from a Compose
     // tree (LocalContextGetResourceValueCall).
     val noCameraMessage = stringResource(R.string.terminal_scan_no_camera)
     // Hoisted for the same reason: used from click-time callbacks below where
@@ -754,32 +711,8 @@ fun TerminalScreen(
     // lint-banned (LocalContextGetResourceValueCall).
     val linkOpenFailedMessage = stringResource(R.string.terminal_link_open_failed)
     val linkSchemeBlockedMessage = stringResource(R.string.terminal_link_scheme_blocked)
-    fun launchCameraScan(mode: TerminalViewModel.ScanMode) {
-        val cacheRoot = java.io.File(context.cacheDir, "scan").apply { mkdirs() }
-        val file = java.io.File(cacheRoot, "scan_${System.currentTimeMillis()}.jpg")
-        val uri = androidx.core.content.FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.fileprovider",
-            file,
-        )
-        cameraOutputUri = uri
-        pendingScanMode = mode
-        try {
-            cameraScanLauncher.launch(uri)
-        } catch (_: android.content.ActivityNotFoundException) {
-            cameraOutputUri = null
-            pendingScanMode = null
-            android.widget.Toast.makeText(
-                context,
-                noCameraMessage,
-                android.widget.Toast.LENGTH_LONG,
-            ).show()
-        }
-    }
-
-    // TAKE_PHOTO entry: the same TakePicture launcher, but with
-    // pendingScanMode = null as the photo-attach marker — the result routes
-    // to runAttachFlow (see cameraScanLauncher) instead of a recogniser.
+    // TAKE_PHOTO entry: the capture result routes to runAttachFlow (see
+    // cameraLauncher).
     fun launchCameraPhoto() {
         val cacheRoot = java.io.File(context.cacheDir, "scan").apply { mkdirs() }
         val file = java.io.File(cacheRoot, "photo_${System.currentTimeMillis()}.jpg")
@@ -789,9 +722,8 @@ fun TerminalScreen(
             file,
         )
         cameraOutputUri = uri
-        pendingScanMode = null
         try {
-            cameraScanLauncher.launch(uri)
+            cameraLauncher.launch(uri)
         } catch (_: android.content.ActivityNotFoundException) {
             cameraOutputUri = null
             android.widget.Toast.makeText(
@@ -800,15 +732,6 @@ fun TerminalScreen(
                 android.widget.Toast.LENGTH_LONG,
             ).show()
         }
-    }
-
-    fun launchGalleryScan(mode: TerminalViewModel.ScanMode) {
-        pendingScanMode = mode
-        galleryScanLauncher.launch(
-            androidx.activity.result.PickVisualMediaRequest(
-                androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly,
-            ),
-        )
     }
 
     if (attachSheetVisible) {
@@ -821,14 +744,6 @@ fun TerminalScreen(
                         attachLauncher.launch(arrayOf("*/*"))
                     sh.haven.feature.terminal.attach.AttachOption.TAKE_PHOTO ->
                         launchCameraPhoto()
-                    sh.haven.feature.terminal.attach.AttachOption.SCAN_CAMERA ->
-                        launchCameraScan(TerminalViewModel.ScanMode.BARCODE)
-                    sh.haven.feature.terminal.attach.AttachOption.SCAN_GALLERY ->
-                        launchGalleryScan(TerminalViewModel.ScanMode.BARCODE)
-                    sh.haven.feature.terminal.attach.AttachOption.OCR_CAMERA ->
-                        launchCameraScan(TerminalViewModel.ScanMode.OCR)
-                    sh.haven.feature.terminal.attach.AttachOption.OCR_GALLERY ->
-                        launchGalleryScan(TerminalViewModel.ScanMode.OCR)
                 }
             },
         )

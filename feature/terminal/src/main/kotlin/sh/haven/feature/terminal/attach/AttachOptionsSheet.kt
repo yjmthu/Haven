@@ -8,9 +8,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material.icons.filled.PhotoLibrary
-import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -28,18 +25,14 @@ import sh.haven.feature.terminal.R
 /**
  * Options surfaced by the paperclip key on the keyboard toolbar.
  *
- * Each entry is a distinct action the screen handles — file upload via SAF,
- * or one of four image-recognition flows. Keeping it as an enum means the
- * screen's `when` is exhaustive at compile time, so adding a new option here
- * surfaces every missing call site.
+ * Each entry is a distinct action the screen handles — file upload via SAF
+ * or a camera photo attachment. Keeping it as an enum means the screen's
+ * `when` is exhaustive at compile time, so adding a new option here surfaces
+ * every missing call site.
  */
 enum class AttachOption {
     SEND_FILE,
     TAKE_PHOTO,
-    SCAN_CAMERA,
-    SCAN_GALLERY,
-    OCR_CAMERA,
-    OCR_GALLERY,
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -70,30 +63,6 @@ fun AttachOptionsSheet(
                 label = R.string.terminal_attach_take_photo,
                 description = R.string.terminal_attach_take_photo_desc,
                 onClick = { onSelect(AttachOption.TAKE_PHOTO) },
-            )
-            SheetRow(
-                icon = Icons.Filled.QrCodeScanner,
-                label = R.string.terminal_attach_scan_camera,
-                description = R.string.terminal_attach_scan_camera_desc,
-                onClick = { onSelect(AttachOption.SCAN_CAMERA) },
-            )
-            SheetRow(
-                icon = Icons.Filled.PhotoLibrary,
-                label = R.string.terminal_attach_scan_gallery,
-                description = R.string.terminal_attach_scan_gallery_desc,
-                onClick = { onSelect(AttachOption.SCAN_GALLERY) },
-            )
-            SheetRow(
-                icon = Icons.Filled.PhotoCamera,
-                label = R.string.terminal_attach_ocr_camera,
-                description = R.string.terminal_attach_ocr_camera_desc,
-                onClick = { onSelect(AttachOption.OCR_CAMERA) },
-            )
-            SheetRow(
-                icon = Icons.Filled.TextFields,
-                label = R.string.terminal_attach_ocr_gallery,
-                description = R.string.terminal_attach_ocr_gallery_desc,
-                onClick = { onSelect(AttachOption.OCR_GALLERY) },
             )
         }
     }

@@ -17,8 +17,8 @@ import java.io.File
  * that `scandelete`d something the recipe forgot to rebuild (#493), or a
  * `.so` that is present but not executable.
  *
- * This deliberately mirrors what `FfmpegExecutor.isAvailable()` already does;
- * that check is the precedent, not an invention of this class.
+ * This deliberately mirrors what other native-payload probes in the app do:
+ * the answer comes from whether the library shipped, not from a flag.
  */
 class NativeFeatures(private val context: Context) {
 
@@ -36,13 +36,6 @@ class NativeFeatures(private val context: Context) {
 
     /** RDP client — `librdp_transport.so`. */
     val rdp: Boolean get() = has("librdp_transport.so")
-
-    /**
-     * Media conversion, preview and streaming. Both binaries are required:
-     * the executables are tiny wrappers and the codec code lives in the
-     * shared `libav*` libraries, so a partial set is worse than none.
-     */
-    val ffmpeg: Boolean get() = has("libffmpeg.so", "libffprobe.so", "libavcodec.so")
 
     /**
      * VNC has no native library of its own — the client is Kotlin. It is

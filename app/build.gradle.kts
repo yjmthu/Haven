@@ -253,7 +253,6 @@ dependencies {
     implementation(project(":core:usbserial"))
     implementation(project(":core:vnc"))
     implementation(project(":core:rdp"))
-    implementation(project(":core:ffmpeg"))
     implementation(project(":core:fido"))
     implementation(project(":core:usb"))
     implementation(project(":core:terminal-haven"))
@@ -272,8 +271,6 @@ dependencies {
     implementation(project(":feature:sftp"))
     implementation(project(":feature:keys"))
     implementation(project(":feature:settings"))
-    implementation(project(":feature:editor"))
-    implementation(project(":feature:imagetools"))
     implementation(project(":feature:vnc"))
     implementation(project(":feature:rdp"))
     // The app manifest declares CloudflareAccessLoginActivity, so app must

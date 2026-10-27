@@ -51,7 +51,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.Pin
-import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.Refresh
@@ -257,13 +256,6 @@ fun KeysScreen(
         if (uri != null && keyId != null) {
             viewModel.importCertificateFromUri(context, keyId, uri)
         }
-    }
-
-    // TOTP QR scan (#178): pick an image containing an otpauth:// QR code.
-    val totpQrLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.GetContent(),
-    ) { uri ->
-        uri?.let { viewModel.addTotpFromImage(context, it) }
     }
 
     LaunchedEffect(pendingCertKeyId) {
@@ -691,10 +683,6 @@ fun KeysScreen(
                     viewModel.addTotpFromText(text)
                 }
             },
-            onScanTotpQr = {
-                showAddKeyDialog = false
-                totpQrLauncher.launch("image/*")
-            },
             onGenerateAgeIdentity = {
                 showAddKeyDialog = false
                 showGenerateAgeDialog = true
@@ -1095,7 +1083,6 @@ private fun AddKeyChooser(
     onKeyProvider: (OpenKeychainProvider) -> Unit,
     onPaste: () -> Unit,
     onAddTotpPaste: () -> Unit,
-    onScanTotpQr: () -> Unit,
     onGenerateAgeIdentity: () -> Unit,
     onAddSshIdentity: () -> Unit,
     onDismiss: () -> Unit,
@@ -1182,14 +1169,6 @@ private fun AddKeyChooser(
                     supportingContent = { Text(stringResource(R.string.keys_paste_clipboard_hint)) },
                     leadingContent = {
                         Icon(Icons.Filled.ContentPaste, contentDescription = null)
-                    },
-                )
-                ListItem(
-                    modifier = Modifier.clickable { onScanTotpQr() },
-                    headlineContent = { Text(stringResource(R.string.keys_totp_scan_qr)) },
-                    supportingContent = { Text(stringResource(R.string.keys_totp_scan_qr_hint)) },
-                    leadingContent = {
-                        Icon(Icons.Filled.QrCodeScanner, contentDescription = null)
                     },
                 )
                 ListItem(

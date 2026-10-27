@@ -108,8 +108,6 @@ class TerminalViewModelTest {
         attachCoordinator,
         sh.haven.feature.terminal.agent.TerminalSessionRegistry(),
         sshEmulatorOwner,
-        mockk(relaxed = true), // BarcodeDecoder
-        mockk(relaxed = true), // TextRecognizer
     )
 
     @After

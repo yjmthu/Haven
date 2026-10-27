@@ -58,9 +58,7 @@ interface FileBackend {
 
     /**
      * Read the file at [path] into a [ByteArray]. Intended for small
-     * files — the editor's text content, a single image for the image
-     * tools, a downloaded font. The legacy [SftpViewModel] paths used
-     * `ByteArrayOutputStream` for the same use cases. Large files with
+     * files — backup payloads, a downloaded font. Large files with
      * progress reporting still go through [RemoteFileTransport.download]
      * (SSH/SCP only); this surface is the small-file shorthand that
      * generalises to every backend.

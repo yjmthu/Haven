@@ -30,13 +30,10 @@ android {
 dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:ssh"))
-    implementation(project(":feature:editor"))
-    implementation(project(":feature:imagetools"))
     implementation(project(":core:mosh"))
     implementation(project(":core:et"))
     implementation(project(":core:data"))
     implementation(project(":core:security"))
-    implementation(project(":core:ffmpeg"))
 
     implementation("androidx.documentfile:documentfile:1.1.0")
     implementation(libs.activity.compose)

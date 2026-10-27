@@ -356,10 +356,6 @@ class TerminalViewModel @Inject constructor(
     val terminalSessionRegistry: sh.haven.feature.terminal.agent.TerminalSessionRegistry,
     /** Owns SSH emulators created at connect time; the VM adopts them (#290 issue #2). */
     private val sshEmulatorOwner: SshTerminalEmulatorOwner,
-    /** ZXing-backed barcode / QR decoder; bitmap-in, string-or-null-out. */
-    private val barcodeDecoder: sh.haven.core.scan.BarcodeDecoder,
-    /** Tesseract-backed OCR engine; bitmap-in, string-or-null-out. */
-    private val textRecognizer: sh.haven.core.scan.TextRecognizer,
 ) : ViewModel() {
 
     /**
@@ -395,86 +391,11 @@ class TerminalViewModel @Inject constructor(
         }
     }
 
-    /** What kind of recognition to run over the [runScanFlow] image. */
-    enum class ScanMode { BARCODE, OCR }
-
-    /**
-     * Recognised text waiting to be injected at the cursor. The screen
-     * drains this on the main thread, wrapping in bracket-paste when the
-     * active emulator has it enabled, and clears the flow via
-     * [consumeScanInjection]. StateFlow rather than a Channel so a screen
-     * recomposition that happens mid-recognition still sees the result.
-     */
-    private val _pendingScanInjection = MutableStateFlow<String?>(null)
-    val pendingScanInjection: StateFlow<String?> = _pendingScanInjection.asStateFlow()
-    fun consumeScanInjection() { _pendingScanInjection.value = null }
-
-    /** Same as [pendingScanInjection], but for the Attach → "Send a file" flow. */
+    /** Remote path to inject once the Attach → "Send a file" flow finishes. */
     private val _pendingAttachInjection = MutableStateFlow<String?>(null)
     val pendingAttachInjection: StateFlow<String?> = _pendingAttachInjection.asStateFlow()
     fun consumeAttachInjection() { _pendingAttachInjection.value = null }
 
-    /**
-     * Decode [sourceUri] into a bitmap, hand it to the appropriate scan
-     * engine, and publish the result for the screen to paste. Empty
-     * results / no-match outcomes surface via [newTabMessage] so the user
-     * sees why nothing landed at the cursor.
-     */
-    fun runScanFlow(sourceUri: android.net.Uri, mode: ScanMode) {
-        viewModelScope.launch {
-            val bitmap = withContext(Dispatchers.IO) {
-                runCatching { decodeBitmapFromUri(sourceUri) }
-            }.getOrElse {
-                Log.w(TAG, "Scan: bitmap decode failed for $sourceUri", it)
-                _newTabMessage.value = appContext.getString(
-                    R.string.terminal_scan_failed,
-                    it.message ?: it.javaClass.simpleName,
-                )
-                return@launch
-            } ?: run {
-                _newTabMessage.value = appContext.getString(
-                    R.string.terminal_scan_failed,
-                    "could not decode image",
-                )
-                return@launch
-            }
-
-            val result: String? = try {
-                when (mode) {
-                    ScanMode.BARCODE -> withContext(Dispatchers.Default) { barcodeDecoder.decode(bitmap) }
-                    ScanMode.OCR -> textRecognizer.recognize(bitmap)
-                }
-            } catch (t: Throwable) {
-                Log.w(TAG, "Scan: recognition failed", t)
-                _newTabMessage.value = appContext.getString(
-                    R.string.terminal_scan_failed,
-                    t.message ?: t.javaClass.simpleName,
-                )
-                bitmap.recycle()
-                return@launch
-            }
-            bitmap.recycle()
-
-            if (result.isNullOrEmpty()) {
-                _newTabMessage.value = appContext.getString(
-                    when (mode) {
-                        ScanMode.BARCODE -> R.string.terminal_scan_no_code
-                        ScanMode.OCR -> R.string.terminal_scan_no_text
-                    },
-                )
-                return@launch
-            }
-            _pendingScanInjection.value = result
-        }
-    }
-
-    private fun decodeBitmapFromUri(uri: android.net.Uri): android.graphics.Bitmap? {
-        return appContext.contentResolver.openInputStream(uri)?.use { input ->
-            // ARGB_8888 by default; ZXing needs ARGB pixels, Tesseract handles
-            // either. inMutable=false because we don't draw into the result.
-            android.graphics.BitmapFactory.decodeStream(input)
-        }
-    }
 
     /**
      * Cached `verboseLoggingEnabled` so [createRecorderIfEnabled] — called from

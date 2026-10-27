@@ -285,12 +285,10 @@ fun HavenNavHost(
             .collect { command ->
             val screen = when (command) {
                 is sh.haven.core.data.agent.AgentUiCommand.NavigateToSftpPath -> Screen.Sftp
-                is sh.haven.core.data.agent.AgentUiCommand.OpenConvertDialog -> Screen.Sftp
                 is sh.haven.core.data.agent.AgentUiCommand.FocusTerminalSession -> Screen.Terminal
                 is sh.haven.core.data.agent.AgentUiCommand.OpenTerminalSession -> Screen.Terminal
                 is sh.haven.core.data.agent.AgentUiCommand.OpenRemoteDesktop -> Screen.Desktop
                 is sh.haven.core.data.agent.AgentUiCommand.RegenerateStepCaCert -> Screen.Keys
-                is sh.haven.core.data.agent.AgentUiCommand.OpenInEditor -> Screen.Sftp
                 is sh.haven.core.data.agent.AgentUiCommand.EncryptFile -> Screen.Sftp
                 is sh.haven.core.data.agent.AgentUiCommand.DecryptFile -> Screen.Sftp
                 is sh.haven.core.data.agent.AgentUiCommand.ConnectProfile ->
@@ -466,8 +464,6 @@ fun HavenNavHost(
         if (!desktopConnected && desktopFullscreen) desktopFullscreen = false
     }
     // Disable pager swipe when SFTP text editor or image tools are open
-    var sftpEditorOpen by remember { mutableStateOf(false) }
-    var sftpImageToolOpen by remember { mutableStateOf(false) }
 
     // Nav bar drag-to-reorder state
     var navDragIndex by remember { mutableIntStateOf(-1) }
@@ -497,7 +493,7 @@ fun HavenNavHost(
             // leaving the page and the nav selection inconsistent. The
             // built-in stays enabled on the other pages (Connections/Desktop/
             // Keys/Settings), which have no override and rely on it.
-            userScrollEnabled = !desktopFullscreen && !terminalFullscreen && !desktopConnected && !terminalSelectionActive && !sftpEditorOpen && !sftpImageToolOpen &&
+            userScrollEnabled = !desktopFullscreen && !terminalFullscreen && !desktopConnected && !terminalSelectionActive &&
                 selectedScreen != Screen.Terminal && selectedScreen != Screen.Sftp,
             modifier = modifier.nestedScroll(consumeHorizontalNestedScroll),
         ) { page ->
@@ -685,7 +681,7 @@ fun HavenNavHost(
                         .pagerSwipeOverride(
                             pagerState = pagerState,
                             scope = coroutineScope,
-                            isSelectionActive = { sftpSelectedPaths.isNotEmpty() || sftpEditorOpen || sftpImageToolOpen },
+                            isSelectionActive = { sftpSelectedPaths.isNotEmpty() },
                             onSwipeActiveChange = { isUserSwiping = it },
                             onAdoptPage = { page -> screens.getOrNull(page)?.let { requestScreen(it) } },
                             onFlick = { rightward ->
@@ -702,8 +698,6 @@ fun HavenNavHost(
                             },
                         )
                     SftpScreen(
-                        onEditorOpenChanged = { sftpEditorOpen = it },
-                        onImageToolOpenChanged = { sftpImageToolOpen = it },
                         sftpModifier = sftpModifier,
                         onAttachFinished = {
                             // Once the picker resolves (confirm or cancel)

@@ -22,7 +22,6 @@ import sh.haven.core.data.preferences.UserPreferencesRepository
 import sh.haven.core.data.repository.ConnectionRepository
 import sh.haven.core.data.repository.SshKeyRepository
 import sh.haven.core.fido.FidoAuthenticator
-import sh.haven.core.scan.BarcodeDecoder
 import sh.haven.core.security.BiometricAuthenticator
 import sh.haven.core.security.Keystore
 import sh.haven.core.stepca.StepCaSignFlow
@@ -70,7 +69,6 @@ class KeysViewModelHardwareKeyTest {
             totpSecretRepository = mockk<TotpSecretRepository>(relaxed = true),
             ageIdentityRepository = mockk<AgeIdentityRepository>(relaxed = true),
             sshIdentityRepository = mockk<SshIdentityRepository>(relaxed = true),
-            barcodeDecoder = mockk<BarcodeDecoder>(relaxed = true),
             preferencesRepository = preferences,
             biometricAuthenticator = biometrics,
             agentUiCommandBus = AgentUiCommandBus(),

@@ -46,31 +46,6 @@ sealed class AgentUiCommand {
     ) : AgentUiCommand()
 
     /**
-     * Stage a conversion job in the SFTP screen's convert dialog with
-     * the given form-field defaults. The user reviews and taps Convert
-     * to actually run ffmpeg — the agent suggests, the user confirms.
-     * Tap-equivalent because the destructive action (transcode) still
-     * requires the user's tap on the dialog's Convert button.
-     *
-     * Any of [container] / [videoEncoder] / [audioEncoder] may be null,
-     * in which case the dialog uses its existing defaults (extension-
-     * based for container, "copy" for encoders). The dialog's audio-
-     * only auto-correct still runs, so a video container suggested for
-     * an audio-only source self-corrects on probe.
-     *
-     * VISION.md §1a names this verb explicitly as the example for
-     * cross-tab agent-driven UI — opening a primitive's dialog with
-     * prefilled args.
-     */
-    data class OpenConvertDialog(
-        val profileId: String,
-        val sourcePath: String,
-        val container: String? = null,
-        val videoEncoder: String? = null,
-        val audioEncoder: String? = null,
-    ) : AgentUiCommand()
-
-    /**
      * Open a new terminal tab for [profileId]. The transport (SSH /
      * Mosh / ET / Reticulum / Local) derives from the profile's
      * `connectionType` and flags — this verb is profile-shaped, not
@@ -115,21 +90,6 @@ sealed class AgentUiCommand {
      */
     data class RegenerateStepCaCert(
         val keyId: String,
-    ) : AgentUiCommand()
-
-    /**
-     * Open [path] (under [profileId]) in Haven's text editor. The
-     * collector switches the pager to the SFTP page; SftpViewModel
-     * selects the profile if needed, navigates to the parent directory,
-     * then calls `openInEditor` with a synthetic entry for [path].
-     *
-     * Tap-equivalent: same effect as the user navigating to the file's
-     * parent directory and tapping the file row's "Open in editor"
-     * action.
-     */
-    data class OpenInEditor(
-        val profileId: String,
-        val path: String,
     ) : AgentUiCommand()
 
     /**
