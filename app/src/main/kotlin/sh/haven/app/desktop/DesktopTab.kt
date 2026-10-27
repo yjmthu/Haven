@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.StateFlow
 import sh.haven.core.ssh.SshSessionManager
 import sh.haven.core.vnc.VncClient
 import sh.haven.core.rdp.RdpSession
-import sh.haven.core.spice.SpiceSession
 import sh.haven.core.ui.CursorOverlay
 
 /**
@@ -33,8 +32,6 @@ sealed class DesktopTab {
     val protocol: String get() = when (this) {
         is Vnc -> "VNC"
         is Rdp -> "RDP"
-        is Spice -> "SPICE"
-        is Glkvm -> "GLKVM"
         is Wayland -> "Wayland"
     }
 
@@ -108,51 +105,6 @@ sealed class DesktopTab {
         /** #422: [frame] carries one bitmap mutated in place, so its identity
          *  stops changing per update; the viewer repaints on this counter. */
         val frameSeq: StateFlow<Long> get() = session.frameSeq
-    }
-
-    data class Spice(
-        override val id: String,
-        override val label: String,
-        override val colorTag: Int = 0,
-        val session: SpiceSession,
-        val _connected: MutableStateFlow<Boolean> = MutableStateFlow(false),
-        val _frame: MutableStateFlow<Bitmap?> = MutableStateFlow(null),
-        val _error: MutableStateFlow<String?> = MutableStateFlow(null),
-        /** Latest cursor shape from the SPICE cursor channel. */
-        val _cursor: MutableStateFlow<CursorOverlay?> = MutableStateFlow(null),
-        /** Local pointer position we last sent — seeds the touchpad-mode virtual cursor. */
-        val _pointerPos: MutableStateFlow<Pair<Int, Int>> = MutableStateFlow(0 to 0),
-        /** Lease tying this tab to its SSH tunnel; closing it releases the tunnel. */
-        val tunnelLease: SshSessionManager.TunnelLease? = null,
-        val profileId: String? = null,
-    ) : DesktopTab() {
-        override val connected: StateFlow<Boolean> get() = _connected
-        override val frame: StateFlow<Bitmap?> get() = _frame
-        override val error: StateFlow<String?> get() = _error
-        override val remoteDesktop: RemoteDesktopSession = SpiceDesktopSession(session)
-        val cursor: StateFlow<CursorOverlay?> get() = _cursor
-        val pointerPos: StateFlow<Pair<Int, Int>> get() = _pointerPos
-    }
-
-    data class Glkvm(
-        override val id: String,
-        override val label: String,
-        override val colorTag: Int = 0,
-        val session: GlkvmDesktopSession,
-        val _connected: MutableStateFlow<Boolean> = MutableStateFlow(false),
-        val _frame: MutableStateFlow<Bitmap?> = MutableStateFlow(null),
-        val _error: MutableStateFlow<String?> = MutableStateFlow(null),
-        /** Local pointer position we last sent — tracks the remote pointer for capture overlays. */
-        val _pointerPos: MutableStateFlow<Pair<Int, Int>> = MutableStateFlow(0 to 0),
-        /** Lease tying this tab to its SSH tunnel; closing it releases the tunnel. */
-        val tunnelLease: SshSessionManager.TunnelLease? = null,
-        val profileId: String? = null,
-    ) : DesktopTab() {
-        override val connected: StateFlow<Boolean> get() = _connected
-        override val frame: StateFlow<Bitmap?> get() = _frame
-        override val error: StateFlow<String?> get() = _error
-        override val remoteDesktop: RemoteDesktopSession get() = session
-        val pointerPos: StateFlow<Pair<Int, Int>> get() = _pointerPos
     }
 
     data class Wayland(

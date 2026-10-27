@@ -41,7 +41,7 @@ class DesktopFrameHandle(
  * X11 convention (1=left, 2=middle, 3=right). Keyboard input is out of scope
  * until `RemoteDesktopSession` grows a keysym/scancode verb — EXCEPT text
  * typing, which a protocol that can type as keystrokes may expose via the
- * optional [typeText] (GLKVM's `typeText` does; VNC/RDP/SPICE leave it null
+ * optional [typeText] (VNC/RDP leave it null
  * and the MCP tool reports "not supported on this protocol").
  */
 class DesktopInputHandle(

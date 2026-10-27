@@ -2,14 +2,14 @@ package sh.haven.feature.connections
 
 /**
  * Pure state helpers for the "Tunnel through SSH" editor rows shared by
- * VNC / RDP / SPICE / SMB in [ConnectionEditDialog]. Each protocol keeps
+ * VNC / RDP / SMB in [ConnectionEditDialog]. Each protocol keeps
  * its own flag/carrier-ID pair on ConnectionProfile; these helpers (plus
  * the SshTunnelBlock composable) centralise the behaviour so the four
  * rows can't drift.
  */
 
 /**
- * Strict initial toggle state used by VNC and SPICE: enabled only when the
+ * Strict initial toggle state used by VNC: enabled only when the
  * stored profile is actually of this [type], the stored [flag] is set, AND
  * a carrier profile is selected. Guards against stale rows — the flag
  * historically defaulted true, and a type-switched profile can still carry
@@ -49,7 +49,7 @@ internal fun tunnelCarrierForSave(enabled: Boolean, carrierId: String?): String?
 /**
  * Apply the shared Route-through picker's state onto a profile being
  * saved. The picker (WireGuard/Tailscale tunnel or SOCKS/HTTP proxy,
- * mutually exclusive) is rendered for VNC / RDP / SPICE / SMB as well as
+ * mutually exclusive) is rendered for VNC / RDP / SMB as well as
  * SSH, but only the SSH and EMAIL save branches ever persisted what it
  * wrote — for the other four a picked tunnel or proxy silently reverted
  * to "None (direct)" on save (#527). SSH keeps its own inline handling:

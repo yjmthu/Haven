@@ -253,8 +253,6 @@ dependencies {
     implementation(project(":core:usbserial"))
     implementation(project(":core:vnc"))
     implementation(project(":core:rdp"))
-    implementation(project(":core:spice"))
-    implementation(project(":core:glkvm"))
     implementation(project(":core:smb"))
     implementation(project(":core:rclone"))
     implementation(project(":core:ffmpeg"))

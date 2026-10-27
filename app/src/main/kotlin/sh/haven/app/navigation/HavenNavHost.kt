@@ -264,8 +264,6 @@ fun HavenNavHost(
     val connectionsViewModel: ConnectionsViewModel = hiltViewModel()
     val navigateToVncEvent by connectionsViewModel.navigateToVnc.collectAsState()
     val navigateToRdpEvent by connectionsViewModel.navigateToRdp.collectAsState()
-    val navigateToSpiceEvent by connectionsViewModel.navigateToSpice.collectAsState()
-    val navigateToGlkvmEvent by connectionsViewModel.navigateToGlkvm.collectAsState()
     LaunchedEffect(navigateToVncEvent) {
         navigateToVncEvent?.let { nav ->
             desktopViewModel.addVncSession(
@@ -291,31 +289,6 @@ fun HavenNavHost(
             requestScreen(Screen.Desktop)
         }
     }
-    LaunchedEffect(navigateToSpiceEvent) {
-        navigateToSpiceEvent?.let { nav ->
-            desktopViewModel.addSpiceSession(
-                nav.host, nav.port, nav.password,
-                sshForward = nav.sshForward,
-                sshSessionId = nav.sshSessionId,
-                profileId = nav.profileId,
-            )
-            connectionsViewModel.onDesktopNavigated()
-            requestScreen(Screen.Desktop)
-        }
-    }
-    LaunchedEffect(navigateToGlkvmEvent) {
-        navigateToGlkvmEvent?.let { nav ->
-            desktopViewModel.addGlkvmSession(
-                nav.host, nav.port, nav.user, nav.password,
-                sshForward = nav.sshForward,
-                sshSessionId = nav.sshSessionId,
-                profileId = nav.profileId,
-            )
-            connectionsViewModel.onDesktopNavigated()
-            requestScreen(Screen.Desktop)
-        }
-    }
-
     // Debug navigation: scroll pager when DebugReceiver (debug builds only) emits a route
     LaunchedEffect(Unit) {
         DebugNavEvents.requests.collect { route ->

@@ -63,6 +63,13 @@ class DebugReceiver : BroadcastReceiver() {
             // Password auth — debug-only path used by ADB-driven integration tests.
             // Never shipped in release builds (this whole file is src/debug/).
             sshPassword = intent.getStringExtra("sshPassword"),
+            // RDP credentials for the desktop E2E: DesktopViewModel reads
+            // profile.rdpPassword, so the ADB-created profile must carry it.
+            rdpPassword = intent.getStringExtra("rdpPassword"),
+            rdpUsername = intent.getStringExtra("rdpUsername"),
+            // gnome-remote-desktop's CredSSP interop needs NLA off; the ADB
+            // E2E can turn it off without walking the edit dialog.
+            rdpUseNla = intent.getBooleanExtra("rdpUseNla", true),
             // Transport toggles. Needed so ADB-driven tests can reproduce
             // issues that only manifest over mosh or Eternal Terminal,
             // rather than being limited to plain SSH. Added for Haven#73.

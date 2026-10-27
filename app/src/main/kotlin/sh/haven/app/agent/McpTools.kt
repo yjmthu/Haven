@@ -2226,7 +2226,6 @@ internal class McpTools(
             if (sh.haven.rclone.bridge.RcloneBridge.available) put("rclone")
             if (native.vnc) put("vnc")
             if (native.rdp) put("rdp")
-            if (native.spice) put("spice")
             if (sh.haven.core.wayland.WaylandBridge.available) put("wayland")
             if (native.ffmpeg) put("ffmpeg")
             if (native.uml) put("uml")

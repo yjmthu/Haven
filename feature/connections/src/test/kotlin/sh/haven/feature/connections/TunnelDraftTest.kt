@@ -7,13 +7,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Pins the SSH-tunnel editor behaviour shared by the VNC / RDP / SPICE /
+ * Pins the SSH-tunnel editor behaviour shared by the VNC / RDP /
  * SMB rows in ConnectionEditDialog — extracted verbatim from the four
  * previously-duplicated inline blocks.
  */
 class TunnelDraftTest {
 
-    // --- initial toggle state (strict guard used by VNC and SPICE) ---
+    // --- initial toggle state (strict guard used by VNC) ---
 
     @Test fun strictInitRequiresMatchingTypeFlagAndCarrier() {
         assertTrue(strictTunnelInitialEnabled("VNC", "VNC", true, "ssh-1"))

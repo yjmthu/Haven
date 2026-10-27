@@ -41,11 +41,7 @@ import sh.haven.core.local.LocalSessionManager
 import sh.haven.core.local.ProotManager
 import sh.haven.core.local.proot.Distro
 import sh.haven.core.mosh.MoshSessionManager
-import sh.haven.core.glkvm.GlkvmClient
-import sh.haven.core.glkvm.GlkvmScancodes
-import sh.haven.core.glkvm.GlkvmTrust
 import sh.haven.core.rdp.RdpSession
-import sh.haven.core.spice.SpiceSession
 import sh.haven.core.ssh.SshClient
 import sh.haven.core.ssh.SshConnection
 import sh.haven.core.ssh.SshSessionManager
@@ -970,43 +966,9 @@ class DesktopViewModel @Inject constructor(
                         colorDepth = profile.rdpColorDepth,
                     )
                 }
-                profile.isSpice -> {
-                    val sshSessionId =
-                        if (profile.spiceSshForward && profile.spiceSshProfileId != null) {
-                            sshSessionManager.getSessionsForProfile(profile.spiceSshProfileId!!)
-                                .firstOrNull { it.status.name == "CONNECTED" }
-                                ?.sessionId
-                        } else null
-                    addSpiceSession(
-                        host = profile.host,
-                        port = profile.spicePort ?: 5900,
-                        password = profile.spicePassword,
-                        sshForward = profile.spiceSshForward,
-                        sshSessionId = sshSessionId,
-                        profileId = profile.id,
-                    )
-                }
-                profile.isGlkvm -> {
-                    val sshSessionId =
-                        if (profile.glkvmSshForward && profile.glkvmSshProfileId != null) {
-                            sshSessionManager.getSessionsForProfile(profile.glkvmSshProfileId!!)
-                                .firstOrNull { it.status.name == "CONNECTED" }
-                                ?.sessionId
-                        } else null
-                    addGlkvmSession(
-                        host = profile.host,
-                        port = profile.glkvmPort ?: 443,
-                        user = profile.username,
-                        password = profile.glkvmPassword,
-                        targetLayout = profile.glkvmTargetLayout,
-                        sshForward = profile.glkvmSshForward,
-                        sshSessionId = sshSessionId,
-                        profileId = profile.id,
-                    )
-                }
                 else -> Log.w(
                     TAG,
-                    "OpenRemoteDesktop: ${profile.label} is ${profile.connectionType}, not VNC/RDP/SPICE/GLKVM",
+                    "OpenRemoteDesktop: ${profile.label} is ${profile.connectionType}, not VNC/RDP",
                 )
             }
         }
@@ -1620,9 +1582,6 @@ class DesktopViewModel @Inject constructor(
         val profileId = when (tab) {
             is DesktopTab.Vnc -> tab.profileId
             is DesktopTab.Rdp -> tab.profileId
-            is DesktopTab.Spice -> tab.profileId
-            is DesktopTab.Glkvm -> tab.profileId
-            is DesktopTab.Glkvm -> tab.profileId
             else -> null
         }
         if (profileId != null) {
@@ -1689,8 +1648,6 @@ class DesktopViewModel @Inject constructor(
                 when (tab) {
                     is DesktopTab.Vnc -> tab.profileId == profileId
                     is DesktopTab.Rdp -> tab.profileId == profileId
-                    is DesktopTab.Spice -> tab.profileId == profileId
-                    is DesktopTab.Glkvm -> tab.profileId == profileId
                     else -> false
                 }
             }
@@ -1702,10 +1659,6 @@ class DesktopViewModel @Inject constructor(
                 protocol == "VNC" && tab is DesktopTab.Vnc && tab.profileId == null ->
                     tab.label == "$host:$port"
                 protocol == "RDP" && tab is DesktopTab.Rdp && tab.profileId == null ->
-                    tab.label == "$host:$port"
-                protocol == "SPICE" && tab is DesktopTab.Spice && tab.profileId == null ->
-                    tab.label == "$host:$port"
-                protocol == "GLKVM" && tab is DesktopTab.Glkvm && tab.profileId == null ->
                     tab.label == "$host:$port"
                 else -> false
             }
@@ -1779,7 +1732,7 @@ class DesktopViewModel @Inject constructor(
                     // the jump profile's host. Any OTHER value is a distinct
                     // machine behind the jump host and must be honoured
                     // verbatim; hardcoding loopback here sent every jump-host
-                    // topology to the wrong machine (#538). RDP/SPICE below
+                    // topology to the wrong machine (#538). RDP below
                     // already pass the host through.
                     val jumpHost = profileId?.let { pid ->
                         connectionRepository.getById(pid)?.vncSshProfileId
@@ -2254,450 +2207,6 @@ class DesktopViewModel @Inject constructor(
         }
     }
 
-    // --- SPICE sessions ---
-
-    fun addSpiceSession(
-        host: String,
-        port: Int,
-        password: String?,
-        sshForward: Boolean = false,
-        sshSessionId: String? = null,
-        profileId: String? = null,
-    ) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val existingIdx = findExistingTab(profileId, host, port, "SPICE")
-            if (existingIdx >= 0) {
-                val existing = _tabs.value[existingIdx]
-                if (existing.connected.value) {
-                    pauseAllExcept(existingIdx)
-                    _activeTabIndex.value = existingIdx
-                    return@launch
-                }
-                closeTab(existing.id)
-            }
-
-            val label = resolveLabel(profileId) ?: "$host:$port"
-            val colorTag = resolveColorTag(profileId)
-            val tabId = UUID.randomUUID().toString()
-
-            var tunnelLease: SshSessionManager.TunnelLease? = null
-            try {
-                val actualHost: String
-                val actualPort: Int
-                // SPICE's Rust client does its own TCP dial — no socket/SOCKS
-                // injection like VNC/RDP — so SSH-forward goes via a local
-                // -L forward and we hand it 127.0.0.1:<localPort>.
-                if (sshForward && sshSessionId != null) {
-                    val sshClient = findSshClient(sshSessionId)
-                        ?: throw IllegalStateException("SSH session not found")
-                    val lp = sshClient.setPortForwardingL("127.0.0.1", 0, host, port)
-                    actualHost = "127.0.0.1"
-                    actualPort = lp
-                    Log.d(TAG, "SPICE SSH tunnel: localhost:$lp -> ${LogRedact.host(host, port)}")
-                    if (profileId != null) {
-                        tunnelLease = sshSessionManager.acquireTunnelLease(
-                            sessionId = sshSessionId,
-                            dependentProfileId = profileId,
-                            localForwardPort = lp,
-                        ) { viewModelScope.launch { closeTab(tabId) } }
-                    }
-                } else {
-                    actualHost = host
-                    actualPort = port
-                }
-
-                val connected = MutableStateFlow(false)
-                val frame = MutableStateFlow<Bitmap?>(null)
-                val error = MutableStateFlow<String?>(null)
-                val cursor = MutableStateFlow<CursorOverlay?>(null)
-                val pointerPos = MutableStateFlow(0 to 0)
-
-                val verboseEnabled = preferencesRepository.verboseLoggingEnabled.first()
-                val verboseBuffer = if (verboseEnabled) ConcurrentLinkedQueue<String>() else null
-
-                val session = SpiceSession(
-                    sessionId = "spice-$tabId",
-                    host = actualHost,
-                    port = actualPort,
-                    password = password,
-                    verboseBuffer = verboseBuffer,
-                )
-                session.onFrameUpdate = { bitmap -> frame.value = bitmap }
-                session.onCursorUpdate = { bmp, hx, hy ->
-                    cursor.value = if (bmp == null) null else CursorOverlay(bmp, hx, hy)
-                }
-                session.onCursorPosition = { x, y -> pointerPos.value = x to y }
-                session.onError = { e ->
-                    Log.e(TAG, "SPICE error on tab $tabId", e)
-                    error.value = e.message ?: "SPICE connection to $host:$port failed"
-                    connected.value = false
-                    desktopSessionRegistry.setStatus(profileId, DesktopStatus.ERROR)
-                    if (profileId != null) {
-                        viewModelScope.launch(Dispatchers.IO) {
-                            connectionLogRepository.logEvent(profileId, ConnectionLog.Status.FAILED, details = e.message)
-                        }
-                    }
-                    tunnelLease?.close()
-                    releaseSshTunnelDependent(profileId)
-                }
-                session.onConnected = { _, _ ->
-                    connected.value = true
-                    desktopSessionRegistry.setStatus(profileId, DesktopStatus.CONNECTED)
-                    if (profileId != null) {
-                        viewModelScope.launch(Dispatchers.IO) {
-                            val startLog = session.drainVerboseLog()
-                            connectionLogRepository.logEvent(profileId, ConnectionLog.Status.CONNECTED, verboseLog = startLog)
-                        }
-                    }
-                }
-                session.onDisconnected = {
-                    // Session ended without a surfaced error — mirror the RDP
-                    // path so the tab never claims "connected" past death (#437).
-                    if (_tabs.value.any { it.id == tabId }) {
-                        connected.value = false
-                        desktopSessionRegistry.setStatus(profileId, DesktopStatus.DISCONNECTED)
-                        if (profileId != null) {
-                            viewModelScope.launch(Dispatchers.IO) {
-                                connectionLogRepository.logEvent(
-                                    profileId,
-                                    ConnectionLog.Status.DISCONNECTED,
-                                    details = "Session ended by server",
-                                    verboseLog = session.drainVerboseLog(),
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // Create + show the tab before start() — SPICE's connect()
-                // blocks until established, so the UI sits on "Connecting"
-                // until onConnected flips it (or onError sets the error).
-                val tab = DesktopTab.Spice(
-                    id = tabId,
-                    label = label,
-                    colorTag = colorTag,
-                    session = session,
-                    _connected = connected,
-                    _frame = frame,
-                    _error = error,
-                    _cursor = cursor,
-                    _pointerPos = pointerPos,
-                    tunnelLease = tunnelLease,
-                    profileId = profileId,
-                )
-                val tabs = _tabs.value.toMutableList()
-                tabs.add(tab)
-                _tabs.value = tabs
-                _activeTabIndex.value = tabs.size - 1
-                desktopSessionRegistry.registerFrameHandle(
-                    profileId,
-                    DesktopFrameHandle(
-                        protocol = "SPICE",
-                        frame = { frame.value },
-                        cursor = { cursor.value?.let { CursorSnapshot(it.bitmap, it.hotspotX, it.hotspotY) } },
-                        pointer = { pointerPos.value },
-                    ),
-                )
-                desktopSessionRegistry.registerInputHandle(
-                    profileId,
-                    DesktopInputHandle(
-                        protocol = "SPICE",
-                        mouseMove = { x, y -> tab.remoteDesktop.sendMouseMove(x, y) },
-                        mouseClick = { x, y, button -> tab.remoteDesktop.sendMouseClick(x, y, button) },
-                        mouseWheel = { deltaY -> tab.remoteDesktop.sendMouseWheel(deltaY) },
-                        clipboard = { text -> tab.remoteDesktop.sendClipboardText(text) },
-                    ),
-                )
-                // Let MCP disconnect_profile close this tab even when there's
-                // no tunnel lease to cascade through (direct connections, #437).
-                desktopSessionRegistry.registerCloseHandle(profileId) {
-                    viewModelScope.launch { closeTab(tabId) }
-                }
-
-                // Knock only on the direct path (SSH-forward knocked at SSH connect).
-                if (!sshForward && profileId != null) {
-                    runVncKnockIfConfigured(profileId, actualHost)
-                }
-
-                desktopSessionRegistry.setStatus(profileId, DesktopStatus.CONNECTING)
-                session.start() // blocks until established; fires onConnected/onError
-            } catch (e: Exception) {
-                // SpiceSession.start() invokes onError (which sets the tab's
-                // error state) before rethrowing, so just clean up here.
-                Log.e(TAG, "SPICE connect failed", e)
-                if (profileId != null) {
-                    connectionLogRepository.logEvent(profileId, ConnectionLog.Status.FAILED, details = e.message)
-                }
-                tunnelLease?.close()
-                releaseSshTunnelDependent(profileId)
-                desktopSessionRegistry.setStatus(profileId, DesktopStatus.ERROR)
-            }
-        }
-    }
-
-    // --- GLKVM sessions ---
-
-    /**
-     * GLKVM (kvmd HTTPS API) viewer: snapshot-poll framebuffer + HID send.
-     * Tunnel/topology mirrors [addSpiceSession]; TLS trust is TOFU pinned
-     * through [tlsCertVerifier] keyed on the ORIGINAL host:port even when
-     * dialling the SSH-forward loopback.
-     */
-    fun addGlkvmSession(
-        host: String,
-        port: Int,
-        user: String?,
-        password: String?,
-        targetLayout: String? = null,
-        sshForward: Boolean = false,
-        sshSessionId: String? = null,
-        profileId: String? = null,
-    ) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val existingIdx = findExistingTab(profileId, host, port, "GLKVM")
-            if (existingIdx >= 0) {
-                val existing = _tabs.value[existingIdx]
-                if (existing.connected.value) {
-                    pauseAllExcept(existingIdx)
-                    _activeTabIndex.value = existingIdx
-                    return@launch
-                }
-                closeTab(existing.id)
-            }
-
-            val label = resolveLabel(profileId) ?: "$host:$port"
-            val colorTag = resolveColorTag(profileId)
-            val tabId = UUID.randomUUID().toString()
-            // Declared outside try: the catch path builds the error tab from them.
-            val connected = MutableStateFlow(false)
-            val frame = MutableStateFlow<Bitmap?>(null)
-            val error = MutableStateFlow<String?>(null)
-            val pointerPos = MutableStateFlow(0 to 0)
-
-            var tunnelLease: SshSessionManager.TunnelLease? = null
-            var routeSocketFactory: javax.net.SocketFactory? = null
-            try {
-                val actualHost: String
-                val actualPort: Int
-                if (sshForward && sshSessionId != null) {
-                    val sshClient = findSshClient(sshSessionId)
-                        ?: throw IllegalStateException("SSH session not found")
-                    val lp = sshClient.setPortForwardingL("127.0.0.1", 0, host, port)
-                    actualHost = "127.0.0.1"
-                    actualPort = lp
-                    Log.d(TAG, "GLKVM SSH tunnel: localhost:$lp -> ${LogRedact.host(host, port)}")
-                    if (profileId != null) {
-                        tunnelLease = sshSessionManager.acquireTunnelLease(
-                            sessionId = sshSessionId,
-                            dependentProfileId = profileId,
-                            localForwardPort = lp,
-                        ) { viewModelScope.launch { closeTab(tabId) } }
-                    }
-                } else {
-                    actualHost = host
-                    actualPort = port
-                }
-
-                // TLS: pinned cert (or first-use pin) for the original host:port.
-                // Like the VNC/RDP policy, the newly observed cert is recorded
-                // only AFTER the connection actually works — a pin observed
-                // during a failing session is never trusted into the store.
-                val pinned = if (profileId != null) {
-                    runCatching { tlsCertVerifier.pinnedFingerprint(host, port) }.getOrNull()
-                } else null
-                val pinObserved = java.util.concurrent.atomic.AtomicReference<String?>(null)
-                val (sslFactory, tm) = GlkvmTrust.tofu(pinned) { sha -> pinObserved.set(sha) }
-
-                val client = GlkvmClient.Builder().apply {
-                    this.host = host
-                    this.port = port
-                    this.user = user?.ifBlank { "admin" } ?: "admin"
-                    this.password = password.orEmpty()
-                    sslSocketFactory = sslFactory
-                    trustManager = tm
-                    baseUrlOverride = "https://$actualHost:$actualPort"
-                    plainSocketFactory = routeSocketFactory
-                }.build()
-
-                val session = GlkvmDesktopSession(
-                    client = client,
-                    targetLayout = targetLayout,
-                    onFrame = { bitmap ->
-                        frame.value = bitmap
-                        // Keep the tab's mirrored pointer inside bounds on a
-                        // resolution switch (mode change rotates the target).
-                        val (px, py) = pointerPos.value
-                        if (px > bitmap.width || py > bitmap.height) {
-                            pointerPos.value = px.coerceAtMost(bitmap.width) to py.coerceAtMost(bitmap.height)
-                        }
-                    },
-                    onConnected = {
-                        connected.value = true
-                        desktopSessionRegistry.setStatus(profileId, DesktopStatus.CONNECTED)
-                        val observed = pinObserved.get()
-                        if (profileId != null && observed != null) {
-                            viewModelScope.launch(Dispatchers.IO) {
-                                connectionLogRepository.logEvent(profileId, ConnectionLog.Status.CONNECTED)
-                                runCatching { tlsCertVerifier.accept(host, port, observed) }
-                                    .onFailure { t -> Log.w(TAG, "GLKVM cert pin store failed: ${t.message}") }
-                            }
-                        }
-                    },
-                    onError = { e ->
-                        Log.e(TAG, "GLKVM error on tab $tabId", e)
-                        error.value = describeGlkvmError(e, host, port)
-                        connected.value = false
-                        desktopSessionRegistry.setStatus(profileId, DesktopStatus.ERROR)
-                        if (profileId != null) {
-                            viewModelScope.launch(Dispatchers.IO) {
-                                connectionLogRepository.logEvent(profileId, ConnectionLog.Status.FAILED, details = e.message)
-                            }
-                        }
-                        tunnelLease?.close()
-                        releaseSshTunnelDependent(profileId)
-                    },
-                    onDisconnected = {
-                        if (_tabs.value.any { it.id == tabId }) {
-                            connected.value = false
-                            desktopSessionRegistry.setStatus(profileId, DesktopStatus.DISCONNECTED)
-                            if (profileId != null) {
-                                viewModelScope.launch(Dispatchers.IO) {
-                                    connectionLogRepository.logEvent(
-                                        profileId,
-                                        ConnectionLog.Status.DISCONNECTED,
-                                        details = "GLKVM snapshot stream ended",
-                                    )
-                                }
-                            }
-                        }
-                    },
-                )
-
-                // Tab exists before the first poll lands, so the Desktop screen
-                // shows "Connecting" until the frame callback flips connected.
-                val tab = DesktopTab.Glkvm(
-                    id = tabId,
-                    label = label,
-                    colorTag = colorTag,
-                    session = session,
-                    _connected = connected,
-                    _frame = frame,
-                    _error = error,
-                    _pointerPos = pointerPos,
-                    tunnelLease = tunnelLease,
-                    profileId = profileId,
-                )
-                _tabs.value = _tabs.value.toMutableList().apply { add(tab) }
-                _activeTabIndex.value = _tabs.value.size - 1
-                pauseAllExcept(_tabs.value.size - 1)
-                desktopSessionRegistry.setStatus(profileId, DesktopStatus.CONNECTING)
-                desktopSessionRegistry.registerFrameHandle(
-                    profileId,
-                    DesktopFrameHandle(
-                        protocol = "GLKVM",
-                        frame = { frame.value },
-                        cursor = { null },
-                        pointer = { pointerPos.value },
-                    ),
-                )
-                desktopSessionRegistry.registerInputHandle(
-                    profileId,
-                    DesktopInputHandle(
-                        protocol = "GLKVM",
-                        mouseMove = { x, y -> tab.remoteDesktop.sendMouseMove(x, y) },
-                        mouseClick = { x, y, button -> tab.remoteDesktop.sendMouseClick(x, y, button) },
-                        mouseWheel = { deltaY -> tab.remoteDesktop.sendMouseWheel(deltaY) },
-                        clipboard = { text -> tab.remoteDesktop.sendClipboardText(text) },
-                        // GLKVM types as real keystrokes (layout table + kvmd
-                        // printer for the rest) — the one desktop protocol
-                        // with a text verb today; MCP's type_desktop_text
-                        // routes through this.
-                        typeText = { text -> session.typeText(text) },
-                    ),
-                )
-                desktopSessionRegistry.registerCloseHandle(profileId) {
-                    viewModelScope.launch { closeTab(tabId) }
-                }
-
-                // Knock only on the direct path (SSH-forward knocked at SSH connect).
-                if (!sshForward && profileId != null) {
-                    runVncKnockIfConfigured(profileId, actualHost)
-                }
-
-                session.start()
-            } catch (e: Exception) {
-                Log.e(TAG, "GLKVM connect failed", e)
-                error.value = describeGlkvmError(e, host, port)
-                if (profileId != null) {
-                    connectionLogRepository.logEvent(profileId, ConnectionLog.Status.FAILED, details = e.message)
-                }
-                tunnelLease?.close()
-                releaseSshTunnelDependent(profileId)
-                desktopSessionRegistry.setStatus(profileId, DesktopStatus.ERROR)
-                // Tab with the error visible even when the client build fails.
-                if (_tabs.value.none { it.id == tabId }) {
-                    _tabs.value = _tabs.value.toMutableList().apply {
-                        add(
-                            DesktopTab.Glkvm(
-                                id = tabId,
-                                label = label,
-                                colorTag = colorTag,
-                                session = GlkvmDesktopSession(
-                                    client = GlkvmClient.Builder().apply {
-                                        this.host = host; this.port = port
-                                        this.user = user?.ifBlank { "admin" } ?: "admin"
-                                        this.password = password.orEmpty()
-                                        baseUrlOverride = "https://$host:$port"
-                                    }.build(),
-                                    onFrame = {}, onConnected = {},
-                                    onError = { }, onDisconnected = { },
-                                ),
-                                _connected = MutableStateFlow(false),
-                                _frame = frame,
-                                _error = error,
-                                _pointerPos = MutableStateFlow(0 to 0),
-                                tunnelLease = null,
-                                profileId = profileId,
-                            ),
-                        )
-                    }
-                    _activeTabIndex.value = _tabs.value.size - 1
-                }
-            }
-        }
-    }
-
-    private fun describeGlkvmError(e: Throwable, host: String, port: Int): String = when {
-        e is sh.haven.core.glkvm.GlkvmCertMismatch -> e.message ?: "TLS certificate changed"
-        e.message?.contains("login failed") == true -> "GLKVM login failed (check web UI password). ${e.message}"
-        else -> "GLKVM connection to $host:$port failed: ${e.message}"
-    }
-
-    fun sendGlkvmKey(scancode: Int, pressed: Boolean) {
-        val session = (activeTab.value as? DesktopTab.Glkvm)?.session ?: return
-        val code = GlkvmScancodes.codeFor(scancode)
-        if (code != null) {
-            inputLane.submit { session.sendKey(code, pressed) }
-        }
-    }
-
-    fun typeGlkvmChar(ch: Char, targetLayout: String?) {
-        val session = (activeTab.value as? DesktopTab.Glkvm)?.session ?: return
-        val seq = sh.haven.core.glkvm.GlkvmLayout.keySequenceFor(ch, targetLayout) ?: return
-        // Sequence layout: optional ShiftLeft down, the key tap, optional
-        // ShiftLeft up — positional access, not a first-match scan.
-        val withShift = seq.size == 3
-        val tapCode = seq.first { it.first != "ShiftLeft" }.first
-        inputLane.submit {
-            if (withShift) session.sendKey("ShiftLeft", true)
-            session.sendKey(tapCode, true)
-            session.sendKey(tapCode, false)
-            if (withShift) session.sendKey("ShiftLeft", false)
-        }
-    }
-
-    // --- Wayland ---
-
     fun addWaylandTab() {
         val tabs = _tabs.value
         val existing = tabs.indexOfFirst { it is DesktopTab.Wayland }
@@ -2756,8 +2265,6 @@ class DesktopViewModel @Inject constructor(
         when (val tab = activeTab.value) {
             is DesktopTab.Vnc -> tab._pointerPos.value = x to y
             is DesktopTab.Rdp -> tab._pointerPos.value = x to y
-            is DesktopTab.Spice -> tab._pointerPos.value = x to y
-            is DesktopTab.Glkvm -> tab._pointerPos.value = x to y
             else -> {}
         }
     }
@@ -2841,11 +2348,6 @@ class DesktopViewModel @Inject constructor(
             session.sendUnicodeKey(codepoint, true)
             session.sendUnicodeKey(codepoint, false)
         }
-    }
-
-    fun sendSpiceKey(scancode: Int, pressed: Boolean) {
-        val session = (activeTab.value as? DesktopTab.Spice)?.session ?: return
-        inputLane.submit { session.sendKey(scancode, pressed) }
     }
 
     /**
@@ -2935,28 +2437,6 @@ class DesktopViewModel @Inject constructor(
                         val verboseLog = tab.session.drainVerboseLog()
                         connectionLogRepository.logEvent(tab.profileId, ConnectionLog.Status.DISCONNECTED, verboseLog = verboseLog)
                     }
-                    tab.session.close()
-                    tab.tunnelLease?.close()
-                    releaseSshTunnelDependent(tab.profileId)
-                    desktopSessionRegistry.clear(tab.profileId)
-                    desktopSessionRegistry.clearFrameHandle(tab.profileId)
-                    desktopSessionRegistry.clearInputHandle(tab.profileId)
-                    desktopSessionRegistry.clearCloseHandle(tab.profileId)
-                }
-                is DesktopTab.Spice -> {
-                    if (tab.profileId != null) {
-                        val verboseLog = tab.session.drainVerboseLog()
-                        connectionLogRepository.logEvent(tab.profileId, ConnectionLog.Status.DISCONNECTED, verboseLog = verboseLog)
-                    }
-                    tab.session.close()
-                    tab.tunnelLease?.close()
-                    releaseSshTunnelDependent(tab.profileId)
-                    desktopSessionRegistry.clear(tab.profileId)
-                    desktopSessionRegistry.clearFrameHandle(tab.profileId)
-                    desktopSessionRegistry.clearInputHandle(tab.profileId)
-                    desktopSessionRegistry.clearCloseHandle(tab.profileId)
-                }
-                is DesktopTab.Glkvm -> {
                     tab.session.close()
                     tab.tunnelLease?.close()
                     releaseSshTunnelDependent(tab.profileId)

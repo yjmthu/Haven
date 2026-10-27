@@ -64,12 +64,6 @@ includeBuild("rdp-kotlin") {
     }
 }
 
-// Pure-Rust SPICE client + UniFFI Kotlin bindings (#286, submodule GlassOnTin/spice-kotlin).
-includeBuild("spice-kotlin") {
-    dependencySubstitution {
-        substitute(module("sh.haven:spice-transport")).using(project(":"))
-    }
-}
 
 
 // Go bridge compiled via gomobile, single libgojni.so containing:
@@ -114,8 +108,6 @@ include(":core:usbserial")
 include(":core:bleserial")
 include(":core:vnc")
 include(":core:rdp")
-include(":core:spice")
-include(":core:glkvm")
 include(":core:smb")
 include(":core:rclone")
 include(":core:fido")

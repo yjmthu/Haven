@@ -1601,7 +1601,7 @@ private fun onTapProfile(
         onNavigateToRclone(profile.id)
     } else if (profileStatus == ProfileStatus.CONNECTED && profile.isSmb) {
         onNavigateToSmb(profile.id)
-    } else if (profileStatus == ProfileStatus.CONNECTED && (profile.isVnc || profile.isRdp || profile.isSpice)) {
+    } else if (profileStatus == ProfileStatus.CONNECTED && (profile.isVnc || profile.isRdp)) {
         // Desktop already open — re-issuing connect navigates to the Desktop
         // screen and the dedup in addVncSession/addRdpSession switches to the
         // existing tab instead of reconnecting. (A VNC/RDP-over-SSH profile
@@ -1619,10 +1619,6 @@ private fun onTapProfile(
         } else {
             showPasswordDialog()
         }
-    } else if (profile.isSpice) {
-        // SPICE auth is an optional ticket — connect directly (connectSpice
-        // reads the saved ticket; no prompt needed if the server is unticketed).
-        viewModel.connect(profile, "")
     } else if (profile.isSmb) {
         val savedPassword = profile.smbPassword
         if (savedPassword != null) {

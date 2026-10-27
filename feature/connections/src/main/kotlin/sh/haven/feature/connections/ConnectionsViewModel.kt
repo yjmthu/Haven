@@ -1067,31 +1067,6 @@ class ConnectionsViewModel @Inject constructor(
     private val _navigateToRdp = MutableStateFlow<RdpNavigation?>(null)
     val navigateToRdp: StateFlow<RdpNavigation?> = _navigateToRdp.asStateFlow()
 
-    /** Emitted to navigate to the SPICE desktop with connection params (#286). */
-    data class SpiceNavigation(
-        val host: String,
-        val port: Int,
-        val password: String?,
-        val sshForward: Boolean = false,
-        val sshSessionId: String? = null,
-        val profileId: String? = null,
-    )
-    private val _navigateToSpice = MutableStateFlow<SpiceNavigation?>(null)
-    val navigateToSpice: StateFlow<SpiceNavigation?> = _navigateToSpice.asStateFlow()
-
-    /** Emitted to open the GLKVM viewer tab (PiKVM-style kvmd API). */
-    data class GlkvmNavigation(
-        val host: String,
-        val port: Int,
-        val user: String?,
-        val password: String?,
-        val sshForward: Boolean = false,
-        val sshSessionId: String? = null,
-        val profileId: String? = null,
-    )
-    private val _navigateToGlkvm = MutableStateFlow<GlkvmNavigation?>(null)
-    val navigateToGlkvm: StateFlow<GlkvmNavigation?> = _navigateToGlkvm.asStateFlow()
-
     /** Emitted to navigate to Files tab for an SMB connection. */
     private val _navigateToSmb = MutableStateFlow<String?>(null)
     val navigateToSmb: StateFlow<String?> = _navigateToSmb.asStateFlow()
@@ -1307,7 +1282,6 @@ class ConnectionsViewModel @Inject constructor(
         _navigateToTerminal.value = null
         _navigateToVnc.value = null
         _navigateToRdp.value = null
-        _navigateToSpice.value = null
         _navigateToSmb.value = null
         _navigateToRclone.value = null
         _navigateToConnections.value = false
@@ -1325,7 +1299,6 @@ class ConnectionsViewModel @Inject constructor(
     fun onDesktopNavigated() {
         _navigateToVnc.value = null
         _navigateToRdp.value = null
-        _navigateToSpice.value = null
     }
 
     /** Open a new terminal session on an already-connected profile. */
@@ -1829,7 +1802,6 @@ class ConnectionsViewModel @Inject constructor(
         profile.isUsbSerial -> false
         profile.isVnc -> false
         profile.isRdp -> false
-        profile.isSpice -> false
         profile.isSmb -> false
         profile.isSaf -> false
         else -> !profile.sshPassword.isNullOrBlank() || keys.isNotEmpty()
@@ -2291,14 +2263,6 @@ class ConnectionsViewModel @Inject constructor(
             connectRdp(profile, password)
             return
         }
-        if (profile.isSpice) {
-            connectSpice(profile)
-            return
-        }
-        if (profile.isGlkvm) {
-            connectGlkvm(profile, profile.username, profile.glkvmPassword)
-            return
-        }
         if (profile.isSmb) {
             connectSmb(profile, password)
             return
@@ -2433,87 +2397,6 @@ class ConnectionsViewModel @Inject constructor(
                 }
             } else {
                 _navigateToRdp.value = RdpNavigation(host, port, username, rdpPassword, domain, profile.rdpSshForward, profileId = profile.id, useNla = profile.rdpUseNla, colorDepth = profile.rdpColorDepth, portKnockSequence = profile.portKnockSequence, portKnockDelayMs = profile.portKnockDelayMs)
-            }
-        }
-    }
-
-    private fun connectSpice(profile: ConnectionProfile) {
-        val host = profile.host
-        val port = profile.spicePort ?: profile.port
-        val password = profile.spicePassword
-        viewModelScope.launch {
-            repository.markConnected(profile.id)
-            val sshProfileId = profile.spiceSshProfileId
-            if (profile.spiceSshForward && sshProfileId != null) {
-                val needsPrompt = jumpHostNeedsPasswordPrompt(sshProfileId)
-                if (needsPrompt != null) {
-                    _pendingTunnelDependent.value = profile
-                    _passwordFallback.value = needsPrompt
-                    return@launch
-                }
-                try {
-                    _connectingProfileId.value = profile.id
-                    val (sshSessionId, _) = connectJumpHost(
-                        sshProfileId, "", tunnelOwnerProfileId = profile.id,
-                    )
-                    _navigateToSpice.value = SpiceNavigation(
-                        host, port, password,
-                        sshForward = true,
-                        sshSessionId = sshSessionId,
-                        profileId = profile.id,
-                    )
-                } catch (e: Exception) {
-                    Log.e(TAG, "Failed to connect SSH tunnel host for SPICE", e)
-                    handleTunnelJumpFailure(e, profile, sshProfileId)
-                } finally {
-                    _connectingProfileId.value = null
-                }
-            } else {
-                _navigateToSpice.value = SpiceNavigation(
-                    host, port, password,
-                    sshForward = profile.spiceSshForward,
-                    profileId = profile.id,
-                )
-            }
-        }
-    }
-
-    private fun connectGlkvm(profile: ConnectionProfile, user: String?, password: String?) {
-        val host = profile.host
-        val port = profile.glkvmPort ?: 443
-        viewModelScope.launch {
-            repository.markConnected(profile.id)
-            val sshProfileId = profile.glkvmSshProfileId
-            if (profile.glkvmSshForward && sshProfileId != null) {
-                val needsPrompt = jumpHostNeedsPasswordPrompt(sshProfileId)
-                if (needsPrompt != null) {
-                    _pendingTunnelDependent.value = profile
-                    _passwordFallback.value = needsPrompt
-                    return@launch
-                }
-                try {
-                    _connectingProfileId.value = profile.id
-                    val (sshSessionId, _) = connectJumpHost(
-                        sshProfileId, "", tunnelOwnerProfileId = profile.id,
-                    )
-                    _navigateToGlkvm.value = GlkvmNavigation(
-                        host, port, user, password,
-                        sshForward = true,
-                        sshSessionId = sshSessionId,
-                        profileId = profile.id,
-                    )
-                } catch (e: Exception) {
-                    Log.e(TAG, "Failed to connect SSH tunnel host for GLKVM", e)
-                    handleTunnelJumpFailure(e, profile, sshProfileId)
-                } finally {
-                    _connectingProfileId.value = null
-                }
-            } else {
-                _navigateToGlkvm.value = GlkvmNavigation(
-                    host, port, user, password,
-                    sshForward = profile.glkvmSshForward,
-                    profileId = profile.id,
-                )
             }
         }
     }
@@ -4470,7 +4353,7 @@ class ConnectionsViewModel @Inject constructor(
 
         try {
             withContext(Dispatchers.IO) {
-                // Plural resolver so a jump host (the SSH leg under SPICE/VNC/RDP)
+                // Plural resolver so a jump host (the SSH leg under VNC/RDP)
                 // honours its full auth-methods spec — "Any hardware key", AND
                 // chains, etc. — not just the legacy single keyId. Falls back to
                 // the singular path for simple/legacy profiles. (#286)

@@ -214,8 +214,6 @@ fun ConnectionEditDialog(
         seed?.isUsbSerial == true -> "USBSERIAL"
         seed?.isVnc == true -> "VNC"
         seed?.isRdp == true -> "RDP"
-        seed?.isSpice == true -> "SPICE"
-        seed?.isGlkvm == true -> "GLKVM"
         seed?.isSmb == true -> "SMB"
         seed?.isRclone == true -> "RCLONE"
         seed?.isEternalTerminal == true -> "ET"
@@ -232,8 +230,6 @@ fun ConnectionEditDialog(
         "USBSERIAL" -> "USBSERIAL"
         "VNC" -> "VNC"
         "RDP" -> "RDP"
-        "SPICE" -> "SPICE"
-        "GLKVM" -> "GLKVM"
         "SMB" -> "SMB"
         "RCLONE" -> "RCLONE"
         else -> "SSH"
@@ -264,8 +260,6 @@ fun ConnectionEditDialog(
             when {
                 seed?.isVnc == true -> (seed.vncPort ?: 5900).toString()
                 seed?.isRdp == true -> seed.rdpPort.toString()
-                seed?.isSpice == true -> (seed.spicePort ?: 5900).toString()
-                seed?.isGlkvm == true -> (seed.glkvmPort ?: 443).toString()
                 seed?.isSmb == true -> seed.smbPort.toString()
                 else -> seed?.port?.toString() ?: "22"
             }
@@ -279,17 +273,6 @@ fun ConnectionEditDialog(
     var rdpSshProfileId by rememberSaveable { mutableStateOf(existing?.rdpSshProfileId) }
     var rdpUseNla by rememberSaveable { mutableStateOf(existing?.rdpUseNla ?: true) }
     var rdpColorDepth by rememberSaveable { mutableStateOf(existing?.rdpColorDepth ?: 32) }
-    var spicePassword by rememberSaveable { mutableStateOf(existing?.spicePassword ?: "") }
-    var spiceSshForward by rememberSaveable {
-        mutableStateOf(existing?.let { strictTunnelInitialEnabled(it.connectionType, "SPICE", it.spiceSshForward, it.spiceSshProfileId) } ?: false)
-    }
-    var spiceSshProfileId by rememberSaveable { mutableStateOf(existing?.spiceSshProfileId) }
-    var glkvmPassword by rememberSaveable { mutableStateOf(existing?.glkvmPassword ?: "") }
-    var glkvmTargetLayout by rememberSaveable { mutableStateOf(existing?.glkvmTargetLayout ?: "uk") }
-    var glkvmSshForward by rememberSaveable {
-        mutableStateOf(existing?.let { strictTunnelInitialEnabled(it.connectionType, "GLKVM", it.glkvmSshForward, it.glkvmSshProfileId) } ?: false)
-    }
-    var glkvmSshProfileId by rememberSaveable { mutableStateOf(existing?.glkvmSshProfileId) }
     var smbShare by rememberSaveable { mutableStateOf(existing?.smbShare ?: "") }
     var smbPassword by rememberSaveable { mutableStateOf(existing?.smbPassword ?: "") }
     var smbDomain by rememberSaveable { mutableStateOf(existing?.smbDomain ?: "") }
@@ -1068,12 +1051,10 @@ fun ConnectionEditDialog(
                     "USBSERIAL" to "USB Serial",
                     "VNC" to "VNC (Desktop)",
                     "RDP" to "RDP (Desktop)",
-                    "SPICE" to "SPICE (Desktop)",
-                    "GLKVM" to "GLKVM (Desktop)",
                     "SMB" to "SMB (File Share)",
                     "RCLONE" to "Cloud Storage (rclone)",
                 )
-                // #510: the terminal build ships no RDP or SPICE client, so
+                // #510: the terminal build ships no RDP client, so
                 // offering them here would only produce a profile that fails
                 // at connect with "native library failed to load".
                 //
@@ -1089,12 +1070,11 @@ fun ConnectionEditDialog(
                     TransportAvailability.offered(
                         allTransportOptions,
                         rdp = native.rdp,
-                        spice = native.spice,
                         // Probed, not looked for: libgojni.so is present in
                         // every build, but the terminal flavour's copy is
                         // built without rclone.
                         rclone = sh.haven.rclone.bridge.RcloneBridge.available,
-                        // Same missing-file gate as rdp/spice: the terminal
+                        // Same missing-file gate as rdp: the terminal
                         // flavour drops the UML libraries, F-Droid skips the
                         // fetch.
                         uml = native.uml,
@@ -1132,9 +1112,7 @@ fun ConnectionEditDialog(
                                     // Update port to transport default when switching
                                     val defaultPort = when (value) {
                                         "VNC" -> "5900"
-                                        "GLKVM" -> "443"
                                         "RDP" -> "3389"
-                                        "SPICE" -> "5900"
                                         "SMB" -> "445"
                                         "ET" -> "22"
                                         else -> "22"
@@ -1160,8 +1138,6 @@ fun ConnectionEditDialog(
                                 "GUEST" -> "Linux Guest"
                                 "VNC" -> "My VNC Desktop"
                                 "RDP" -> "My RDP Desktop"
-                                "SPICE" -> "My SPICE Desktop"
-                                "GLKVM" -> "My KVM"
                                 "SMB" -> "My File Share"
                                 "RCLONE" -> "My Google Drive"
                                 else -> "My Server"
@@ -1774,143 +1750,6 @@ fun ConnectionEditDialog(
                             }
                         }
                     }
-                } else if (connectionType == "SPICE") {
-                    ConnectionSection(stringResource(R.string.connections_section_spice))
-                    // SPICE: tunnel toggle first (changes what Host means), then
-                    // host/port/password. Auth is a single optional ticket — no
-                    // username/domain/colour-depth (the framebuffer is 32bpp).
-                    SshTunnelBlock(
-                        enabled = spiceSshForward,
-                        carrierId = spiceSshProfileId,
-                        sshProfiles = sshProfiles,
-                        onEnabledChange = { newValue ->
-                            spiceSshForward = newValue
-                            if (!newValue) spiceSshProfileId = null
-                            host = tunnelHostOnToggle(newValue, host)
-                        },
-                        onCarrierChange = { spiceSshProfileId = it },
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    OutlinedTextField(
-                        value = host,
-                        onValueChange = { host = it },
-                        label = { Text(stringResource(R.string.common_host)) },
-                        placeholder = { Text(if (spiceSshForward) "127.0.0.1" else "192.168.1.100") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    OutlinedTextField(
-                        value = port,
-                        onValueChange = { port = it.filter { c -> c.isDigit() } },
-                        label = { Text(stringResource(R.string.connections_field_port)) },
-                        placeholder = { Text("5900") },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.width(120.dp),
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    OutlinedTextField(
-                        value = spicePassword,
-                        onValueChange = { spicePassword = it },
-                        label = { Text(stringResource(R.string.connections_field_password_optional)) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        stringResource(R.string.connections_helper_spice_auth),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                } else if (connectionType == "GLKVM") {
-                    ConnectionSection(stringResource(R.string.connections_section_glkvm))
-                    // GLKVM: tunnel toggle first (changes what Host means), then
-                    // host/port/user/password, then target layout for text typing.
-                    SshTunnelBlock(
-                        enabled = glkvmSshForward,
-                        carrierId = glkvmSshProfileId,
-                        sshProfiles = sshProfiles,
-                        onEnabledChange = { newValue ->
-                            glkvmSshForward = newValue
-                            if (!newValue) glkvmSshProfileId = null
-                            host = tunnelHostOnToggle(newValue, host)
-                        },
-                        onCarrierChange = { glkvmSshProfileId = it },
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    OutlinedTextField(
-                        value = host,
-                        onValueChange = { host = it },
-                        label = { Text(stringResource(R.string.common_host)) },
-                        placeholder = { Text(if (glkvmSshForward) "127.0.0.1" else "glkvm.lan") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    OutlinedTextField(
-                        value = port,
-                        onValueChange = { port = it.filter { c -> c.isDigit() } },
-                        label = { Text(stringResource(R.string.connections_field_port)) },
-                        placeholder = { Text("443") },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.width(120.dp),
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    OutlinedTextField(
-                        value = username,
-                        onValueChange = { username = it },
-                        label = { Text(stringResource(R.string.connections_field_username)) },
-                        placeholder = { Text("admin") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    OutlinedTextField(
-                        value = glkvmPassword,
-                        onValueChange = { glkvmPassword = it },
-                        label = { Text(stringResource(R.string.connections_field_password_optional)) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    var layoutExpanded by remember { mutableStateOf(false) }
-                    ExposedDropdownMenuBox(
-                        expanded = layoutExpanded,
-                        onExpandedChange = { layoutExpanded = it },
-                    ) {
-                        OutlinedTextField(
-                            value = glkvmTargetLayout.uppercase(),
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text(stringResource(R.string.connections_field_glkvm_layout)) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(layoutExpanded) },
-                        )
-                        ExposedDropdownMenu(
-                            expanded = layoutExpanded,
-                            onDismissRequest = { layoutExpanded = false },
-                        ) {
-                            listOf("uk" to "UK keyboard", "us" to "US keyboard").forEach { (v, lbl) ->
-                                DropdownMenuItem(
-                                    text = { Text(lbl) },
-                                    onClick = {
-                                        glkvmTargetLayout = v
-                                        layoutExpanded = false
-                                    },
-                                )
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        stringResource(R.string.connections_helper_glkvm),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
                 } else if (connectionType == "SMB") {
                     ConnectionSection(stringResource(R.string.connections_section_smb))
                     // SMB: host (with discovery), share, username, port, password, domain, SSH tunnel
@@ -3127,11 +2966,11 @@ fun ConnectionEditDialog(
                 // Port knocking. Visible for any profile with a remote
                 // TCP host — skipped for LOCAL (no host), RCLONE (its own
                 // protocol).
-                if (connectionType in setOf("VNC", "RDP", "SPICE", "GLKVM", "SMB")) {
+                if (connectionType in setOf("VNC", "RDP", "SMB")) {
                     ConnectionSection(stringResource(R.string.connections_section_routing))
                     routingBody()
                 }
-                if (connectionType in setOf("VNC", "RDP", "SPICE", "GLKVM", "SMB")) {
+                if (connectionType in setOf("VNC", "RDP", "SMB")) {
                     ConnectionSection(stringResource(R.string.connections_section_port_knock))
                     portKnockBody()
                     ConnectionSection(stringResource(R.string.connections_section_spa))
@@ -3164,8 +3003,6 @@ fun ConnectionEditDialog(
                 "SSH" -> host.isNotBlank()
                 "VNC" -> host.isNotBlank() && tunnelComplete(vncSshForward, vncSshProfileId)
                 "RDP" -> host.isNotBlank() && rdpUsername.isNotBlank() && tunnelComplete(rdpSshForward, rdpSshProfileId)
-                "SPICE" -> host.isNotBlank() && tunnelComplete(spiceSshForward, spiceSshProfileId)
-                "GLKVM" -> host.isNotBlank() && tunnelComplete(glkvmSshForward, glkvmSshProfileId)
                 "SMB" -> host.isNotBlank() && smbShare.isNotBlank() && tunnelComplete(smbSshForward, smbSshProfileId)
                 // OAuth providers authenticate on connect (no Configure step); every
                 // other provider must have its remote written via Configure first (#295).
@@ -3341,106 +3178,6 @@ fun ConnectionEditDialog(
                                     ?: SpaConfig.DEFAULT_SPA_PORT,
                             ).withRoutingSelection(
                                 proxyType, proxyHost, proxyPort, proxyUser, proxyPassword, tunnelConfigId,
-                            )
-                        } else if (connectionType == "SPICE") {
-                            val spicePortInt = port.toIntOrNull() ?: 5900
-                            (existing ?: ConnectionProfile(
-                                label = label,
-                                host = host,
-                                username = "",
-                            )).copy(
-                                label = label.ifBlank { "SPICE: $host" },
-                                host = host,
-                                port = spicePortInt,
-                                username = "",
-                                connectionType = "SPICE",
-                                spicePort = spicePortInt,
-                                spicePassword = spicePassword.ifBlank { null },
-                                spiceSshForward = spiceSshForward,
-                                spiceSshProfileId = tunnelCarrierForSave(spiceSshForward, spiceSshProfileId),
-                                colorTag = colorTag,
-                                groupId = groupId,
-                                identityId = identityId,
-                                portKnockSequence = portKnockSequence.ifBlank { null },
-                                portKnockDelayMs = portKnockDelayMs.toIntOrNull()
-                                    ?.coerceAtLeast(0) ?: KnockSequence.DEFAULT_DELAY_MS,
-                                spaKey = spaKey.ifBlank { null },
-                                spaKeyBase64 = spaKeyBase64,
-                                spaHmacKey = spaHmacKey.ifBlank { null },
-                                spaHmacKeyBase64 = spaHmacKeyBase64,
-                                spaAccessSpec = spaAccessSpec.ifBlank { null },
-                                spaAllowMode = spaAllowMode,
-                                spaExplicitIp = spaExplicitIp.ifBlank { null },
-                                spaPort = spaPort.toIntOrNull()?.takeIf { it in 1..65535 }
-                                    ?: SpaConfig.DEFAULT_SPA_PORT,
-                            ).withRoutingSelection(
-                                proxyType, proxyHost, proxyPort, proxyUser, proxyPassword, tunnelConfigId,
-                            )
-                        } else if (connectionType == "GLKVM") {
-                            val glkvmPortInt = port.toIntOrNull() ?: 443
-                            (existing ?: ConnectionProfile(
-                                label = label,
-                                host = host,
-                                username = "",
-                            )).copy(
-                                label = label.ifBlank { "GLKVM: $host" },
-                                host = host,
-                                port = glkvmPortInt,
-                                username = username,
-                                connectionType = "GLKVM",
-                                glkvmPort = glkvmPortInt,
-                                glkvmPassword = glkvmPassword.ifBlank { null },
-                                glkvmTargetLayout = glkvmTargetLayout.ifBlank { null },
-                                glkvmSshForward = glkvmSshForward,
-                                glkvmSshProfileId = tunnelCarrierForSave(glkvmSshForward, glkvmSshProfileId),
-                                colorTag = colorTag,
-                                groupId = groupId,
-                                identityId = identityId,
-                                portKnockSequence = portKnockSequence.ifBlank { null },
-                                portKnockDelayMs = portKnockDelayMs.toIntOrNull()
-                                    ?.coerceAtLeast(0) ?: KnockSequence.DEFAULT_DELAY_MS,
-                                spaKey = spaKey.ifBlank { null },
-                                spaKeyBase64 = spaKeyBase64,
-                                spaHmacKey = spaHmacKey.ifBlank { null },
-                                spaHmacKeyBase64 = spaHmacKeyBase64,
-                                spaAccessSpec = spaAccessSpec.ifBlank { null },
-                                spaAllowMode = spaAllowMode,
-                                spaExplicitIp = spaExplicitIp.ifBlank { null },
-                                spaPort = spaPort.toIntOrNull()?.takeIf { it in 1..65535 }
-                                    ?: SpaConfig.DEFAULT_SPA_PORT,
-                            ).withRoutingSelection(
-                                proxyType, proxyHost, proxyPort, proxyUser, proxyPassword, tunnelConfigId,
-                            )
-                        } else if (connectionType == "RCLONE") {
-                            (existing ?: ConnectionProfile(
-                                label = label,
-                                host = "",
-                                username = "",
-                            )).copy(
-                                label = label.ifBlank {
-                                    val providerLabel = when (rcloneProvider) {
-                                        "drive" -> "Google Drive"
-                                        "dropbox" -> "Dropbox"
-                                        "onedrive" -> "OneDrive"
-                                        "s3" -> "Amazon S3"
-                                        "b2" -> "Backblaze B2"
-                                        "mega" -> "MEGA"
-                                        "pcloud" -> "pCloud"
-                                        "box" -> "Box"
-                                        "filen" -> "Filen"
-                                        else -> rcloneProvider
-                                    }
-                                    providerLabel
-                                },
-                                host = "",
-                                port = 0,
-                                username = "",
-                                connectionType = "RCLONE",
-                                rcloneRemoteName = rcloneRemoteName.ifBlank { "$rcloneProvider-$rcloneRemoteToken" },
-                                rcloneProvider = rcloneProvider,
-                                colorTag = colorTag,
-                                groupId = groupId,
-                                identityId = identityId,
                             )
                         } else if (connectionType == "SMB") {
                             val smbPortInt = port.toIntOrNull() ?: 445
@@ -3861,7 +3598,7 @@ private fun BooleanToggleRow(
  * carrier dropdown (or an "add an SSH connection first" error when no SSH
  * profiles exist). The dropdown sits right next to the toggle so the two
  * fields read as one decision — "tunnel through [this SSH connection]".
- * VNC / RDP / SPICE / SMB render this at their existing form positions;
+ * VNC / RDP / SMB render this at their existing form positions;
  * host-field relabelling stays at the call site because labels,
  * placeholders and helper text are protocol-specific. Host rewrites on
  * toggle go through [tunnelHostOnToggle] in the caller's onEnabledChange.

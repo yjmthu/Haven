@@ -43,7 +43,6 @@ class NativeFeaturesTest {
         val f = features()
 
         assertFalse("rdp", f.rdp)
-        assertFalse("spice", f.spice)
         assertFalse("ffmpeg", f.ffmpeg)
         assertFalse("wayland", f.wayland)
         assertFalse("anyDesktop", f.anyDesktop)
@@ -67,13 +66,12 @@ class NativeFeaturesTest {
     @Test
     fun `shipping the libraries reports them`() {
         ship(
-            "librdp_transport.so", "libspice_transport.so",
+            "librdp_transport.so",
             "libffmpeg.so", "libffprobe.so", "libavcodec.so",
         )
         val f = features()
 
         assertTrue("rdp", f.rdp)
-        assertTrue("spice", f.spice)
         assertTrue("ffmpeg", f.ffmpeg)
         assertTrue("anyDesktop", f.anyDesktop)
     }
@@ -113,7 +111,6 @@ class NativeFeaturesTest {
         val f = NativeFeatures(context)
 
         assertFalse("rdp", f.rdp)
-        assertFalse("spice", f.spice)
         assertFalse("ffmpeg", f.ffmpeg)
         assertFalse("anyDesktop", f.anyDesktop)
     }
@@ -125,6 +122,5 @@ class NativeFeaturesTest {
         val f = features()
 
         assertTrue(f.anyDesktop)
-        assertFalse(f.spice)
     }
 }
