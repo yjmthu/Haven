@@ -16,9 +16,9 @@ import javax.inject.Singleton
  * `feature/sftp` dependency belongs; `core/data` and `feature/settings` see
  * only the interface.
  *
- * Resolution requires the destination profile to be connected (SFTP opens its
- * session on demand; SMB/rclone must already be connected). A null resolution
- * throws so the caller can tell the user to connect the destination first.
+ * Resolution requires the destination profile to be connected: the SSH
+ * session is opened on demand. A null resolution throws so the caller can
+ * tell the user to connect the destination first.
  */
 @Singleton
 class TransportBackupIo @Inject constructor(

@@ -1,7 +1,6 @@
 package sh.haven.feature.sftp
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.provider.DocumentsContract
 import androidx.annotation.VisibleForTesting
@@ -45,22 +44,13 @@ import sh.haven.core.data.repository.ConnectionLogRepository
 import sh.haven.core.data.repository.ConnectionRepository
 import sh.haven.core.et.EtSessionManager
 import sh.haven.core.mosh.MoshSessionManager
-import sh.haven.core.rclone.RcloneClient
-import sh.haven.core.rclone.RcloneSessionManager
-import sh.haven.core.rclone.SyncConfig
-import sh.haven.core.rclone.SyncProgress
 import sh.haven.core.security.posixShellQuote
-import sh.haven.core.smb.SmbClient
-import sh.haven.core.smb.SmbSessionManager
 import sh.haven.core.ssh.SshClient
 import sh.haven.core.ssh.SshSessionManager
 import sh.haven.core.ssh.SshSessionManager.SessionState
 import sh.haven.feature.sftp.transport.FileBackend
 import sh.haven.feature.sftp.transport.LocalFileBackend
-import sh.haven.feature.sftp.transport.RcloneFileBackend
-import sh.haven.feature.sftp.transport.SafFileBackend
 import sh.haven.feature.sftp.transport.SftpTransport
-import sh.haven.feature.sftp.transport.SmbFileBackend
 import java.io.OutputStream
 import javax.inject.Inject
 
@@ -105,23 +95,20 @@ data class SftpEntry(
  *
  * - [DOWNLOADS]: local device Downloads folder (MediaStore-backed on API 29+).
  * - [SOURCE_FOLDER]: same directory as the source file. For remote profiles
- *   (rclone/SFTP/SMB) this uploads the converted file back to the remote.
+ *   (SFTP) this uploads the converted file back to the remote.
  */
 enum class ConvertDestination { DOWNLOADS, SOURCE_FOLDER }
 
-enum class BackendType { SFTP, SMB, RCLONE, LOCAL, SAF }
+enum class BackendType { SFTP, LOCAL }
 
 /** Clipboard for cross-filesystem copy/move. */
 data class FileClipboard(
     val entries: List<SftpEntry>,
     val sourceProfileId: String,
     val sourceBackendType: BackendType,
-    val sourceRemoteName: String?,
     val isCut: Boolean,
     /** Cached SFTP session from source — survives profile switch. */
     @Transient val sourceSftpSession: SftpSession? = null,
-    /** Cached SMB client from source — survives profile switch. */
-    @Transient val sourceSmbClient: sh.haven.core.smb.SmbClient? = null,
 )
 
 enum class SortMode {
@@ -137,9 +124,7 @@ enum class SortMode {
  *
  * [RESUME] is only offered when the destination is SFTP or LOCAL *and* the
  * existing file is smaller than the source — the only shape where an append-
- * from-offset actually recovers the partial transfer. SMB and rclone destinations
- * fall back to OVERWRITE / SKIP / RENAME because neither backend supports a
- * resumable append through Haven's current plumbing.
+ * from-offset actually recovers the partial transfer.
  */
 enum class ConflictAction { RESUME, OVERWRITE, SKIP, RENAME }
 
@@ -214,12 +199,8 @@ class SftpViewModel @Inject constructor(
     private val sessionManager: SshSessionManager,
     private val moshSessionManager: MoshSessionManager,
     private val etSessionManager: EtSessionManager,
-    private val smbSessionManager: SmbSessionManager,
-    private val rcloneSessionManager: RcloneSessionManager,
-    private val rcloneClient: RcloneClient,
     private val repository: ConnectionRepository,
     private val connectionLogRepository: ConnectionLogRepository,
-    private val syncProfileRepository: sh.haven.core.data.repository.SyncProfileRepository,
     private val ageIdentityRepository: sh.haven.core.data.repository.AgeIdentityRepository,
     private val preferencesRepository: UserPreferencesRepository,
     private val transportSelector: sh.haven.feature.sftp.transport.TransportSelector,
@@ -245,15 +226,12 @@ class SftpViewModel @Inject constructor(
 
     /**
      * "Use this folder" — confirms the current path on the active profile
-     * as the attach destination. Reads transport flags directly so the
-     * coordinator gets the rclone remote name when relevant.
+     * as the attach destination.
      */
     fun confirmAttachFolder() {
         val profileId = _activeProfileId.value ?: return
         attachCoordinator.confirmFolder(
             profileId = profileId,
-            isRclone = _isRcloneProfile.value,
-            rcloneRemote = activeRcloneRemote,
             folderPath = _currentPath.value,
         )
     }
@@ -494,7 +472,7 @@ class SftpViewModel @Inject constructor(
 
     /**
      * Preview input source — may be a local file path, a downloaded cache
-     * file path, or an http:// URL pointing at the rclone media server.
+     * file path, or an http:// URL pointing at the loopback media bridge.
      * ffmpeg handles all three the same way via its protocol layer.
      */
     private var previewInputSource: String? = null
@@ -504,7 +482,7 @@ class SftpViewModel @Inject constructor(
     val inputHasVideo: StateFlow<Boolean> = _inputHasVideo.asStateFlow()
 
     /**
-     * True when the preview is being generated from a remote URL (rclone).
+     * True when the preview is being generated from a remote URL.
      * UI uses this to show a "fetching from cloud" hint during Generating
      * states so the user understands why it's slower than local.
      */
@@ -617,116 +595,6 @@ class SftpViewModel @Inject constructor(
     val mediaExtensionsSet: StateFlow<Set<String>> = preferencesRepository.mediaExtensions
         .map { str -> str.lowercase().split("\\s+".toRegex()).filter { it.isNotEmpty() }.toSet() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, parseMediaExtensions(UserPreferencesRepository.DEFAULT_MEDIA_EXTENSIONS))
-
-    /** Sync progress for the active rclone sync operation. */
-    private val _syncProgress = MutableStateFlow<SyncProgress?>(null)
-    val syncProgress: StateFlow<SyncProgress?> = _syncProgress.asStateFlow()
-
-    /** Controls sync dialog visibility. */
-    private val _showSyncDialog = MutableStateFlow(false)
-    val showSyncDialog: StateFlow<Boolean> = _showSyncDialog.asStateFlow()
-
-    /** Pre-filled source for sync dialog. */
-    private val _syncDialogSource = MutableStateFlow<String?>(null)
-    val syncDialogSource: StateFlow<String?> = _syncDialogSource.asStateFlow()
-
-    /** Available rclone remotes for sync destination picker. */
-    private val _availableRemotes = MutableStateFlow<List<String>>(emptyList())
-    val availableRemotes: StateFlow<List<String>> = _availableRemotes.asStateFlow()
-
-    /** Whether any rclone remote is configured. Gates the connection-independent
-     *  "New sync" entry point (#277) — a sync doesn't need an open connection, so the
-     *  entry shows whenever rclone has remotes, even with nothing connected. */
-    private val _hasRcloneRemotes = MutableStateFlow(false)
-    val hasRcloneRemotes: StateFlow<Boolean> = _hasRcloneRemotes.asStateFlow()
-
-    fun refreshRcloneRemotesAvailable() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _hasRcloneRemotes.value = try {
-                rcloneClient.initialize()
-                rcloneClient.listRemotes().isNotEmpty()
-            } catch (e: Exception) {
-                Log.w(TAG, "rclone remotes availability check failed: ${e.message}")
-                false
-            }
-        }
-    }
-
-    /** Dry run summary text. */
-    private val _dryRunResult = MutableStateFlow<String?>(null)
-    val dryRunResult: StateFlow<String?> = _dryRunResult.asStateFlow()
-    fun dismissDryRunResult() { _dryRunResult.value = null }
-
-    /**
-     * Saved rclone sync configurations (#159). Most-recently-run first,
-     * collected from Room so changes in another dialog instance propagate
-     * straight to the dropdown. Exposed as a StateFlow with an empty
-     * starting value so the dialog can render before the first emit.
-     */
-    val savedSyncProfiles: StateFlow<List<sh.haven.core.data.db.entities.SyncProfile>> =
-        syncProfileRepository.observeAll()
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-
-    /** Track the currently-loaded saved profile so [startSync] can stamp lastRunAt. */
-    private val _activeSavedSyncProfileId = MutableStateFlow<String?>(null)
-    val activeSavedSyncProfileId: StateFlow<String?> = _activeSavedSyncProfileId.asStateFlow()
-    fun setActiveSavedSyncProfileId(id: String?) { _activeSavedSyncProfileId.value = id }
-
-    /**
-     * Persist the dialog's current values as a saved sync profile. The id
-     * is generated when [existingId] is null (Save-as new) and reused
-     * when a saved profile is being overwritten (Save).
-     */
-    fun saveSyncProfile(
-        existingId: String?,
-        name: String,
-        config: SyncConfig,
-    ) {
-        if (name.isBlank()) return
-        viewModelScope.launch {
-            val mode = when (config.mode) {
-                sh.haven.core.rclone.SyncMode.COPY -> "COPY"
-                sh.haven.core.rclone.SyncMode.SYNC -> "SYNC"
-                sh.haven.core.rclone.SyncMode.MOVE -> "MOVE"
-            }
-            val entity = sh.haven.core.data.db.entities.SyncProfile(
-                id = existingId ?: java.util.UUID.randomUUID().toString(),
-                name = name.trim(),
-                srcFs = config.srcFs,
-                dstFs = config.dstFs,
-                mode = mode,
-                includePatterns = config.filters.includePatterns.joinToString("\n"),
-                excludePatterns = config.filters.excludePatterns.joinToString("\n"),
-                minSize = config.filters.minSize,
-                maxSize = config.filters.maxSize,
-                bandwidthLimit = config.filters.bandwidthLimit,
-            )
-            syncProfileRepository.save(entity)
-            _activeSavedSyncProfileId.value = entity.id
-        }
-    }
-
-    fun deleteSyncProfile(id: String) {
-        viewModelScope.launch {
-            syncProfileRepository.delete(id)
-            if (_activeSavedSyncProfileId.value == id) _activeSavedSyncProfileId.value = null
-        }
-    }
-
-    /** Whether the current folder contains playable media files (rclone only). */
-    private val _hasMediaFiles = MutableStateFlow(false)
-    val hasMediaFiles: StateFlow<Boolean> = _hasMediaFiles.asStateFlow()
-
-    /** Feature flags for the current rclone remote. */
-    private val _remoteCapabilities = MutableStateFlow(sh.haven.core.rclone.RemoteCapabilities())
-    val remoteCapabilities: StateFlow<sh.haven.core.rclone.RemoteCapabilities> = _remoteCapabilities.asStateFlow()
-
-    /** Folder size calculation result text. */
-    private val _folderSizeResult = MutableStateFlow<String?>(null)
-    val folderSizeResult: StateFlow<String?> = _folderSizeResult.asStateFlow()
-    private val _folderSizeLoading = MutableStateFlow(false)
-    val folderSizeLoading: StateFlow<Boolean> = _folderSizeLoading.asStateFlow()
-    fun dismissFolderSize() { _folderSizeResult.value = null }
 
     /** Editor overlay state: file content loaded for viewing. */
     sealed class EditorFileState {
@@ -1043,13 +911,6 @@ class SftpViewModel @Inject constructor(
         imageToolEntry = null
     }
 
-    /** DLNA server state. */
-    private val _dlnaServerRunning = MutableStateFlow(false)
-    val dlnaServerRunning: StateFlow<Boolean> = _dlnaServerRunning.asStateFlow()
-
-    /** Port of the running media server, or null if not running. */
-    private val _mediaServerPort = MutableStateFlow<Int?>(null)
-
     /** Upload conflict resolution. */
     enum class ConflictChoice { SKIP, REPLACE, REPLACE_ALL, SKIP_ALL }
     data class UploadConflict(
@@ -1071,15 +932,8 @@ class SftpViewModel @Inject constructor(
     fun copyToClipboard(entries: List<SftpEntry>, isCut: Boolean) {
         val profileId = _activeProfileId.value ?: return
         Log.d(TAG, "copyToClipboard: ${entries.size} entries, isCut=$isCut, profile=$profileId, " +
-            "isRclone=${_isRcloneProfile.value}, isSmb=${_isSmbProfile.value}, " +
-            "rcloneRemote=$activeRcloneRemote, sftpSession=${sftpSession?.isConnected}, smbClient=${activeSmbClient != null}")
-        val backendType = when {
-            _isLocalProfile.value -> BackendType.LOCAL
-            _isRcloneProfile.value -> BackendType.RCLONE
-            _isSmbProfile.value -> BackendType.SMB
-            _isSafProfile.value -> BackendType.SAF
-            else -> BackendType.SFTP
-        }
+            "sftpSession=${sftpSession?.isConnected}")
+        val backendType = if (_isLocalProfile.value) BackendType.LOCAL else BackendType.SFTP
         // Open a dedicated SFTP session for copy (separate from browse session)
         val copySession = if (backendType == BackendType.SFTP) {
             sessionManager.openSftpSession(profileId)
@@ -1089,10 +943,8 @@ class SftpViewModel @Inject constructor(
             entries = entries,
             sourceProfileId = profileId,
             sourceBackendType = backendType,
-            sourceRemoteName = activeRcloneRemote,
             isCut = isCut,
             sourceSftpSession = copySession,
-            sourceSmbClient = if (backendType == BackendType.SMB) activeSmbClient else null,
         )
         _message.value = "${entries.size} item${if (entries.size > 1) "s" else ""} ${if (isCut) "cut" else "copied"}"
     }
@@ -1102,7 +954,6 @@ class SftpViewModel @Inject constructor(
     }
 
     private var sftpSession: SftpSession? = null
-    private var activeSmbClient: SmbClient? = null
 
     /**
      * Build an [SftpStreamServer.Opener] for [entry] on the currently
@@ -1121,19 +972,6 @@ class SftpViewModel @Inject constructor(
             kotlinx.coroutines.runBlocking {
                 session.openInputStream(path, if (offset > 0) offset else 0L)
             }
-        }
-
-    /**
-     * Range-capable opener for SMB media, so ffmpeg/players read over the same
-     * loopback HTTP bridge SFTP uses instead of downloading the whole file
-     * first (VISION §2). [SmbClient.openInputStream] honours the offset, so a
-     * preview probe reads just the moov atom. Re-reads [activeSmbClient] each
-     * call so it survives a reconnect.
-     */
-    private fun smbOpener(path: String): SftpStreamServer.Opener =
-        SftpStreamServer.Opener { offset ->
-            val client = activeSmbClient ?: throw java.io.IOException("SMB not connected")
-            client.openInputStream(path, if (offset > 0) offset else 0L)
         }
 
     private fun guessContentType(name: String): String = when (name.substringAfterLast('.', "").lowercase()) {
@@ -1165,23 +1003,8 @@ class SftpViewModel @Inject constructor(
         return if (media != "application/octet-stream") media else "*/*"
     }
 
-    /** Tracks which active profile is SMB (vs SFTP). */
-    private val _isSmbProfile = MutableStateFlow(false)
-
-    /** Tracks which active profile is rclone (vs SFTP/SMB). */
-    private val _isRcloneProfile = MutableStateFlow(false)
-    val isRcloneProfile: StateFlow<Boolean> = _isRcloneProfile.asStateFlow()
-
     /** Tracks whether the active profile is the local filesystem. */
     private val _isLocalProfile = MutableStateFlow(false)
-
-    /**
-     * Tracks whether the active profile is a SAF "local folder" location (#415).
-     * Like [_isLocalProfile] its backend is resolved on demand via
-     * [TransportSelector] (from the persisted tree Uri), so there's no session to
-     * open — listing and the editor go straight through `currentFileBackend()`.
-     */
-    private val _isSafProfile = MutableStateFlow(false)
 
     /** Synthetic profile for the always-present "Local" tab. */
     private val localProfile = ConnectionProfile(
@@ -1191,15 +1014,6 @@ class SftpViewModel @Inject constructor(
         username = "",
         connectionType = "LOCAL",
     )
-
-    /** rclone remote name for the active profile. */
-    private var activeRcloneRemote: String? = null
-
-    /** Pending SMB profile to auto-select when navigating to Files tab. */
-    private val _pendingSmbProfileId = MutableStateFlow<String?>(null)
-
-    /** Pending rclone profile to auto-select when navigating to Files tab. */
-    private val _pendingRcloneProfileId = MutableStateFlow<String?>(null)
 
     /** Per-profile state cache so tab switching preserves path and entries. */
     private data class ProfileBrowseState(
@@ -1259,27 +1073,11 @@ class SftpViewModel @Inject constructor(
                 .map { it.profileId }
                 .toSet()
 
-            // Collect profile IDs from SMB sessions
-            val smbProfileIds = smbSessionManager.sessions.value.values
-                .filter { it.status == SmbSessionManager.SessionState.Status.CONNECTED }
-                .map { it.profileId }
-                .toSet()
-
-            // Collect profile IDs from rclone sessions
-            val rcloneProfileIds = rcloneSessionManager.sessions.value.values
-                .filter { it.status == RcloneSessionManager.SessionState.Status.CONNECTED }
-                .map { it.profileId }
-                .toSet()
-
-            val connectedProfileIds = sshProfileIds + moshProfileIds + etProfileIds + smbProfileIds + rcloneProfileIds
+            val connectedProfileIds = sshProfileIds + moshProfileIds + etProfileIds
 
             val profiles = withContext(Dispatchers.IO) { repository.getAll() }
             val remoteProfiles = profiles.filter { it.id in connectedProfileIds }
-            // SAF "local folder" locations (#415) are always available — the grant
-            // is persisted, there's no session to connect — so they show as tabs
-            // unconditionally, right after the synthetic "Local" tab.
-            val safProfiles = profiles.filter { it.isSaf }
-            _connectedProfiles.value = listOf(localProfile) + safProfiles + remoteProfiles
+            _connectedProfiles.value = listOf(localProfile) + remoteProfiles
 
             if (connectedProfileIds.isEmpty() && _activeProfileId.value == null) {
                 // No remote connections — auto-select local
@@ -1287,106 +1085,13 @@ class SftpViewModel @Inject constructor(
                 return@launch
             }
 
-            // Handle pending SMB navigation
-            val pendingSmb = _pendingSmbProfileId.value
-            if (pendingSmb != null && pendingSmb in connectedProfileIds) {
-                _pendingSmbProfileId.value = null
-                selectProfile(pendingSmb)
-                return@launch
-            }
-
-            // Handle pending rclone navigation
-            val pendingRclone = _pendingRcloneProfileId.value
-            if (pendingRclone != null && pendingRclone in connectedProfileIds) {
-                _pendingRcloneProfileId.value = null
-                selectProfile(pendingRclone)
-                return@launch
-            }
-
-            // Auto-select first connected profile if none selected. SAF "local
-            // folder" profiles (#415) and the synthetic "local" tab are valid
-            // active selections even though they're never in connectedProfileIds
-            // (no session to connect). Without them here, this sweep silently
-            // deselects an active SAF tab back to "local" — and because the tab's
-            // entries stay on screen, the next file op then misroutes to
-            // LocalFileBackend (opening the tree-relative path against the real
-            // filesystem root: EROFS/ENOENT). Device-verified regression.
-            val selectableIds = connectedProfileIds + safProfiles.map { it.id } + "local"
+            // Auto-select first connected profile if none selected. The
+            // synthetic "local" tab is a valid active selection even though it's
+            // never in connectedProfileIds (no session to connect).
+            val selectableIds = connectedProfileIds + "local"
             if (_activeProfileId.value == null || _activeProfileId.value !in selectableIds) {
                 _connectedProfiles.value.firstOrNull()?.let { selectProfile(it.id) }
             }
-        }
-    }
-
-    fun setPendingSmbProfile(profileId: String) {
-        _pendingSmbProfileId.value = profileId
-    }
-
-    fun setPendingRcloneProfile(profileId: String) {
-        _pendingRcloneProfileId.value = profileId
-    }
-
-    /**
-     * Register a SAF-picked folder (#415) as a persistent "local folder" Files
-     * location. Persists the tree grant with `takePersistableUriPermission` so it
-     * survives app restarts, saves a SAF [ConnectionProfile], and selects the new
-     * tab. The tab list is updated synchronously here (not just via the async
-     * [syncConnectedProfiles]) because [selectProfile] reads it to detect the SAF
-     * type; a later sync re-sorts it into place.
-     */
-    fun addSafFolder(treeUri: Uri) {
-        viewModelScope.launch {
-            try {
-                appContext.contentResolver.takePersistableUriPermission(
-                    treeUri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
-                )
-            } catch (e: SecurityException) {
-                Log.w(TAG, "Could not persist SAF grant for $treeUri", e)
-                _error.value = appContext.getString(R.string.sftp_saf_grant_failed)
-                return@launch
-            }
-            val name = DocumentFile.fromTreeUri(appContext, treeUri)?.name
-                ?: treeUri.lastPathSegment?.substringAfterLast('/')
-                ?: "Folder"
-            val profile = ConnectionProfile(
-                id = java.util.UUID.randomUUID().toString(),
-                label = name,
-                host = "",
-                username = "",
-                connectionType = "SAF",
-                safTreeUri = treeUri.toString(),
-            )
-            withContext(Dispatchers.IO) { repository.save(profile) }
-            _connectedProfiles.value = _connectedProfiles.value + profile
-            selectProfile(profile.id)
-        }
-    }
-
-    /**
-     * Remove a SAF "local folder" location (#415): release the persisted tree
-     * grant, delete the profile, drop its tab, and fall back to Local if it was
-     * active. Releasing the grant is best-effort — a since-revoked permission
-     * throws, which is fine, the row still goes.
-     */
-    fun removeSafFolder(profileId: String) {
-        viewModelScope.launch {
-            val profile = _connectedProfiles.value.find { it.id == profileId } ?: return@launch
-            if (!profile.isSaf) return@launch
-            profile.safTreeUri?.let { uriStr ->
-                try {
-                    appContext.contentResolver.releasePersistableUriPermission(
-                        Uri.parse(uriStr),
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
-                    )
-                } catch (e: Exception) {
-                    Log.w(TAG, "Could not release SAF grant for $uriStr", e)
-                }
-            }
-            withContext(Dispatchers.IO) { repository.delete(profileId) }
-            _connectedProfiles.value = _connectedProfiles.value.filterNot { it.id == profileId }
-            profileStateCache.remove(profileId)
-            if (_activeProfileId.value == profileId) selectProfile("local")
         }
     }
 
@@ -1402,18 +1107,9 @@ class SftpViewModel @Inject constructor(
         }
 
         val isLocal = profileId == "local"
-        val isSaf = !isLocal && _connectedProfiles.value.find { it.id == profileId }?.isSaf == true
-        val isSmb = !isLocal && smbSessionManager.isProfileConnected(profileId)
-        val isRclone = !isLocal && rcloneSessionManager.isProfileConnected(profileId)
         _isLocalProfile.value = isLocal
-        _isSafProfile.value = isSaf
-        _isSmbProfile.value = isSmb
-        _isRcloneProfile.value = isRclone
         _activeProfileId.value = profileId
         sftpSession = null
-        activeSmbClient = null
-        activeRcloneRemote = null
-        _remoteCapabilities.value = sh.haven.core.rclone.RemoteCapabilities()
 
         // Restore cached state if available — but when an explicit initialPath
         // is requested (NavigateToSftpPath to a specific dir), bypass the cache
@@ -1430,20 +1126,6 @@ class SftpViewModel @Inject constructor(
             // Still need to re-establish the backend connection
             when {
                 isLocal -> { /* no connection needed */ }
-                isSaf -> { /* backend resolved on demand from the persisted tree Uri */ }
-                isRclone -> {
-                    val remoteName = rcloneSessionManager.getRemoteNameForProfile(profileId)
-                    activeRcloneRemote = remoteName
-                    if (remoteName != null) {
-                        viewModelScope.launch(Dispatchers.IO) {
-                            try { _remoteCapabilities.value = rcloneClient.getCapabilities(remoteName) }
-                            catch (_: Exception) { _remoteCapabilities.value = sh.haven.core.rclone.RemoteCapabilities() }
-                        }
-                    }
-                }
-                isSmb -> {
-                    activeSmbClient = smbSessionManager.getClientForProfile(profileId)
-                }
                 else -> {
                     viewModelScope.launch(Dispatchers.IO) {
                         try {
@@ -1461,9 +1143,6 @@ class SftpViewModel @Inject constructor(
             _entries.value = emptyList()
             when {
                 isLocal -> loadDirectoryEntries(landing)
-                isSaf -> loadDirectoryEntries(landing)
-                isRclone -> openRcloneAndList(profileId)
-                isSmb -> openSmbAndList(profileId)
                 else -> openSftpAndList(profileId, landing)
             }
         }
@@ -1534,7 +1213,6 @@ class SftpViewModel @Inject constructor(
         }
 
         _entries.value = filtered
-        _hasMediaFiles.value = _isRcloneProfile.value && filtered.any { it.isMediaFile(mediaExtensionsSet.value) }
     }
 
     private fun globToRegex(glob: String): Regex {
@@ -1585,14 +1263,12 @@ class SftpViewModel @Inject constructor(
 
     /** Whether the active profile is the local filesystem. */
     fun isLocalProfile(): Boolean = _isLocalProfile.value
-    fun isSmbProfile(): Boolean = _isSmbProfile.value
 
     /** True when the local file browser needs MANAGE_EXTERNAL_STORAGE permission. */
     val needsStoragePermission: Boolean
         get() = _isLocalProfile.value &&
             android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R &&
             !android.os.Environment.isExternalStorageManager()
-
 
     fun downloadFile(entry: SftpEntry, destinationUri: Uri) {
         val profileId = _activeProfileId.value ?: return
@@ -1605,30 +1281,9 @@ class SftpViewModel @Inject constructor(
                         ?: throw IllegalStateException("Cannot open output stream")
                 }
                 outputStream.use { out ->
-                    if (_isRcloneProfile.value) {
-                        withContext(Dispatchers.IO) {
-                            val remote = activeRcloneRemote ?: throw IllegalStateException("Rclone not connected")
-                            val tempFile = java.io.File(appContext.cacheDir, "rclone_dl_${entry.name}")
-                            try {
-                                rcloneClient.copyFile(remote, entry.path, tempFile.parent!!, tempFile.name)
-                                tempFile.inputStream().use { it.copyTo(out) }
-                                _transferProgress.value = TransferProgress(entry.name, entry.size, entry.size)
-                            } finally {
-                                tempFile.delete()
-                            }
-                        }
-                    } else if (_isSmbProfile.value) {
-                        withContext(Dispatchers.IO) {
-                            val client = activeSmbClient ?: throw IllegalStateException("SMB not connected")
-                            client.download(entry.path, out) { transferred, total ->
-                                _transferProgress.value = TransferProgress(entry.name, total, transferred)
-                            }
-                        }
-                    } else {
-                        val transport = currentSshTransport() ?: throw IllegalStateException("Not connected")
-                        transport.download(entry.path, out, entry.size) { transferred, total ->
-                            _transferProgress.value = TransferProgress(entry.name, total, transferred)
-                        }
+                    val transport = currentSshTransport() ?: throw IllegalStateException("Not connected")
+                    transport.download(entry.path, out, entry.size) { transferred, total ->
+                        _transferProgress.value = TransferProgress(entry.name, total, transferred)
                     }
                 }
                 _lastDownload.value = DownloadResult(entry.name, destinationUri)
@@ -1646,14 +1301,12 @@ class SftpViewModel @Inject constructor(
     /**
      * Transcode a media file with FFmpeg and save the result to Downloads.
      *
-     * For **rclone** profiles the default behaviour is to stream the file
-     * over HTTP via the rclone media server (fast start, no temp file).
-     * Pass [downloadFirst] = true to force the legacy download-then-process
-     * path — useful for offline conversion or when you want the bytes cached
-     * locally for subsequent conversions.
+     * For remote (SFTP) profiles the file is streamed over the loopback HTTP
+     * bridge by default; pass [downloadFirst] = true to force the
+     * download-then-process path — useful for offline conversion or when you
+     * want the bytes cached locally for subsequent conversions.
      *
-     * For **SFTP/SMB** the file is always downloaded to cache first (no HTTP
-     * serve equivalent). For **local** files the on-disk path is used directly.
+     * For **local** files the on-disk path is used directly.
      */
     fun convertFile(
         entry: SftpEntry,
@@ -1679,35 +1332,11 @@ class SftpViewModel @Inject constructor(
                 _loading.value = true
 
                 // Phase 1: Resolve the ffmpeg input — either a local path or an
-                // http:// URL. Only SFTP/SMB and user-forced rclone downloads
-                // produce a temp cache file here.
+                // http:// URL. Only a user-forced download produces a temp
+                // cache file here.
                 val ffmpegInput: String
                 if (_isLocalProfile.value) {
                     ffmpegInput = entry.path
-                } else if (_isRcloneProfile.value && !downloadFirst) {
-                    // Stream via the rclone HTTP media server — no bulk download.
-                    // ffmpeg reads via Range requests, rclone's VFS disk cache
-                    // handles the chunking.
-                    val port = ensureMediaServer()
-                    val encodedPath = entry.path
-                        .trimStart('/')
-                        .split('/')
-                        .joinToString("/") { java.net.URLEncoder.encode(it, "UTF-8").replace("+", "%20") }
-                    ffmpegInput = "http://127.0.0.1:$port/$encodedPath"
-                    Log.d(TAG, "convertFile: streaming rclone via $ffmpegInput")
-                } else if (_isSmbProfile.value && !downloadFirst) {
-                    // Stream SMB via the loopback bridge — ffmpeg reads over Range
-                    // requests instead of pre-downloading the whole file (VISION §2).
-                    val port = withContext(Dispatchers.IO) { sftpStreamServer.start() }
-                    val urlPath = sftpStreamServer.publish(
-                        path = entry.path,
-                        size = entry.size,
-                        contentType = guessContentType(entry.name),
-                        opener = smbOpener(entry.path),
-                        concurrentSafe = true,
-                    )
-                    ffmpegInput = "http://127.0.0.1:$port$urlPath"
-                    Log.d(TAG, "convertFile: streaming SMB via $ffmpegInput")
                 } else if (!downloadFirst) {
                     // SFTP — stream via the loopback bridge too (VISION §2). The
                     // download path below remains the downloadFirst opt-in for a
@@ -1722,28 +1351,16 @@ class SftpViewModel @Inject constructor(
                     ffmpegInput = "http://127.0.0.1:$port$urlPath"
                     Log.d(TAG, "convertFile: streaming SFTP via $ffmpegInput")
                 } else {
-                    // rclone/SFTP/SMB with downloadFirst=true — pull the whole
-                    // file into cache, then hand the path to ffmpeg.
+                    // downloadFirst=true — pull the whole file into cache, then
+                    // hand the path to ffmpeg.
                     val dlLabel = "\u2B07 Downloading ${entry.name}"
                     _transferProgress.value = TransferProgress(dlLabel, entry.size, 0)
                     val cacheInput = java.io.File(appContext.cacheDir, "ffmpeg_in_${entry.name}")
                     withContext(Dispatchers.IO) {
                         cacheInput.outputStream().use { out ->
-                            if (_isRcloneProfile.value) {
-                                val remote = activeRcloneRemote ?: throw IllegalStateException("Rclone not connected")
-                                _transferProgress.value = TransferProgress(dlLabel, 0, 0)
-                                rcloneClient.copyFile(remote, entry.path, cacheInput.parent!!, cacheInput.name)
-                                _transferProgress.value = TransferProgress(dlLabel, entry.size, entry.size)
-                            } else if (_isSmbProfile.value) {
-                                val client = activeSmbClient ?: throw IllegalStateException("SMB not connected")
-                                client.download(entry.path, out) { transferred, total ->
-                                    _transferProgress.value = TransferProgress(dlLabel, total, transferred)
-                                }
-                            } else {
-                                val session = getOrOpenSession(profileId) ?: throw IllegalStateException("Not connected")
-                                session.download(entry.path, out) { transferred, total ->
-                                    _transferProgress.value = TransferProgress(dlLabel, total, transferred)
-                                }
+                            val session = getOrOpenSession(profileId) ?: throw IllegalStateException("Not connected")
+                            session.download(entry.path, out) { transferred, total ->
+                                _transferProgress.value = TransferProgress(dlLabel, total, transferred)
                             }
                         }
                     }
@@ -1871,34 +1488,6 @@ class SftpViewModel @Inject constructor(
                             _isLocalProfile.value -> {
                                 withContext(Dispatchers.IO) {
                                     cacheOutput.copyTo(java.io.File(destPath), overwrite = true)
-                                }
-                                sourceDir
-                            }
-                            _isRcloneProfile.value -> {
-                                val remote = activeRcloneRemote
-                                    ?: throw IllegalStateException("Rclone not connected")
-                                val uploadLabel = "\u2B06 Uploading $outName"
-                                _transferProgress.value = TransferProgress(uploadLabel, 0, 0)
-                                withContext(Dispatchers.IO) {
-                                    // rclone copyFile: local-abs-dir + filename -> remote + path
-                                    rcloneClient.copyFile(
-                                        cacheOutput.parent!!, cacheOutput.name,
-                                        remote, destPath.trimStart('/'),
-                                    )
-                                }
-                                "$remote:$sourceDir"
-                            }
-                            _isSmbProfile.value -> {
-                                val client = activeSmbClient
-                                    ?: throw IllegalStateException("SMB not connected")
-                                val uploadLabel = "\u2B06 Uploading $outName"
-                                _transferProgress.value = TransferProgress(uploadLabel, cacheOutput.length(), 0)
-                                withContext(Dispatchers.IO) {
-                                    cacheOutput.inputStream().use { input ->
-                                        client.upload(input, destPath, cacheOutput.length()) { transferred, total ->
-                                            _transferProgress.value = TransferProgress(uploadLabel, total, transferred)
-                                        }
-                                    }
                                 }
                                 sourceDir
                             }
@@ -2043,18 +1632,6 @@ class SftpViewModel @Inject constructor(
         _transferProgress.value = TransferProgress(label, entry.size, 0)
         withContext(Dispatchers.IO) {
             when {
-                _isRcloneProfile.value -> {
-                    val remote = activeRcloneRemote ?: throw IllegalStateException("Rclone not connected")
-                    rcloneClient.copyFile(remote, entry.path, cacheTarget.parent!!, cacheTarget.name)
-                }
-                _isSmbProfile.value -> {
-                    val client = activeSmbClient ?: throw IllegalStateException("SMB not connected")
-                    cacheTarget.outputStream().use { out ->
-                        client.download(entry.path, out) { transferred, total ->
-                            _transferProgress.value = TransferProgress(label, total, transferred)
-                        }
-                    }
-                }
                 else -> {
                     val session = getOrOpenSession(profileId) ?: throw IllegalStateException("Not connected")
                     cacheTarget.outputStream().use { out ->
@@ -2078,25 +1655,6 @@ class SftpViewModel @Inject constructor(
         when {
             _isLocalProfile.value -> withContext(Dispatchers.IO) {
                 cacheFile.copyTo(java.io.File(destPath), overwrite = true)
-            }
-            _isRcloneProfile.value -> {
-                val remote = activeRcloneRemote ?: throw IllegalStateException("Rclone not connected")
-                _transferProgress.value = TransferProgress(label, 0, 0)
-                withContext(Dispatchers.IO) {
-                    rcloneClient.copyFile(cacheFile.parent!!, cacheFile.name, remote, destPath.trimStart('/'))
-                }
-            }
-            _isSmbProfile.value -> {
-                val client = activeSmbClient ?: throw IllegalStateException("SMB not connected")
-                val len = cacheFile.length()
-                _transferProgress.value = TransferProgress(label, len, 0)
-                withContext(Dispatchers.IO) {
-                    cacheFile.inputStream().use { input ->
-                        client.upload(input, destPath, len) { transferred, total ->
-                            _transferProgress.value = TransferProgress(label, total, transferred)
-                        }
-                    }
-                }
             }
             else -> {
                 val session = getOrOpenSession(profileId) ?: throw IllegalStateException("Not connected")
@@ -2155,32 +1713,11 @@ class SftpViewModel @Inject constructor(
      * Resolve an [entry] to an ffmpeg-readable input string without
      * downloading the whole file:
      *  - local → absolute path
-     *  - rclone → loopback HTTP URL via ensureMediaServer
      *  - SFTP → loopback HTTP URL via sftpStreamServer
-     *  - SMB → loopback HTTP URL via sftpStreamServer (smbOpener) — VISION §2
      */
     private suspend fun resolveStreamInput(entry: SftpEntry): String {
         return when {
             _isLocalProfile.value -> entry.path
-            _isRcloneProfile.value -> {
-                val port = ensureMediaServer()
-                val encodedPath = entry.path
-                    .trimStart('/')
-                    .split('/')
-                    .joinToString("/") { java.net.URLEncoder.encode(it, "UTF-8").replace("+", "%20") }
-                "http://127.0.0.1:$port/$encodedPath"
-            }
-            _isSmbProfile.value -> {
-                val port = withContext(Dispatchers.IO) { sftpStreamServer.start() }
-                val urlPath = sftpStreamServer.publish(
-                    path = entry.path,
-                    size = entry.size,
-                    contentType = guessContentType(entry.name),
-                    opener = smbOpener(entry.path),
-                    concurrentSafe = true,
-                )
-                "http://127.0.0.1:$port$urlPath"
-            }
             else -> {
                 val profileId = _activeProfileId.value
                     ?: throw IllegalStateException("No active profile")
@@ -2236,33 +1773,6 @@ class SftpViewModel @Inject constructor(
                     _isLocalProfile.value -> {
                         withContext(Dispatchers.IO) {
                             cacheOutput.copyTo(java.io.File(destPath), overwrite = true)
-                        }
-                        sourceDir
-                    }
-                    _isRcloneProfile.value -> {
-                        val remote = activeRcloneRemote
-                            ?: throw IllegalStateException("Rclone not connected")
-                        val uploadLabel = "\u2B06 Uploading $outName"
-                        _transferProgress.value = TransferProgress(uploadLabel, 0, 0)
-                        withContext(Dispatchers.IO) {
-                            rcloneClient.copyFile(
-                                cacheOutput.parent!!, cacheOutput.name,
-                                remote, destPath.trimStart('/'),
-                            )
-                        }
-                        "$remote:$sourceDir"
-                    }
-                    _isSmbProfile.value -> {
-                        val client = activeSmbClient
-                            ?: throw IllegalStateException("SMB not connected")
-                        val uploadLabel = "\u2B06 Uploading $outName"
-                        _transferProgress.value = TransferProgress(uploadLabel, cacheOutput.length(), 0)
-                        withContext(Dispatchers.IO) {
-                            cacheOutput.inputStream().use { input ->
-                                client.upload(input, destPath, cacheOutput.length()) { transferred, total ->
-                                    _transferProgress.value = TransferProgress(uploadLabel, total, transferred)
-                                }
-                            }
                         }
                         sourceDir
                     }
@@ -2642,11 +2152,8 @@ class SftpViewModel @Inject constructor(
      * Start an HLS stream for the given file and open it in a browser.
      *
      * - **Local** files: ffmpeg reads the path directly.
-     * - **Rclone** files: ffmpeg reads via the rclone HTTP media server
-     *   (Range requests, VFS disk cache) — no bulk download.
      * - **SFTP** files: ffmpeg reads via the loopback [sftpStreamServer]
      *   which fronts `ChannelSftp.get(path, skip)` with HTTP Range support.
-     * - **SMB**: not supported yet (no HTTP bridge).
      */
     /**
      * Play a media file in the device's browser via loopback-only HLS.
@@ -2655,7 +2162,7 @@ class SftpViewModel @Inject constructor(
     fun playInBrowser(entry: SftpEntry) = streamFile(entry, localOnly = true)
 
     fun streamFile(entry: SftpEntry, localOnly: Boolean = false) {
-        Log.w(TAG, "streamFile: ${entry.path} localOnly=$localOnly isLocal=${_isLocalProfile.value} isRclone=${_isRcloneProfile.value} isSmb=${_isSmbProfile.value} ffmpegAvail=${ffmpegExecutor.isAvailable()}")
+        Log.w(TAG, "streamFile: ${entry.path} localOnly=$localOnly isLocal=${_isLocalProfile.value} ffmpegAvail=${ffmpegExecutor.isAvailable()}")
         viewModelScope.launch {
             val logBuffer = StringBuilder()
             val startTime = System.currentTimeMillis()
@@ -2665,7 +2172,7 @@ class SftpViewModel @Inject constructor(
             }
             try {
                 // Resolve the ffmpeg input path or URL — one path for every
-                // backend, including SMB via the loopback bridge (VISION §2).
+                // backend via the loopback bridge (VISION §2).
                 val streamInput: String = resolveStreamInput(entry)
                 Log.w(TAG, "Starting HLS stream for $streamInput (localOnly=$localOnly)")
                 appendLog("streamFile: input=$streamInput localOnly=$localOnly")
@@ -2730,11 +2237,8 @@ class SftpViewModel @Inject constructor(
      * Probe the duration of a media file and set up the preview input source.
      *
      * For **local files**: uses the file path directly.
-     * For **rclone**: starts (or reuses) the rclone media HTTP server and
-     *   passes the `http://127.0.0.1:port/...` URL to ffmpeg. Rclone's VFS
-     *   disk cache handles chunked Range reads so we avoid downloading the
-     *   whole file just to show a preview frame.
-     * For **SFTP/SMB**: still downloads to cache first (no HTTP stream option).
+     * For **SFTP**: streams via the loopback HTTP bridge so ffmpeg can use
+     * Range requests instead of downloading the whole file.
      *
      * ffmpeg treats file paths and http:// URLs interchangeably via its
      * protocol layer, so downstream preview generation is identical.
@@ -2752,35 +2256,6 @@ class SftpViewModel @Inject constructor(
                     _isLocalProfile.value -> {
                         inputSource = entry.path
                         isRemote = false
-                    }
-                    _isRcloneProfile.value -> {
-                        // Start the rclone media HTTP server on demand and
-                        // hand ffmpeg the URL directly — no bulk download.
-                        val port = ensureMediaServer()
-                        // Encode each path segment but leave slashes intact
-                        val encodedPath = entry.path
-                            .trimStart('/')
-                            .split('/')
-                            .joinToString("/") { java.net.URLEncoder.encode(it, "UTF-8").replace("+", "%20") }
-                        inputSource = "http://127.0.0.1:$port/$encodedPath"
-                        isRemote = true
-                        Log.d(TAG, "preparePreview: using rclone HTTP URL $inputSource")
-                    }
-                    _isSmbProfile.value -> {
-                        // SMB — stream via the same loopback HTTP bridge as SFTP
-                        // so ffmpeg uses Range requests (probe reads just the moov
-                        // atom) instead of downloading the whole file (VISION §2).
-                        val port = withContext(Dispatchers.IO) { sftpStreamServer.start() }
-                        val urlPath = sftpStreamServer.publish(
-                            path = entry.path,
-                            size = entry.size,
-                            contentType = guessContentType(entry.name),
-                            opener = smbOpener(entry.path),
-                            concurrentSafe = true,
-                        )
-                        inputSource = "http://127.0.0.1:$port$urlPath"
-                        isRemote = true
-                        Log.d(TAG, "preparePreview: using SMB HTTP URL $inputSource")
                     }
                     else -> {
                         // SFTP — stream via loopback HTTP so ffmpeg uses Range
@@ -2844,7 +2319,7 @@ class SftpViewModel @Inject constructor(
 
     /**
      * Generate a single preview frame with the current filters at the given seek position.
-     * Fast for local files; for rclone URLs this triggers a Range-request fetch
+     * Fast for local files; for remote URLs this triggers a Range-request fetch
      * that completes in a few seconds (the moov atom and one keyframe).
      */
     fun previewFrame(
@@ -3026,26 +2501,9 @@ class SftpViewModel @Inject constructor(
                     val inputStream = appContext.contentResolver.openInputStream(sourceUri)
                         ?: throw IllegalStateException("Cannot open input stream")
                     inputStream.use { input ->
-                        if (_isRcloneProfile.value) {
-                            val remote = activeRcloneRemote ?: throw IllegalStateException("Rclone not connected")
-                            val tempFile = java.io.File(appContext.cacheDir, "rclone_ul_$fileName")
-                            try {
-                                tempFile.outputStream().use { input.copyTo(it) }
-                                rcloneClient.copyFile(tempFile.parent!!, tempFile.name, remote, destPath)
-                                _transferProgress.value = TransferProgress(fileName, fileSize, fileSize)
-                            } finally {
-                                tempFile.delete()
-                            }
-                        } else if (_isSmbProfile.value) {
-                            val client = activeSmbClient ?: throw IllegalStateException("SMB not connected")
-                            client.upload(input, destPath, fileSize) { transferred, total ->
-                                _transferProgress.value = TransferProgress(fileName, total, transferred)
-                            }
-                        } else {
-                            val transport = currentSshTransport() ?: throw IllegalStateException("Not connected")
-                            transport.upload(input, fileSize, destPath) { transferred, total ->
-                                _transferProgress.value = TransferProgress(fileName, total, transferred)
-                            }
+                        val transport = currentSshTransport() ?: throw IllegalStateException("Not connected")
+                        transport.upload(input, fileSize, destPath) { transferred, total ->
+                            _transferProgress.value = TransferProgress(fileName, total, transferred)
                         }
                     }
                     Log.d(TAG, "Upload complete: '$destPath'")
@@ -3170,7 +2628,7 @@ class SftpViewModel @Inject constructor(
         // to human-readable names asynchronously via a remote `ls -ld`
         // so the dialog first appears with "1000:1000" and then swaps in
         // "ian:ian" once the lookup returns.
-        if (looksNumeric(seed) && !_isLocalProfile.value && !_isRcloneProfile.value && !_isSmbProfile.value) {
+        if (looksNumeric(seed) && !_isLocalProfile.value) {
             viewModelScope.launch {
                 resolveOwnerName(entry.path)?.let { resolved ->
                     if (_chownRequest.value?.entry == entry) {
@@ -3293,8 +2751,7 @@ class SftpViewModel @Inject constructor(
     }
 
     /**
-     * Chmod every selected entry to [mode]. Skips backends that do not
-     * carry POSIX permissions (SMB, rclone) and reports how many were
+     * Chmod every selected entry to [mode]. Reports how many were
      * applied vs skipped. Directories are chmod'd non-recursively —
      * entries inside a selected directory keep their existing modes.
      */
@@ -3407,10 +2864,6 @@ class SftpViewModel @Inject constructor(
             _isLocalProfile.value -> withContext(Dispatchers.IO) {
                 android.system.Os.chmod(entry.path, mode)
             }
-            _isRcloneProfile.value ->
-                throw UnsupportedOperationException("chmod not supported on rclone remotes")
-            _isSmbProfile.value ->
-                throw UnsupportedOperationException("chmod not supported on SMB shares")
             else -> {
                 val transport = currentSshTransport() ?: throw IllegalStateException("Not connected")
                 transport.chmod(entry.path, mode)
@@ -3419,92 +2872,22 @@ class SftpViewModel @Inject constructor(
     }
 
     /** Whether the active backend understands POSIX permissions. */
-    fun supportsPermissions(): Boolean =
-        _isLocalProfile.value || (!_isRcloneProfile.value && !_isSmbProfile.value)
+    fun supportsPermissions(): Boolean = true
 
     /**
      * Whether the active backend supports changing ownership. Same set
      * as [supportsPermissions] minus local files — an unrooted Android
      * app can't chown outside its own UID.
      */
-    fun supportsOwnership(): Boolean =
-        !_isLocalProfile.value && !_isRcloneProfile.value && !_isSmbProfile.value
+    fun supportsOwnership(): Boolean = !_isLocalProfile.value
 
     private suspend fun chownOne(entry: SftpEntry, owner: String) {
         when {
             _isLocalProfile.value ->
                 throw UnsupportedOperationException("chown not supported on local files")
-            _isRcloneProfile.value ->
-                throw UnsupportedOperationException("chown not supported on rclone remotes")
-            _isSmbProfile.value ->
-                throw UnsupportedOperationException("chown not supported on SMB shares")
             else -> {
                 val transport = currentSshTransport() ?: throw IllegalStateException("Not connected")
                 transport.chown(entry.path, owner)
-            }
-        }
-    }
-
-    fun sharePublicLink(entry: SftpEntry) {
-        viewModelScope.launch {
-            try {
-                val remote = activeRcloneRemote ?: return@launch
-                val url = withContext(Dispatchers.IO) { rcloneClient.publicLink(remote, entry.path) }
-                val clip = android.content.ClipData.newPlainText("link", url)
-                (appContext.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager)
-                    .setPrimaryClip(clip)
-                _message.value = "Link copied"
-            } catch (e: Exception) {
-                Log.e(TAG, "Public link failed", e)
-                _error.value = "Share link not supported for this remote"
-            }
-        }
-    }
-
-    private var folderSizeJob: kotlinx.coroutines.Job? = null
-
-    fun calculateFolderSize(entry: SftpEntry) {
-        folderSizeJob?.cancel()
-        folderSizeJob = viewModelScope.launch {
-            try {
-                _folderSizeLoading.value = true
-                val remote = activeRcloneRemote ?: return@launch
-                val size = withContext(Dispatchers.IO) { rcloneClient.directorySize(remote, entry.path) }
-                val formattedSize = android.text.format.Formatter.formatFileSize(appContext, size.bytes)
-                _folderSizeResult.value = "${entry.name}: $formattedSize (${size.count} files)"
-            } catch (e: kotlinx.coroutines.CancellationException) {
-                // User cancelled
-            } catch (e: Exception) {
-                Log.e(TAG, "Folder size failed", e)
-                _error.value = "Size calculation failed: ${e.message}"
-            } finally {
-                _folderSizeLoading.value = false
-            }
-        }
-    }
-
-    fun cancelFolderSize() {
-        folderSizeJob?.cancel()
-        folderSizeJob = null
-        _folderSizeLoading.value = false
-    }
-
-    fun toggleDlnaServer() {
-        viewModelScope.launch {
-            try {
-                if (_dlnaServerRunning.value) {
-                    withContext(Dispatchers.IO) { rcloneClient.stopDlnaServer() }
-                    _dlnaServerRunning.value = false
-                    _message.value = "DLNA server stopped"
-                } else {
-                    val remote = activeRcloneRemote ?: return@launch
-                    withContext(Dispatchers.IO) { rcloneClient.startDlnaServer(remote) }
-                    _dlnaServerRunning.value = true
-                    _message.value = "DLNA server started"
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "DLNA toggle failed", e)
-                _error.value = "DLNA server failed: ${e.message}"
             }
         }
     }
@@ -3579,12 +2962,7 @@ class SftpViewModel @Inject constructor(
                 // Route through ensureDestParent(), the mkdir-p helper the
                 // copy/paste path already uses, once per directory rather than
                 // once per file.
-                val destType = when {
-                    _isRcloneProfile.value -> BackendType.RCLONE
-                    _isSmbProfile.value -> BackendType.SMB
-                    _isSafProfile.value -> BackendType.SAF
-                    else -> BackendType.SFTP
-                }
+                val destType = BackendType.SFTP
                 val ensuredDirs = mutableSetOf<String>()
 
                 for (item in files) {
@@ -3595,7 +2973,7 @@ class SftpViewModel @Inject constructor(
 
                     if (ensuredDirs.add(destDir)) {
                         withContext(Dispatchers.IO) {
-                            ensureDestParent(destType, profileId, activeRcloneRemote, destPath)
+                            ensureDestParent(destType, profileId, destPath)
                         }
                     }
 
@@ -3606,34 +2984,9 @@ class SftpViewModel @Inject constructor(
                     )
 
                     withContext(Dispatchers.IO) {
-                        if (_isRcloneProfile.value) {
-                            val remote = activeRcloneRemote ?: throw IllegalStateException("Rclone not connected")
-                            // Parent dirs already created by ensureDestParent above.
-                            // Copy via temp file
-                            val tempFile = java.io.File(appContext.cacheDir, "rclone_ul_$fileName")
-                            try {
-                                appContext.contentResolver.openInputStream(item.uri)?.use { input ->
-                                    tempFile.outputStream().use { input.copyTo(it) }
-                                }
-                                rcloneClient.copyFile(tempFile.parent!!, tempFile.name, remote, destPath)
-                            } finally {
-                                tempFile.delete()
-                            }
-                        } else if (_isSmbProfile.value) {
-                            val client = activeSmbClient ?: throw IllegalStateException("SMB not connected")
-                            appContext.contentResolver.openInputStream(item.uri)?.use { input ->
-                                client.upload(input, destPath, fileSize) { _, _ -> }
-                            }
-                        } else if (_isSafProfile.value) {
-                            val saf = safBackendFor(profileId) ?: throw IllegalStateException("SAF folder unavailable")
-                            appContext.contentResolver.openInputStream(item.uri)?.use { input ->
-                                saf.writeStream(destPath, input)
-                            }
-                        } else {
-                            val session = getOrOpenSession(profileId) ?: throw IllegalStateException("Not connected")
-                            appContext.contentResolver.openInputStream(item.uri)?.use { input ->
-                                session.upload(input, fileSize, destPath) { _, _ -> }
-                            }
+                        val session = getOrOpenSession(profileId) ?: throw IllegalStateException("Not connected")
+                        appContext.contentResolver.openInputStream(item.uri)?.use { input ->
+                            session.upload(input, fileSize, destPath) { _, _ -> }
                         }
                     }
 
@@ -3725,32 +3078,15 @@ class SftpViewModel @Inject constructor(
 
     /**
      * Resolve a [FileBackend] for a paste destination described by queue-row
-     * coordinates. Mirrors the legacy per-backend dispatch: LOCAL needs no
-     * session, SFTP reuses/opens the cached session (with mosh/ET fallback),
-     * SMB uses the active client, rclone the row's remote.
+     * coordinates: LOCAL needs no session, SFTP reuses/opens the cached
+     * session (with mosh/ET fallback).
      */
     private suspend fun destFileBackend(
         destType: BackendType,
         destProfileId: String,
-        destRemote: String?,
     ): FileBackend? = when (destType) {
         BackendType.LOCAL -> LocalFileBackend(appContext)
         BackendType.SFTP -> getOrOpenSession(destProfileId)?.let { s -> SftpTransport({ s }) }
-        BackendType.SMB -> activeSmbClient?.let { SmbFileBackend(it) }
-        BackendType.RCLONE -> destRemote?.let { RcloneFileBackend(rcloneClient, it, appContext) }
-        BackendType.SAF -> safBackendFor(destProfileId)
-    }
-
-    /**
-     * Build a [SafFileBackend] from a profile's persisted tree grant (#415
-     * phase 2). Constructed per-call like [SftpTransport] — the doc-id cache is
-     * per-instance, so a fresh backend just re-walks lazily. Returns null when
-     * the profile is missing or carries no `safTreeUri` (e.g. a restore-to-new
-     * -device dead grant).
-     */
-    private suspend fun safBackendFor(profileId: String): SafFileBackend? {
-        val uriStr = repository.getById(profileId)?.safTreeUri ?: return null
-        return SafFileBackend(appContext, Uri.parse(uriStr))
     }
 
     /**
@@ -3764,10 +3100,9 @@ class SftpViewModel @Inject constructor(
     private suspend fun probeDestFile(
         destType: BackendType,
         destProfileId: String,
-        destRemote: String?,
         destPath: String,
     ): Long? = try {
-        destFileBackend(destType, destProfileId, destRemote)
+        destFileBackend(destType, destProfileId)
             ?.stat(destPath)
             ?.takeIf { !it.isDirectory }
             ?.size
@@ -3784,12 +3119,11 @@ class SftpViewModel @Inject constructor(
     private suspend fun findUniqueName(
         destType: BackendType,
         destProfileId: String,
-        destRemote: String?,
         destPath: String,
     ): String {
         for (i in 1..999) {
             val candidate = uniqueNameCandidate(destPath, i)
-            if (probeDestFile(destType, destProfileId, destRemote, candidate) == null) return candidate
+            if (probeDestFile(destType, destProfileId, candidate) == null) return candidate
         }
         return destPath
     }
@@ -3806,11 +3140,10 @@ class SftpViewModel @Inject constructor(
         entry: SftpEntry,
         destType: BackendType,
         destProfileId: String,
-        destRemote: String?,
         destPath: String,
     ): Pair<ConflictAction, Long>? {
         val destSize = withContext(Dispatchers.IO) {
-            probeDestFile(destType, destProfileId, destRemote, destPath)
+            probeDestFile(destType, destProfileId, destPath)
         } ?: return null
 
         batchResolution?.let { return it to destSize }
@@ -3864,7 +3197,7 @@ class SftpViewModel @Inject constructor(
      * paste walker. LOCAL stays on raw [java.io.File] listing —
      * [LocalFileBackend.list] falls back to the synthetic storage-roots
      * view for unreadable paths, which must never leak into a recursive
-     * copy. An unavailable session/client skips the subtree (empty list),
+     * copy. An unavailable session skips the subtree (empty list),
      * matching the legacy walker.
      */
     private fun sourceLister(cb: FileClipboard): suspend (String) -> List<SftpEntry> =
@@ -3874,19 +3207,9 @@ class SftpViewModel @Inject constructor(
                     SftpEntry(f.name, f.absolutePath, f.isDirectory, if (f.isDirectory) 0 else f.length(), f.lastModified() / 1000, "")
                 } ?: emptyList()
             }
-            BackendType.RCLONE -> { path: String ->
-                RcloneFileBackend(rcloneClient, cb.sourceRemoteName!!, appContext).list(path)
-            }
             BackendType.SFTP -> { path: String ->
                 val session = cb.sourceSftpSession ?: sessionManager.openSftpSession(cb.sourceProfileId)
                 session?.let { SftpTransport({ it }).list(path) } ?: emptyList()
-            }
-            BackendType.SMB -> { path: String ->
-                val client = cb.sourceSmbClient ?: smbSessionManager.getClientForProfile(cb.sourceProfileId)
-                client?.let { SmbFileBackend(it).list(path) } ?: emptyList()
-            }
-            BackendType.SAF -> { path: String ->
-                safBackendFor(cb.sourceProfileId)?.list(path) ?: emptyList()
             }
         }
 
@@ -3919,13 +3242,12 @@ class SftpViewModel @Inject constructor(
     private suspend fun ensureDestParent(
         destType: BackendType,
         destProfileId: String,
-        destRemote: String?,
         destPath: String,
     ) {
         val parent = destPath.substringBeforeLast('/', "").takeIf { it.isNotEmpty() && it != "/" }
             ?: return
         try {
-            destFileBackend(destType, destProfileId, destRemote)?.mkdir(parent)
+            destFileBackend(destType, destProfileId)?.mkdir(parent)
         } catch (e: Exception) {
             Log.w(TAG, "ensureDestParent failed for $parent: ${e.message}")
         }
@@ -3940,23 +3262,14 @@ class SftpViewModel @Inject constructor(
     private fun deleteSourceLeaf(
         sourceType: BackendType,
         sourceProfileId: String,
-        sourceRemoteName: String?,
         sourcePath: String,
     ) {
         try {
             when (sourceType) {
                 BackendType.LOCAL -> java.io.File(sourcePath).delete()
-                BackendType.RCLONE -> sourceRemoteName?.let { rcloneClient.deleteFile(it, sourcePath) }
                 BackendType.SFTP -> {
                     val session = sessionManager.openSftpSession(sourceProfileId)
                     if (session != null) kotlinx.coroutines.runBlocking { session.rm(sourcePath) }
-                }
-                BackendType.SMB -> {
-                    val client = smbSessionManager.getClientForProfile(sourceProfileId)
-                    client?.delete(sourcePath, isDirectory = false)
-                }
-                BackendType.SAF -> kotlinx.coroutines.runBlocking {
-                    safBackendFor(sourceProfileId)?.delete(sourcePath, isDirectory = false)
                 }
             }
         } catch (e: Exception) {
@@ -3969,24 +3282,9 @@ class SftpViewModel @Inject constructor(
         val destProfileId = _activeProfileId.value ?: return
         val destPath = _currentPath.value
         Log.d(TAG, "pasteFromClipboard: ${cb.entries.size} entries from ${cb.sourceBackendType}(${cb.sourceProfileId}) " +
-            "to dest=$destProfileId, destPath=$destPath, isRclone=${_isRcloneProfile.value}, isSmb=${_isSmbProfile.value}")
+            "to dest=$destProfileId, destPath=$destPath")
 
-        val destType = when {
-            _isLocalProfile.value -> BackendType.LOCAL
-            _isRcloneProfile.value -> BackendType.RCLONE
-            _isSmbProfile.value -> BackendType.SMB
-            _isSafProfile.value -> BackendType.SAF
-            else -> BackendType.SFTP
-        }
-        val destRemote = activeRcloneRemote
-
-        // Same-remote rclone: stays on the server-side copyFile fast path
-        // (no bytes flow through the phone, so there's nothing meaningful to
-        // resume and queue persistence adds latency for free).
-        if (cb.sourceBackendType == BackendType.RCLONE && destType == BackendType.RCLONE) {
-            viewModelScope.launch { pasteFromClipboardRcloneToRclone(cb, destProfileId, destRemote, destPath) }
-            return
-        }
+        val destType = if (_isLocalProfile.value) BackendType.LOCAL else BackendType.SFTP
 
         viewModelScope.launch {
             try {
@@ -4018,7 +3316,7 @@ class SftpViewModel @Inject constructor(
                         continue
                     }
                     val virtualEntry = SftpEntry(leaf.sourceName, leaf.sourcePath, false, leaf.size, 0, "")
-                    val check = resolveConflictIfExists(virtualEntry, destType, destProfileId, destRemote, leaf.destPath)
+                    val check = resolveConflictIfExists(virtualEntry, destType, destProfileId, leaf.destPath)
                     if (check == null) {
                         resolved.add(leaf)
                         actions.add(ConflictAction.OVERWRITE)
@@ -4030,7 +3328,7 @@ class SftpViewModel @Inject constructor(
                         ConflictAction.SKIP -> skipped++
                         ConflictAction.RENAME -> {
                             val newPath = withContext(Dispatchers.IO) {
-                                findUniqueName(destType, destProfileId, destRemote, leaf.destPath)
+                                findUniqueName(destType, destProfileId, leaf.destPath)
                             }
                             resolved.add(leaf.copy(destPath = newPath))
                             actions.add(ConflictAction.RENAME)
@@ -4054,13 +3352,13 @@ class SftpViewModel @Inject constructor(
                         indexInBatch = i,
                         sourceBackendType = cb.sourceBackendType.name,
                         sourceProfileId = cb.sourceProfileId,
-                        sourceRemoteName = cb.sourceRemoteName,
+                        sourceRemoteName = null,
                         sourcePath = leaf.sourcePath,
                         sourceName = leaf.sourceName,
                         sourceSize = leaf.size,
                         destBackendType = destType.name,
                         destProfileId = destProfileId,
-                        destRemote = destRemote,
+                        destRemote = null,
                         destPath = leaf.destPath,
                         isCut = cb.isCut,
                         conflictAction = actions[i].name,
@@ -4105,53 +3403,6 @@ class SftpViewModel @Inject constructor(
         }
     }
 
-    /** Same-remote rclone paste — unchanged server-side copy path. */
-    private suspend fun pasteFromClipboardRcloneToRclone(
-        cb: FileClipboard,
-        destProfileId: String,
-        destRemote: String?,
-        destPath: String,
-    ) {
-        try {
-            _loading.value = true
-            pasteInProgress.set(true)
-            pasteFileCount.set(0)
-            pasteTotalFiles.set(0)
-            acquirePasteWakeLock()
-            val total = withContext(Dispatchers.IO) { countPasteFiles(cb) }
-            pasteTotalFiles.set(total)
-            _transferProgress.value = TransferProgress(
-                if (total > 0) "Uploading 0 of $total…" else "Uploading…", 0, 0,
-            )
-            for (entry in cb.entries) {
-                val destEntryPath = destPath.trimEnd('/') + "/" + entry.name
-                withContext(Dispatchers.IO) {
-                    val srcRemote = cb.sourceRemoteName ?: throw IllegalStateException("No source remote")
-                    val dstRemote = destRemote ?: throw IllegalStateException("No dest remote")
-                    if (entry.isDirectory) {
-                        rcloneClient.mkdir(dstRemote, destEntryPath)
-                        copyRcloneDir(srcRemote, entry.path, dstRemote, destEntryPath)
-                    } else {
-                        beforePasteFile(entry.name, entry.size, 0)
-                        rcloneClient.copyFile(srcRemote, entry.path, dstRemote, destEntryPath)
-                    }
-                }
-                if (cb.isCut) withContext(Dispatchers.IO) { deleteSourceEntry(cb, entry) }
-            }
-            _clipboard.value = null
-            _message.value = "${if (cb.isCut) "Moved" else "Copied"} ${pasteFileCount.get()} files"
-            refresh()
-        } catch (e: Exception) {
-            Log.e(TAG, "rclone→rclone paste failed", e)
-            _error.value = "Paste failed: ${e.message}"
-        } finally {
-            pasteInProgress.set(false)
-            _loading.value = false
-            _transferProgress.value = null
-            releasePasteWakeLock()
-        }
-    }
-
     /**
      * Drive the persisted queue end-to-end. Called from both the initial
      * paste and [resumePasteQueue]. Continues across per-row failures — a
@@ -4179,7 +3430,6 @@ class SftpViewModel @Inject constructor(
             entries = emptyList(),
             sourceProfileId = row.sourceProfileId,
             sourceBackendType = sourceType,
-            sourceRemoteName = row.sourceRemoteName,
             isCut = row.isCut,
         )
         val virtualEntry = SftpEntry(
@@ -4193,13 +3443,13 @@ class SftpViewModel @Inject constructor(
         lastQueueRowBytesPersist = resumeFromByte
         var lastError: Throwable? = null
         try {
-            ensureDestParent(destType, row.destProfileId, row.destRemote, row.destPath)
+            ensureDestParent(destType, row.destProfileId, row.destPath)
             var attempt = 0
             while (true) {
                 try {
                     crossCopyFile(
                         virtualCb, virtualEntry,
-                        destType, row.destProfileId, row.destRemote,
+                        destType, row.destProfileId,
                         row.destPath, resumeFromByte,
                     )
                     break
@@ -4224,7 +3474,7 @@ class SftpViewModel @Inject constructor(
                 row.id, sh.haven.core.data.db.entities.PasteQueueEntry.STATUS_DONE, row.sourceSize, null,
             )
             if (row.isCut) {
-                deleteSourceLeaf(sourceType, row.sourceProfileId, row.sourceRemoteName, row.sourcePath)
+                deleteSourceLeaf(sourceType, row.sourceProfileId, row.sourcePath)
             }
         } catch (e: Exception) {
             Log.w(TAG, "Paste row ${row.id} failed permanently: ${e.message}")
@@ -4334,14 +3584,14 @@ class SftpViewModel @Inject constructor(
      * temporary duplicate) and especially wasteful when the source is on
      * an external volume like a USB SD card.
      *
-     * Slow path: for remote sources (SFTP / SMB / rclone) we still stage
+     * Slow path: for remote sources (SFTP) we still stage
      * through a cache file, because the source stream can't be held open
      * for an unbounded time while we open a destination channel and the
      * cached file lets us query size and reopen cleanly.
      */
     private suspend fun crossCopyFile(
         cb: FileClipboard, entry: SftpEntry,
-        destType: BackendType, destProfileId: String, destRemote: String?,
+        destType: BackendType, destProfileId: String,
         destPath: String,
         resumeFromByte: Long = 0,
     ) {
@@ -4365,12 +3615,6 @@ class SftpViewModel @Inject constructor(
                         label = label,
                     )
                 }
-                BackendType.RCLONE -> {
-                    // rclone's copyFile is opaque — we can't surface per-byte
-                    // progress, so leave the bar at the known size/0 set by
-                    // beforePasteFile.
-                    rcloneClient.copyFile(srcFile.parent!!, srcFile.name, destRemote!!, destPath)
-                }
                 BackendType.SFTP -> {
                     val session = getOrOpenSession(destProfileId) ?: throw IllegalStateException("SFTP not connected")
                     srcFile.inputStream().use { input ->
@@ -4385,24 +3629,6 @@ class SftpViewModel @Inject constructor(
                             mode = mode,
                             onBytes = sftpProgressCallback(label, total, resumeFromByte),
                         )
-                    }
-                }
-                BackendType.SMB -> {
-                    val client = activeSmbClient ?: throw IllegalStateException("SMB not connected")
-                    srcFile.inputStream().use { input ->
-                        client.upload(input, destPath, total) { transferred, max ->
-                            _transferProgress.value = TransferProgress(label, max, transferred)
-                            maybePersistQueueProgress(transferred)
-                        }
-                    }
-                }
-                BackendType.SAF -> {
-                    val saf = safBackendFor(destProfileId) ?: throw IllegalStateException("SAF folder unavailable")
-                    srcFile.inputStream().use { input ->
-                        saf.writeStream(destPath, input) { transferred ->
-                            _transferProgress.value = TransferProgress(label, total, transferred)
-                            maybePersistQueueProgress(transferred)
-                        }
                     }
                 }
             }
@@ -4421,10 +3647,6 @@ class SftpViewModel @Inject constructor(
                 BackendType.LOCAL -> {
                     // unreachable — handled by fast-path above
                 }
-                BackendType.RCLONE -> {
-                    val srcRemote = cb.sourceRemoteName!!
-                    rcloneClient.copyFile(srcRemote, entry.path, tempFile.parent!!, tempFile.name)
-                }
                 BackendType.SFTP -> {
                     val session = cb.sourceSftpSession
                         ?: sessionManager.openSftpSession(cb.sourceProfileId)
@@ -4435,37 +3657,6 @@ class SftpViewModel @Inject constructor(
                             output = out,
                             onBytes = sftpProgressCallback("\u2B07 $baseLabel", knownSize * 2, 0),
                         )
-                    }
-                }
-                BackendType.SMB -> {
-                    val client = cb.sourceSmbClient
-                        ?: smbSessionManager.getClientForProfile(cb.sourceProfileId)
-                        ?: throw IllegalStateException("SMB not connected")
-                    tempFile.outputStream().use { out ->
-                        client.download(entry.path, out) { transferred, max ->
-                            _transferProgress.value = TransferProgress(
-                                "\u2B07 $baseLabel",
-                                if (max > 0) max * 2 else knownSize * 2,
-                                transferred,
-                            )
-                        }
-                    }
-                }
-                BackendType.SAF -> {
-                    val saf = safBackendFor(cb.sourceProfileId)
-                        ?: throw IllegalStateException("SAF folder unavailable")
-                    saf.openInputStream(entry.path, 0).use { input ->
-                        tempFile.outputStream().use { out ->
-                            val buf = ByteArray(64 * 1024)
-                            var transferred = 0L
-                            while (true) {
-                                val n = input.read(buf)
-                                if (n < 0) break
-                                out.write(buf, 0, n)
-                                transferred += n
-                                _transferProgress.value = TransferProgress("\u2B07 $baseLabel", knownSize * 2, transferred)
-                            }
-                        }
                     }
                 }
             }
@@ -4490,9 +3681,6 @@ class SftpViewModel @Inject constructor(
                         label = "\u2B06 $baseLabel",
                     )
                 }
-                BackendType.RCLONE -> {
-                    rcloneClient.copyFile(tempFile.parent!!, tempFile.name, destRemote!!, destPath)
-                }
                 BackendType.SFTP -> {
                     val session = getOrOpenSession(destProfileId) ?: throw IllegalStateException("SFTP not connected")
                     tempFile.inputStream().use { input ->
@@ -4504,23 +3692,6 @@ class SftpViewModel @Inject constructor(
                             mode = mode,
                             onBytes = sftpProgressCallback("\u2B06 $baseLabel", downloaded * 2, downloaded),
                         )
-                    }
-                }
-                BackendType.SMB -> {
-                    val client = activeSmbClient ?: throw IllegalStateException("SMB not connected")
-                    tempFile.inputStream().use { input ->
-                        client.upload(input, destPath, downloaded) { transferred, _ ->
-                            _transferProgress.value = TransferProgress("\u2B06 $baseLabel", downloaded * 2, downloaded + transferred)
-                        }
-                    }
-                }
-                BackendType.SAF -> {
-                    val saf = safBackendFor(destProfileId) ?: throw IllegalStateException("SAF folder unavailable")
-                    tempFile.inputStream().use { input ->
-                        saf.writeStream(destPath, input) { transferred ->
-                            _transferProgress.value = TransferProgress("\u2B06 $baseLabel", downloaded * 2, downloaded + transferred)
-                            maybePersistQueueProgress(transferred)
-                        }
                     }
                 }
             }
@@ -4696,51 +3867,6 @@ class SftpViewModel @Inject constructor(
         } ?: throw java.io.IOException("Failed to open output stream for $newUri")
     }
 
-    /** Recursively copy a directory within rclone (server-side). */
-    private fun copyRcloneDir(srcRemote: String, srcPath: String, dstRemote: String, dstPath: String) {
-        val children = rcloneClient.listDirectory(srcRemote, srcPath)
-        for (child in children) {
-            val childSrc = "${srcPath.trimEnd('/')}/${child.name}"
-            val childDst = "${dstPath.trimEnd('/')}/${child.name}"
-            if (child.isDir) {
-                rcloneClient.mkdir(dstRemote, childDst)
-                copyRcloneDir(srcRemote, childSrc, dstRemote, childDst)
-            } else {
-                beforePasteFile(child.name)
-                rcloneClient.copyFile(srcRemote, childSrc, dstRemote, childDst)
-            }
-        }
-    }
-
-    /** Delete a source entry (for cut/move operations). */
-    private fun deleteSourceEntry(cb: FileClipboard, entry: SftpEntry) {
-        when (cb.sourceBackendType) {
-            BackendType.LOCAL -> {
-                val f = java.io.File(entry.path)
-                if (entry.isDirectory) f.deleteRecursively() else f.delete()
-            }
-            BackendType.RCLONE -> {
-                if (entry.isDirectory) rcloneClient.deleteDir(cb.sourceRemoteName!!, entry.path)
-                else rcloneClient.deleteFile(cb.sourceRemoteName!!, entry.path)
-            }
-            BackendType.SFTP -> {
-                val session = cb.sourceSftpSession
-                    ?: sessionManager.openSftpSession(cb.sourceProfileId) ?: return
-                kotlinx.coroutines.runBlocking {
-                    if (entry.isDirectory) session.rmdir(entry.path) else session.rm(entry.path)
-                }
-            }
-            BackendType.SMB -> {
-                val client = cb.sourceSmbClient
-                    ?: smbSessionManager.getClientForProfile(cb.sourceProfileId) ?: return
-                client.delete(entry.path, entry.isDirectory)
-            }
-            BackendType.SAF -> kotlinx.coroutines.runBlocking {
-                safBackendFor(cb.sourceProfileId)?.delete(entry.path, entry.isDirectory)
-            }
-        }
-    }
-
     fun dismissError() { _error.value = null }
     fun dismissMessage() { _message.value = null }
 
@@ -4869,8 +3995,8 @@ class SftpViewModel @Inject constructor(
     }
 
     /**
-     * Resolve the [FileBackend] for the active profile — local, SMB, rclone,
-     * or SSH — and surface the SFTP→SCP fallback announcement / transport
+     * Resolve the [FileBackend] for the active profile — local or SSH — and
+     * surface the SFTP→SCP fallback announcement / transport
      * badge as a side effect. Listing dispatches through here regardless of
      * backend; per-backend code paths only exist for upload, download,
      * mkdir, rename, delete, chmod and chown (issue #126 stages 2+).
@@ -4988,46 +4114,6 @@ class SftpViewModel @Inject constructor(
         }
     }
 
-    private fun openSmbAndList(profileId: String) {
-        viewModelScope.launch {
-            try {
-                withContext(Dispatchers.IO) {
-                    val client = smbSessionManager.getClientForProfile(profileId)
-                        ?: throw IllegalStateException("SMB session not connected")
-                    activeSmbClient = client
-                }
-                _currentPath.value = "/"
-                loadDirectoryEntries("/")
-            } catch (e: Exception) {
-                Log.e(TAG, "SMB open failed", e)
-                _error.value = "SMB failed: ${e.message}"
-            }
-        }
-    }
-
-    // ── Rclone helpers ────────────────────────────────────────────────
-
-    private fun openRcloneAndList(profileId: String) {
-        viewModelScope.launch {
-            try {
-                withContext(Dispatchers.IO) {
-                    val remoteName = rcloneSessionManager.getRemoteNameForProfile(profileId)
-                    Log.d(TAG, "openRcloneAndList: profileId=$profileId, remoteName=$remoteName, " +
-                        "isConnected=${rcloneSessionManager.isProfileConnected(profileId)}")
-                    if (remoteName == null) throw IllegalStateException("Rclone session not connected")
-                    activeRcloneRemote = remoteName
-                    try { _remoteCapabilities.value = rcloneClient.getCapabilities(remoteName) }
-                    catch (_: Exception) { _remoteCapabilities.value = sh.haven.core.rclone.RemoteCapabilities() }
-                }
-                _currentPath.value = "/"
-                loadDirectoryEntries("/")
-            } catch (e: Exception) {
-                Log.e(TAG, "Rclone open failed", e)
-                _error.value = "Cloud storage failed: ${e.message}"
-            }
-        }
-    }
-
     private fun sortEntries(entries: List<SftpEntry>, mode: SortMode): List<SftpEntry> {
         val dirs = entries.filter { it.isDirectory }
         val files = entries.filter { !it.isDirectory }
@@ -5052,48 +4138,14 @@ class SftpViewModel @Inject constructor(
 
     // ── Media streaming ─────────────────────────────────────────────────
 
-    /**
-     * Ensure the media server is running for the current rclone remote.
-     *
-     * The Go-side server is process-scoped and survives ViewModel recreation,
-     * profile switches, and Haven going to background. If a server is already
-     * running for the same remote it is reused (no restart). This keeps VLC
-     * streaming even if Haven drops and reconnects the rclone session.
-     */
-    private suspend fun ensureMediaServer(): Int {
-        val remote = activeRcloneRemote ?: error("No active rclone remote")
-
-        // Fast path: we already know the port from this ViewModel instance.
-        _mediaServerPort.value?.let { return it }
-
-        // Check if the Go side still has a server running for this remote
-        // (survives ViewModel recreation).
-        val existing = withContext(Dispatchers.IO) { rcloneClient.mediaServerPort(remote) }
-        if (existing != null) {
-            _mediaServerPort.value = existing
-            return existing
-        }
-
-        // Start a new server, preferring the last-known port so VLC can
-        // reconnect after an app restart.
-        val preferred = preferencesRepository.lastMediaServerPort.first()
-        val port = withContext(Dispatchers.IO) {
-            rcloneClient.startMediaServer(remote, preferred)
-        }
-        _mediaServerPort.value = port
-        // Persist for next restart.
-        preferencesRepository.setLastMediaServerPort(port)
-        return port
-    }
-
-    /** Play a single media file via HTTP streaming through the rclone media server. */
+    /** Play a single media file over the loopback HTTP bridge. */
     fun playMediaFile(entry: SftpEntry) {
         Log.d(TAG, "playMediaFile: ${entry.path}")
         viewModelScope.launch {
             try {
-                // One loopback URL per backend — rclone's media server, or the
-                // SftpStreamServer bridge for SFTP/SMB (VISION §2). The external
-                // player reads it over the device's own 127.0.0.1, Range-capable.
+                // One loopback URL per backend via the SftpStreamServer bridge
+                // (VISION §2). The external player reads it over the device's
+                // own 127.0.0.1, Range-capable.
                 val url = resolveStreamInput(entry)
                 val mimeType = entry.mimeType.ifEmpty {
                     android.webkit.MimeTypeMap.getSingleton()
@@ -5145,26 +4197,6 @@ class SftpViewModel @Inject constructor(
                         )
                         grantRead = true
                     }
-                    _isRcloneProfile.value -> {
-                        val port = ensureMediaServer()
-                        val encodedPath = entry.path
-                            .trimStart('/')
-                            .split('/')
-                            .joinToString("/") { java.net.URLEncoder.encode(it, "UTF-8").replace("+", "%20") }
-                        data = android.net.Uri.parse("http://127.0.0.1:$port/$encodedPath")
-                    }
-                    _isSmbProfile.value -> {
-                        // SMB via the loopback HTTP bridge (raw bytes, Range-capable) — VISION §2.
-                        val port = withContext(Dispatchers.IO) { sftpStreamServer.start() }
-                        val urlPath = sftpStreamServer.publish(
-                            path = entry.path,
-                            size = entry.size,
-                            contentType = mime,
-                            opener = smbOpener(entry.path),
-                            concurrentSafe = true,
-                        )
-                        data = android.net.Uri.parse("http://127.0.0.1:$port$urlPath")
-                    }
                     else -> {
                         // SFTP via the loopback HTTP bridge (raw bytes, Range-capable).
                         val profileId = _activeProfileId.value
@@ -5196,335 +4228,6 @@ class SftpViewModel @Inject constructor(
                 Log.e(TAG, "openWithExternalApp failed for ${entry.name}", e)
                 _error.value = "Open with… failed: ${e.message}"
             }
-        }
-    }
-
-    /** Play all media files in the current folder as a sorted playlist. */
-    fun playFolder() {
-        viewModelScope.launch {
-            try {
-                val port = ensureMediaServer()
-                val mediaEntries = _entries.value
-                    .filter { it.isMediaFile(mediaExtensionsSet.value) }
-                    .sortedWith(compareBy(NATURAL_SORT_COMPARATOR) { it.name })
-
-                if (mediaEntries.isEmpty()) {
-                    _error.value = "No media files in this folder"
-                    return@launch
-                }
-
-                val playlist = buildString {
-                    appendLine("#EXTM3U")
-                    for (entry in mediaEntries) {
-                        appendLine("#EXTINF:-1,${entry.name}")
-                        appendLine("http://127.0.0.1:$port/${entry.path}")
-                    }
-                }
-
-                val cacheDir = java.io.File(appContext.cacheDir, "playlists")
-                cacheDir.mkdirs()
-                val playlistFile = java.io.File(cacheDir, "playlist.m3u8")
-                playlistFile.writeText(playlist)
-
-                val uri = androidx.core.content.FileProvider.getUriForFile(
-                    appContext,
-                    "${appContext.packageName}.fileprovider",
-                    playlistFile,
-                )
-
-                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
-                    setDataAndType(uri, "audio/x-mpegurl")
-                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                appContext.startActivity(intent)
-            } catch (e: android.content.ActivityNotFoundException) {
-                _error.value = "No media player app installed"
-            } catch (e: Exception) {
-                Log.e(TAG, "Play folder failed", e)
-                _error.value = "Playback failed: ${e.message}"
-            }
-        }
-    }
-
-    // ── Folder sync ───────────────────────────────────────────────────
-
-    fun showSyncDialog(sourcePath: String? = null) {
-        // #277: a sync is config-driven and needs no open connection. When an rclone
-        // profile is being browsed, pre-fill its remote+path as the source; otherwise
-        // open with an empty source so the user picks both ends from the remotes
-        // dropdown (which lists all configured remotes regardless of what's open).
-        val remote = activeRcloneRemote
-        _syncDialogSource.value = if (remote != null) "$remote:${sourcePath ?: _currentPath.value}" else ""
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                rcloneClient.initialize() // idempotent; loads rclone.conf so listRemotes works with nothing open
-                _availableRemotes.value = rcloneClient.listRemotes()
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to list remotes", e)
-            }
-        }
-        _showSyncDialog.value = true
-    }
-
-    fun dismissSyncDialog() {
-        _showSyncDialog.value = false
-    }
-
-    fun startSync(config: SyncConfig) {
-        _showSyncDialog.value = false
-        // If the dialog ran from a saved profile, mark it as freshly used
-        // so it floats to the top of the dropdown on next observe.
-        _activeSavedSyncProfileId.value?.let { id ->
-            viewModelScope.launch { syncProfileRepository.touchLastRun(id) }
-        }
-        viewModelScope.launch {
-            val startedAt = System.currentTimeMillis()
-            // lastError needs to survive past the polling loop so we can log
-            // it even when the job ended with rclone's "errors > 0,
-            // deletes == 0" suppression — `_syncProgress` only carries the
-            // public progress shape so we keep this here.
-            var lastErrorMessage = ""
-            try {
-                withContext(Dispatchers.IO) { rcloneClient.resetStats() }
-
-                val jobId = withContext(Dispatchers.IO) { rcloneClient.startSync(config) }
-
-                // Poll progress until finished
-                while (true) {
-                    delay(500)
-                    val status = withContext(Dispatchers.IO) { rcloneClient.getJobStatus(jobId) }
-                    val stats = withContext(Dispatchers.IO) { rcloneClient.getStats() }
-                    if (stats.lastError.isNotEmpty()) lastErrorMessage = stats.lastError
-
-                    val eta = if (stats.speed > 0 && stats.totalBytes > stats.bytes) {
-                        ((stats.totalBytes - stats.bytes) / stats.speed).toLong()
-                    } else 0L
-
-                    _syncProgress.value = SyncProgress(
-                        jobId = jobId,
-                        mode = config.mode,
-                        bytes = stats.bytes,
-                        totalBytes = stats.totalBytes,
-                        speed = stats.speed,
-                        eta = eta,
-                        transfersCompleted = stats.transfers,
-                        totalTransfers = stats.totalTransfers,
-                        errors = stats.errors,
-                        deletes = stats.deletes,
-                        deletedDirs = stats.deletedDirs,
-                        finished = status.finished,
-                        success = status.success,
-                        errorMessage = status.error,
-                        dryRun = config.dryRun,
-                    )
-
-                    if (status.finished) break
-                }
-
-                val final = _syncProgress.value
-                // Recover the per-file errors (with their paths) before the
-                // next sync's resetStats() clears them — lastErrorMessage only
-                // has rclone's bare message, not the offending file name (#157).
-                val erroredFiles = if ((final?.errors ?: 0) > 0) {
-                    withContext(Dispatchers.IO) { rcloneClient.getErroredTransfers() }
-                } else emptyList()
-                _syncProgress.value = null
-                rcloneClient.activeSyncJobId = null
-
-                if (config.dryRun) {
-                    val files = final?.totalTransfers ?: 0
-                    val bytes = android.text.format.Formatter.formatFileSize(appContext, final?.totalBytes ?: 0)
-                    _dryRunResult.value = "Would transfer $files files ($bytes)"
-                } else if (final?.success == true) {
-                    // The Mirror-deletions-suppressed case (#157): rclone
-                    // reports "success" but skips the entire delete pass
-                    // when any source file errored. Detect with
-                    // mode=SYNC, errors > 0, deletes == 0 *and* there were
-                    // orphans (which we can't know directly, but a sync
-                    // with zero deletes and >0 errors is almost always
-                    // this path) — call it out in both the toast and the
-                    // connection log entry.
-                    val deletionsSuppressed = config.mode == sh.haven.core.rclone.SyncMode.SYNC &&
-                        final.errors > 0 && final.deletes == 0 && final.deletedDirs == 0
-                    val parts = buildList {
-                        add("${final.transfersCompleted} files transferred")
-                        if (final.deletes > 0 || final.deletedDirs > 0) {
-                            val files = final.deletes
-                            val dirs = final.deletedDirs
-                            val deletedStr = when {
-                                files > 0 && dirs > 0 -> "$files files, $dirs dirs deleted"
-                                files > 0 -> "$files files deleted"
-                                else -> "$dirs dirs deleted"
-                            }
-                            add(deletedStr)
-                        }
-                        if (final.errors > 0) add("${final.errors} errors")
-                        if (deletionsSuppressed) add("deletions skipped — source errors")
-                    }
-                    _message.value = "Sync complete: ${parts.joinToString(", ")}"
-                    refresh()
-                    logSyncToConnectionLog(
-                        config = config,
-                        startedAt = startedAt,
-                        final = final,
-                        lastErrorMessage = lastErrorMessage,
-                        erroredFiles = erroredFiles,
-                        deletionsSuppressed = deletionsSuppressed,
-                        success = true,
-                    )
-                } else {
-                    _error.value = "Sync failed: ${final?.errorMessage ?: "unknown error"}"
-                    logSyncToConnectionLog(
-                        config = config,
-                        startedAt = startedAt,
-                        final = final,
-                        lastErrorMessage = lastErrorMessage,
-                        erroredFiles = erroredFiles,
-                        deletionsSuppressed = false,
-                        success = false,
-                    )
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Sync failed", e)
-                _syncProgress.value = null
-                rcloneClient.activeSyncJobId = null
-                _error.value = "Sync failed: ${e.message}"
-                logSyncToConnectionLog(
-                    config = config,
-                    startedAt = startedAt,
-                    final = null,
-                    lastErrorMessage = e.message ?: lastErrorMessage,
-                    deletionsSuppressed = false,
-                    success = false,
-                )
-            }
-        }
-    }
-
-    /**
-     * Persist an audit-log entry summarising the just-finished sync job so
-     * users can review it later under Settings → View connection log. Keyed
-     * by the source profile id when the srcFs's remote name matches a
-     * stored profile (falls back to dst, then to the active rclone
-     * profile). Skips silently if no rclone-typed profile is reachable —
-     * the entry would violate the FK on ConnectionLog.profileId. (#158)
-     */
-    private suspend fun logSyncToConnectionLog(
-        config: SyncConfig,
-        startedAt: Long,
-        final: SyncProgress?,
-        lastErrorMessage: String,
-        erroredFiles: List<sh.haven.core.rclone.TransferError> = emptyList(),
-        deletionsSuppressed: Boolean,
-        success: Boolean,
-    ) {
-        val profileId = resolveSyncProfileId(config) ?: return
-        val durationMs = System.currentTimeMillis() - startedAt
-        val modeLabel = when (config.mode) {
-            sh.haven.core.rclone.SyncMode.COPY -> "Copy"
-            sh.haven.core.rclone.SyncMode.SYNC -> "Mirror"
-            sh.haven.core.rclone.SyncMode.MOVE -> "Move"
-        }
-        val transfers = final?.transfersCompleted ?: 0
-        val deletes = (final?.deletes ?: 0) + (final?.deletedDirs ?: 0)
-        val errors = final?.errors ?: 0
-        val detailsParts = buildList {
-            add("$modeLabel: $transfers transferred")
-            if (deletes > 0) add("$deletes deleted")
-            if (errors > 0) add("$errors errors")
-            if (deletionsSuppressed) add("deletions skipped (source errors)")
-            // Name the first offending file in the collapsed summary so the
-            // user sees *what* failed without expanding the entry (#157).
-            erroredFiles.firstOrNull()?.let { add("first failed: ${it.name}") }
-            if (!success && final?.errorMessage != null) add(final.errorMessage)
-        }
-        val verboseLog = buildString {
-            appendLine("Mode:        $modeLabel (${config.mode.rcMethod})")
-            appendLine("Source:      ${config.srcFs}")
-            appendLine("Destination: ${config.dstFs}")
-            if (config.dryRun) appendLine("Dry run:     yes")
-            with(config.filters) {
-                if (includePatterns.isNotEmpty()) appendLine("Include:     ${includePatterns.joinToString(", ")}")
-                if (excludePatterns.isNotEmpty()) appendLine("Exclude:     ${excludePatterns.joinToString(", ")}")
-                minSize?.let { appendLine("Min size:    $it") }
-                maxSize?.let { appendLine("Max size:    $it") }
-                bandwidthLimit?.let { appendLine("Bw limit:    $it") }
-            }
-            appendLine()
-            appendLine("Transfers:   $transfers / ${final?.totalTransfers ?: 0}")
-            appendLine("Bytes:       ${final?.bytes ?: 0} / ${final?.totalBytes ?: 0}")
-            appendLine("Deletes:     ${final?.deletes ?: 0} files, ${final?.deletedDirs ?: 0} dirs")
-            appendLine("Errors:      $errors")
-            if (deletionsSuppressed) {
-                appendLine()
-                appendLine("rclone skipped the delete pass because of source errors.")
-                appendLine("Extras in the destination were not removed. This matches")
-                appendLine("rclone's internal `not deleting files as there were IO errors`")
-                appendLine("behaviour — fix the failing source files and re-run to")
-                appendLine("complete the mirror.")
-            }
-            if (erroredFiles.isNotEmpty()) {
-                appendLine()
-                appendLine("Failed files (${erroredFiles.size}):")
-                erroredFiles.take(50).forEach { appendLine("  ${it.name}: ${it.error}") }
-                if (erroredFiles.size > 50) appendLine("  … and ${erroredFiles.size - 50} more")
-            }
-            if (lastErrorMessage.isNotEmpty()) {
-                appendLine()
-                appendLine("Last error:  $lastErrorMessage")
-            }
-        }
-        connectionLogRepository.logEvent(
-            profileId = profileId,
-            status = if (success) ConnectionLog.Status.SYNC_OK else ConnectionLog.Status.SYNC_FAILED,
-            durationMs = durationMs,
-            details = detailsParts.joinToString(", "),
-            verboseLog = verboseLog,
-        )
-    }
-
-    /**
-     * Find a ConnectionProfile to key this sync's log entry to. Walks
-     * srcFs, then dstFs, parsing the rclone-style "remote:" prefix and
-     * matching against [ConnectionProfile.rcloneRemoteName]. Falls back to
-     * the currently active rclone profile if neither side resolves.
-     */
-    private suspend fun resolveSyncProfileId(config: SyncConfig): String? {
-        val remoteNames = listOfNotNull(parseRcloneRemoteName(config.srcFs), parseRcloneRemoteName(config.dstFs))
-        val profiles = repository.getAll()
-        if (remoteNames.isNotEmpty()) {
-            for (remote in remoteNames) {
-                profiles.firstOrNull { it.isRclone && it.rcloneRemoteName == remote }?.let { return it.id }
-            }
-        }
-        // Neither side names a known rclone remote (both are `:local:` or
-        // bare paths, or the remote isn't stored as a profile yet). Fall
-        // back to the currently-browsed profile if it's rclone-typed —
-        // logging an rclone sync under an unrelated SSH/SFTP profile
-        // would clutter that profile's audit history with off-topic
-        // events. Skip if no candidate is found.
-        val active = _activeProfileId.value
-        return active?.let { id -> profiles.firstOrNull { it.id == id && it.isRclone } }?.id
-    }
-
-    /**
-     * Extract the remote name from an rclone fs spec, e.g. "gdrive:Backup"
-     * → "gdrive". Returns null for paths that don't carry a named remote
-     * (the anonymous `:local:` backend, bare paths, etc.) since those have
-     * no matching ConnectionProfile to log against.
-     */
-    private fun parseRcloneRemoteName(fs: String): String? {
-        if (fs.isEmpty() || fs.startsWith(":")) return null
-        val idx = fs.indexOf(':')
-        if (idx <= 0) return null
-        return fs.substring(0, idx)
-    }
-
-    fun cancelSync() {
-        val jobId = rcloneClient.activeSyncJobId ?: return
-        viewModelScope.launch(Dispatchers.IO) {
-            rcloneClient.cancelJob(jobId)
         }
     }
 

@@ -22,8 +22,6 @@ import sh.haven.core.data.db.entities.ConnectionProfile
 import sh.haven.core.data.repository.ConnectionRepository
 import sh.haven.core.et.EtSessionManager
 import sh.haven.core.mosh.MoshSessionManager
-import sh.haven.core.smb.SmbClient
-import sh.haven.core.smb.SmbSessionManager
 import sh.haven.core.ssh.SshClient
 import sh.haven.core.ssh.SshSessionManager
 import java.io.File
@@ -32,7 +30,7 @@ import java.io.FileOutputStream
 private const val TAG = "HavenDocProvider"
 
 /**
- * Exposes connected SFTP and SMB sessions as document roots in the Android
+ * Exposes connected SFTP sessions as document roots in the Android
  * system file picker. Other apps can browse, open, upload, and delete files
  * on remote servers through Haven's active connections.
  */
@@ -44,7 +42,6 @@ class HavenDocumentsProvider : DocumentsProvider() {
         fun sshSessionManager(): SshSessionManager
         fun moshSessionManager(): MoshSessionManager
         fun etSessionManager(): EtSessionManager
-        fun smbSessionManager(): SmbSessionManager
         fun connectionRepository(): ConnectionRepository
     }
 
@@ -98,7 +95,6 @@ class HavenDocumentsProvider : DocumentsProvider() {
         val ssh = entryPoint.sshSessionManager()
         val mosh = entryPoint.moshSessionManager()
         val et = entryPoint.etSessionManager()
-        val smb = entryPoint.smbSessionManager()
 
         // Collect connected profile IDs that can serve files
         val sftpProfileIds = mutableSetOf<String>()
@@ -118,16 +114,10 @@ class HavenDocumentsProvider : DocumentsProvider() {
             }
             .forEach { sftpProfileIds.add(it.profileId) }
 
-        val smbProfileIds = smb.sessions.value.values
-            .filter { it.status == SmbSessionManager.SessionState.Status.CONNECTED }
-            .map { it.profileId }
-            .toSet()
-
         // Build labels from session state (avoid blocking DB query in queryRoots)
         val sshLabels = ssh.sessions.value.values.associate { it.profileId to it.label }
         val moshLabels = mosh.sessions.value.values.associate { it.profileId to it.label }
         val etLabels = et.sessions.value.values.associate { it.profileId to it.label }
-        val smbLabels = smb.sessions.value.values.associate { it.profileId to it.label }
 
         for (profileId in sftpProfileIds) {
             val label = sshLabels[profileId]
@@ -139,20 +129,6 @@ class HavenDocumentsProvider : DocumentsProvider() {
                 add(Root.COLUMN_DOCUMENT_ID, encodeDocId(profileId, "/"))
                 add(Root.COLUMN_TITLE, label)
                 add(Root.COLUMN_SUMMARY, "SFTP")
-                add(Root.COLUMN_FLAGS,
-                    Root.FLAG_SUPPORTS_CREATE or Root.FLAG_SUPPORTS_IS_CHILD)
-                add(Root.COLUMN_ICON, R.mipmap.ic_launcher)
-                add(Root.COLUMN_MIME_TYPES, "*/*")
-            }
-        }
-
-        for (profileId in smbProfileIds) {
-            val label = smbLabels[profileId] ?: profileId
-            cursor.newRow().apply {
-                add(Root.COLUMN_ROOT_ID, profileId)
-                add(Root.COLUMN_DOCUMENT_ID, encodeDocId(profileId, "/"))
-                add(Root.COLUMN_TITLE, label)
-                add(Root.COLUMN_SUMMARY, "SMB")
                 add(Root.COLUMN_FLAGS,
                     Root.FLAG_SUPPORTS_CREATE or Root.FLAG_SUPPORTS_IS_CHILD)
                 add(Root.COLUMN_ICON, R.mipmap.ic_launcher)
@@ -183,17 +159,6 @@ class HavenDocumentsProvider : DocumentsProvider() {
         }
 
         // Query single file/dir metadata
-        val smbClient = getSmbClient(profileId)
-        if (smbClient != null) {
-            val parentPath = path.trimEnd('/').substringBeforeLast('/', "/")
-            val name = path.trimEnd('/').substringAfterLast('/')
-            val entries = smbClient.listDirectory(parentPath)
-            val entry = entries.firstOrNull { it.name == name }
-            if (entry != null) {
-                addDocRow(cursor, profileId, entry.name, entry.path,
-                    entry.isDirectory, entry.size, entry.modifiedTime)
-            }
-        } else {
             val session = getSftpSession(profileId)
             if (session != null) {
                 val name = path.trimEnd('/').substringAfterLast('/')
@@ -205,7 +170,6 @@ class HavenDocumentsProvider : DocumentsProvider() {
                     Log.e(TAG, "stat failed: $path", e)
                 }
             }
-        }
 
         return cursor
     }
@@ -219,18 +183,6 @@ class HavenDocumentsProvider : DocumentsProvider() {
         val cursor = MatrixCursor(cols)
         val (profileId, path) = decodeDocId(parentDocumentId)
 
-        val smbClient = getSmbClient(profileId)
-        if (smbClient != null) {
-            try {
-                val entries = smbClient.listDirectory(path)
-                for (entry in entries) {
-                    addDocRow(cursor, profileId, entry.name, entry.path,
-                        entry.isDirectory, entry.size, entry.modifiedTime)
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "SMB listDirectory failed: $path", e)
-            }
-        } else {
             val session = getSftpSession(profileId)
             if (session != null) {
                 try {
@@ -258,7 +210,6 @@ class HavenDocumentsProvider : DocumentsProvider() {
                     Log.e(TAG, "SFTP ls failed: $path", e)
                 }
             }
-        }
 
         return cursor
     }
@@ -273,15 +224,6 @@ class HavenDocumentsProvider : DocumentsProvider() {
 
         val cacheFile = File(context!!.cacheDir, "haven_doc_${documentId.hashCode()}")
 
-        val smbClient = getSmbClient(profileId)
-        if (smbClient != null) {
-            if (isWrite) {
-                return openWritableSmbFile(smbClient, path, cacheFile)
-            }
-            FileOutputStream(cacheFile).use { out ->
-                smbClient.download(path, out) { _, _ -> }
-            }
-        } else {
             val session = getSftpSession(profileId)
                 ?: throw IllegalStateException("Not connected")
             if (isWrite) {
@@ -290,7 +232,6 @@ class HavenDocumentsProvider : DocumentsProvider() {
             FileOutputStream(cacheFile).use { out ->
                 runBlocking { session.download(path, out) { _, _ -> } }
             }
-        }
 
         return ParcelFileDescriptor.open(cacheFile, ParcelFileDescriptor.MODE_READ_ONLY)
     }
@@ -304,17 +245,6 @@ class HavenDocumentsProvider : DocumentsProvider() {
         val childPath = parentPath.trimEnd('/') + "/" + displayName
         val isDir = mimeType == Document.MIME_TYPE_DIR
 
-        val smbClient = getSmbClient(profileId)
-        if (smbClient != null) {
-            if (isDir) {
-                smbClient.mkdir(childPath)
-            } else {
-                // Create empty file
-                "".byteInputStream().use { input ->
-                    smbClient.upload(input, childPath, 0) { _, _ -> }
-                }
-            }
-        } else {
             val session = getSftpSession(profileId)
                 ?: throw IllegalStateException("Not connected")
             runBlocking {
@@ -327,7 +257,6 @@ class HavenDocumentsProvider : DocumentsProvider() {
                     }
                 }
             }
-        }
 
         val newDocId = encodeDocId(profileId, childPath)
         notifyChange(newDocId)
@@ -337,15 +266,6 @@ class HavenDocumentsProvider : DocumentsProvider() {
     override fun deleteDocument(documentId: String) {
         val (profileId, path) = decodeDocId(documentId)
 
-        val smbClient = getSmbClient(profileId)
-        if (smbClient != null) {
-            // Check if directory by listing parent
-            val parentPath = path.trimEnd('/').substringBeforeLast('/', "/")
-            val name = path.trimEnd('/').substringAfterLast('/')
-            val entries = smbClient.listDirectory(parentPath)
-            val isDir = entries.firstOrNull { it.name == name }?.isDirectory == true
-            smbClient.delete(path, isDir)
-        } else {
             val session = getSftpSession(profileId)
                 ?: throw IllegalStateException("Not connected")
             runBlocking {
@@ -356,7 +276,6 @@ class HavenDocumentsProvider : DocumentsProvider() {
                     session.rm(path)
                 }
             }
-        }
 
         notifyChange(documentId)
     }
@@ -417,16 +336,10 @@ class HavenDocumentsProvider : DocumentsProvider() {
         val ssh = entryPoint.sshSessionManager()
         val mosh = entryPoint.moshSessionManager()
         val et = entryPoint.etSessionManager()
-        val smb = entryPoint.smbSessionManager()
         return ssh.sessions.value.values.firstOrNull { it.profileId == profileId }?.label
             ?: mosh.sessions.value.values.firstOrNull { it.profileId == profileId }?.label
             ?: et.sessions.value.values.firstOrNull { it.profileId == profileId }?.label
-            ?: smb.sessions.value.values.firstOrNull { it.profileId == profileId }?.label
             ?: profileId
-    }
-
-    private fun getSmbClient(profileId: String): SmbClient? {
-        return entryPoint.smbSessionManager().getClientForProfile(profileId)
     }
 
     private fun getSftpSession(profileId: String): SftpSession? {
@@ -439,31 +352,6 @@ class HavenDocumentsProvider : DocumentsProvider() {
                 ?.openSftpSession()
             ?: (et.getSshClientForProfile(profileId) as? SshClient)
                 ?.openSftpSession()
-    }
-
-    private fun openWritableSmbFile(
-        client: SmbClient,
-        remotePath: String,
-        cacheFile: File,
-    ): ParcelFileDescriptor {
-        val handler = android.os.Handler(context!!.mainLooper)
-        return ParcelFileDescriptor.open(
-            cacheFile,
-            ParcelFileDescriptor.MODE_READ_WRITE or ParcelFileDescriptor.MODE_CREATE,
-            handler,
-        ) { e ->
-            // Called when the writing app closes the file descriptor
-            if (e == null) {
-                try {
-                    cacheFile.inputStream().use { input ->
-                        client.upload(input, remotePath, cacheFile.length()) { _, _ -> }
-                    }
-                } catch (ex: Exception) {
-                    Log.e(TAG, "SMB write-back failed: $remotePath", ex)
-                }
-            }
-            cacheFile.delete()
-        }
     }
 
     private fun openWritableSftpFile(

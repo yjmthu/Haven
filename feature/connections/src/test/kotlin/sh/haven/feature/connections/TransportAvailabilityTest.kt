@@ -6,9 +6,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * #510 — the terminal build ships no RDP or SPICE client, so offering them
- * would create a profile that can only fail at connect with "native library
- * failed to load".
+ * #510 — the terminal build ships no RDP client, so offering it would create a
+ * profile that can only fail at connect with "native library failed to load".
  */
 class TransportAvailabilityTest {
 
@@ -17,14 +16,10 @@ class TransportAvailabilityTest {
         "MOSH" to "Mosh",
         "VNC" to "VNC (Desktop)",
         "RDP" to "RDP (Desktop)",
-        "SMB" to "SMB (File Share)",
-        "RCLONE" to "Cloud Storage (rclone)",
     )
 
-    private fun values(
-        rdp: Boolean,
-        rclone: Boolean = true,
-    ) = TransportAvailability.offered(all, rdp, rclone).map { it.first }
+    private fun values(rdp: Boolean) =
+        TransportAvailability.offered(all, rdp).map { it.first }
 
     @Test
     fun `a full build offers everything`() {
@@ -39,17 +34,17 @@ class TransportAvailabilityTest {
     }
 
     /**
-     * The gate must remove ONLY those two. Filtering by "is it a desktop
-     * type" would take VNC with it, and VNC's client is Kotlin — it works in
-     * every build, including against a guest desktop the terminal build can
-     * still run over X11Vnc.
+     * The gate must remove ONLY RDP. Filtering by "is it a desktop type" would
+     * take VNC with it, and VNC's client is Kotlin — it works in every build,
+     * including against a guest desktop the terminal build can still run over
+     * X11Vnc.
      */
     @Test
     fun `nothing else is affected, VNC included`() {
         val offered = values(rdp = false)
 
         assertEquals(
-            listOf("SSH", "MOSH", "VNC", "SMB", "RCLONE"),
+            listOf("SSH", "MOSH", "VNC"),
             offered,
         )
         assertTrue("VNC must survive", "VNC" in offered)
@@ -59,22 +54,8 @@ class TransportAvailabilityTest {
     @Test
     fun `order is preserved`() {
         assertEquals(
-            listOf("SSH", "MOSH", "VNC", "RDP", "SMB", "RCLONE"),
+            listOf("SSH", "MOSH", "VNC", "RDP"),
             values(rdp = true),
         )
-    }
-
-    /**
-     * rclone is gated on a probe rather than a missing file: the terminal
-     * build ships libgojni.so, just built without the rclone package, so
-     * looking for the library would wrongly report it present.
-     */
-    @Test
-    fun `a build whose Go library omits rclone drops the rclone transport`() {
-        val offered = values(rdp = true, rclone = false)
-
-        assertFalse("RCLONE", "RCLONE" in offered)
-        assertTrue("SMB should survive", "SMB" in offered)
-        assertTrue("RDP should survive", "RDP" in offered)
     }
 }

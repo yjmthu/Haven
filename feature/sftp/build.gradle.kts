@@ -36,8 +36,6 @@ dependencies {
     implementation(project(":core:et"))
     implementation(project(":core:data"))
     implementation(project(":core:security"))
-    implementation(project(":core:smb"))
-    implementation(project(":core:rclone"))
     implementation(project(":core:ffmpeg"))
 
     implementation("androidx.documentfile:documentfile:1.1.0")

@@ -38,7 +38,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Cable
-import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.ContentCut
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.FileCopy
@@ -51,9 +50,7 @@ import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.LinkOff
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.automirrored.filled.Sort
@@ -63,8 +60,6 @@ import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.CastConnected
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.FilterList
@@ -78,8 +73,6 @@ import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
@@ -139,11 +132,7 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import sh.haven.core.data.db.entities.ConnectionProfile
 import kotlinx.coroutines.launch
-import sh.haven.core.rclone.SyncConfig
-import sh.haven.core.rclone.SyncFilters
-import sh.haven.core.rclone.SyncMode
 import sh.haven.feature.sftp.SftpViewModel.Companion.isMediaFile
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -152,8 +141,6 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun SftpScreen(
-    pendingSmbProfileId: String? = null,
-    pendingRcloneProfileId: String? = null,
     onEditorOpenChanged: (Boolean) -> Unit = {},
     onImageToolOpenChanged: (Boolean) -> Unit = {},
     /**
@@ -192,19 +179,7 @@ fun SftpScreen(
     val pastePendingCount by viewModel.pastePendingCount.collectAsState()
     val pastePendingBytes by viewModel.pastePendingBytes.collectAsState()
     val fileClipboard by viewModel.clipboard.collectAsState()
-    val isRclone by viewModel.isRcloneProfile.collectAsState()
-    val hasRcloneRemotes by viewModel.hasRcloneRemotes.collectAsState()
-    val syncProgress by viewModel.syncProgress.collectAsState()
-    val showSyncDialog by viewModel.showSyncDialog.collectAsState()
-    val syncDialogSource by viewModel.syncDialogSource.collectAsState()
-    val availableRemotes by viewModel.availableRemotes.collectAsState()
-    val dryRunResult by viewModel.dryRunResult.collectAsState()
-    val hasMediaFiles by viewModel.hasMediaFiles.collectAsState()
     val mediaExtensions by viewModel.mediaExtensionsSet.collectAsState()
-    val capabilities by viewModel.remoteCapabilities.collectAsState()
-    val folderSizeResult by viewModel.folderSizeResult.collectAsState()
-    val folderSizeLoading by viewModel.folderSizeLoading.collectAsState()
-    val dlnaRunning by viewModel.dlnaServerRunning.collectAsState()
     val previewState by viewModel.previewState.collectAsState()
     val previewDuration by viewModel.previewDuration.collectAsState()
     val convertDialogEntry by viewModel.convertDialogEntry.collectAsState()
@@ -245,17 +220,6 @@ fun SftpScreen(
 
     var showRenameDialog by remember { mutableStateOf<SftpEntry?>(null) }
     var showEncryptSheet by remember { mutableStateOf<SftpEntry?>(null) }
-    // #415: the SAF "local folder" location pending removal (long-press-free — removed
-    // from the top bar's unlink action), confirmed via a dialog.
-    var safToRemove by remember { mutableStateOf<ConnectionProfile?>(null) }
-
-    LaunchedEffect(pendingSmbProfileId) {
-        pendingSmbProfileId?.let { viewModel.setPendingSmbProfile(it) }
-    }
-
-    LaunchedEffect(pendingRcloneProfileId) {
-        pendingRcloneProfileId?.let { viewModel.setPendingRcloneProfile(it) }
-    }
 
     viewModel.syncConnectedProfiles()
 
@@ -347,16 +311,6 @@ fun SftpScreen(
     ) { uri ->
         if (uri != null) {
             viewModel.uploadFolder(uri)
-        }
-    }
-
-    // "Add folder location" picker (#415): grant a SAF tree once, keep it as a
-    // persistent Files tab. The grant is persisted inside addSafFolder().
-    val addFolderLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocumentTree()
-    ) { uri ->
-        if (uri != null) {
-            viewModel.addSafFolder(uri)
         }
     }
 
@@ -467,14 +421,10 @@ fun SftpScreen(
             // remote connected the tab stays put and the banner's
             // pick-a-profile state is the only honest offer.
             viewModel.connectedProfiles.value
-                .firstOrNull { it.id != "local" && !it.isSaf }
+                .firstOrNull { it.id != "local" }
                 ?.let { viewModel.selectProfile(it.id) }
         }
     }
-
-    // #277: learn whether rclone has configured remotes so the connection-independent
-    // "New sync" top-bar action can show even with nothing connected.
-    LaunchedEffect(Unit) { viewModel.refreshRcloneRemotesAvailable() }
 
     Scaffold(
         modifier = sftpModifier,
@@ -575,18 +525,6 @@ fun SftpScreen(
                     }
                 },
                 actions = {
-                    // #277: start an rclone sync without first opening a connection.
-                    // Shown whenever rclone has configured remotes and we're NOT already
-                    // browsing a connected rclone profile (whose Sync FAB already covers
-                    // this). Opens the same dialog with no source pre-filled.
-                    if (hasRcloneRemotes && !isRclone) {
-                        IconButton(onClick = { viewModel.showSyncDialog() }) {
-                            Icon(
-                                Icons.Filled.Sync,
-                                contentDescription = stringResource(R.string.sftp_new_sync),
-                            )
-                        }
-                    }
                     if (activeProfileId != null) {
                         IconButton(onClick = {
                             showFilterBar = !showFilterBar
@@ -625,15 +563,6 @@ fun SftpScreen(
                         IconButton(onClick = { viewModel.refresh() }) {
                             Icon(Icons.Filled.Refresh, stringResource(R.string.sftp_refresh))
                         }
-                        // #415: remove the active SAF "local folder" location (release the
-                        // grant + drop the tab). Only a SAF tab has a location to remove.
-                        if (connectedProfiles.find { it.id == activeProfileId }?.isSaf == true) {
-                            IconButton(onClick = {
-                                safToRemove = connectedProfiles.find { it.id == activeProfileId }
-                            }) {
-                                Icon(Icons.Filled.LinkOff, stringResource(R.string.sftp_remove_folder_location))
-                            }
-                        }
                     }
                 },
             )
@@ -655,21 +584,10 @@ fun SftpScreen(
                             }) {
                                 Icon(Icons.Filled.CreateNewFolder, stringResource(R.string.sftp_new_folder))
                             }
-                            // #415: pick a SAF tree (Termux home, USB, Downloads…) and keep
-                            // it as a persistent Files tab you can browse and edit in place.
-                            SmallFloatingActionButton(onClick = {
-                                fabExpanded = false
-                                addFolderLauncher.launch(null)
-                            }) {
-                                Icon(Icons.Filled.FolderOpen, stringResource(R.string.sftp_add_folder_location))
-                            }
-                            // Upload targets a connected remote (or a writable SAF
-                            // folder) — the synthetic Local tab is a browse/source
-                            // only and these error "Not connected" there (same
-                            // reason activeProfileId=="local" blocks a paste dest,
-                            // sftp_attach_local_no_upload). Hiding them on Local also
-                            // stops "Upload folder" being mistaken for the browse
-                            // picker "Add folder location" right above it (#415).
+                            // Upload targets a connected remote — the synthetic Local tab
+                            // is a browse/source only and these error "Not connected"
+                            // there (same reason activeProfileId=="local" blocks a paste
+                            // dest, sftp_attach_local_no_upload).
                             if (activeProfileId != "local") {
                                 SmallFloatingActionButton(onClick = {
                                     fabExpanded = false
@@ -701,34 +619,6 @@ fun SftpScreen(
                                     Icon(Icons.Filled.Upload, stringResource(R.string.sftp_upload_file))
                                 }
                             }
-                            if (hasMediaFiles) {
-                                SmallFloatingActionButton(onClick = {
-                                    fabExpanded = false
-                                    viewModel.playFolder()
-                                }) {
-                                    Icon(Icons.Filled.PlayArrow, stringResource(R.string.sftp_play_folder))
-                                }
-                            }
-                            if (isRclone) {
-                                SmallFloatingActionButton(onClick = {
-                                    fabExpanded = false
-                                    viewModel.showSyncDialog()
-                                }) {
-                                    Icon(Icons.Filled.Sync, stringResource(R.string.sftp_sync))
-                                }
-                                SmallFloatingActionButton(onClick = {
-                                    fabExpanded = false
-                                    viewModel.toggleDlnaServer()
-                                }) {
-                                    Icon(
-                                        if (dlnaRunning) Icons.Filled.Stop else Icons.Filled.CastConnected,
-                                        stringResource(
-                                            if (dlnaRunning) R.string.sftp_stop_dlna
-                                            else R.string.sftp_start_dlna
-                                        ),
-                                    )
-                                }
-                            }
                         }
                     }
                     if (fileClipboard != null) {
@@ -738,11 +628,7 @@ fun SftpScreen(
                     } else {
                         FloatingActionButton(onClick = { fabExpanded = !fabExpanded }) {
                             Icon(
-                                when {
-                                    fabExpanded -> Icons.Filled.CreateNewFolder
-                                    hasMediaFiles -> Icons.Filled.PlayArrow
-                                    else -> Icons.Filled.Upload
-                                },
+                                if (fabExpanded) Icons.Filled.CreateNewFolder else Icons.Filled.Upload,
                                 if (fabExpanded) stringResource(R.string.sftp_fab_close) else stringResource(R.string.sftp_fab_actions),
                             )
                         }
@@ -758,8 +644,8 @@ fun SftpScreen(
         ) {
             // Folder-pick banner — visible while the terminal's attach
             // flow is awaiting a destination choice. The user navigates
-            // freely (including switching profiles / rclone remotes) and
-            // taps "Use this folder" once happy, or backs out via Cancel.
+            // freely (including switching profiles) and taps "Use this
+            // folder" once happy, or backs out via Cancel.
             attachRequest?.let { req ->
                 // The "local" pseudo-profile is the device's own filesystem;
                 // letting the user "upload" to it would just copy a file the
@@ -875,59 +761,7 @@ fun SftpScreen(
                     )
                 }
             }
-            val sp = syncProgress
-            if (sp != null) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    if (sp.totalBytes > 0) {
-                        LinearProgressIndicator(
-                            progress = { sp.fraction },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    } else {
-                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 2.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Text(
-                            buildString {
-                                append("${sp.mode.label}: ${sp.transfersCompleted}/${sp.totalTransfers} files")
-                                if (sp.deletes > 0 || sp.deletedDirs > 0) {
-                                    val total = sp.deletes + sp.deletedDirs
-                                    append(", $total deleted")
-                                }
-                                if (sp.errors > 0) append(" (${sp.errors} errors)")
-                            },
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            "${Formatter.formatFileSize(context, sp.speed.toLong())}/s  ${sp.etaFormatted}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            "${Formatter.formatFileSize(context, sp.bytes)} / ${Formatter.formatFileSize(context, sp.totalBytes)}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        TextButton(onClick = { viewModel.cancelSync() }) {
-                            Text(stringResource(R.string.common_cancel), style = MaterialTheme.typography.labelSmall)
-                        }
-                    }
-                }
-            } else if (pastePendingCount > 0 && !loading) {
+            if (pastePendingCount > 0 && !loading) {
                 // Persistent resume banner — a previous paste was interrupted
                 // (process death, connection drop, explicit cancel) and the
                 // queue still has PENDING rows. Stays visible across tab
@@ -1046,18 +880,6 @@ fun SftpScreen(
                                         if (profile.isLocal) {
                                             Icon(
                                                 Icons.Filled.Folder,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(14.dp),
-                                            )
-                                        } else if (profile.isSaf) {
-                                            Icon(
-                                                Icons.Filled.FolderOpen,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(14.dp),
-                                            )
-                                        } else if (profile.isRclone) {
-                                            Icon(
-                                                Icons.Filled.Cloud,
                                                 contentDescription = null,
                                                 modifier = Modifier.size(14.dp),
                                             )
@@ -1215,10 +1037,6 @@ fun SftpScreen(
                                         viewModel.navigateTo(entry.path)
                                     } else if (sh.haven.feature.editor.TextMateSupport.scopeForFileName(entry.name) != null) {
                                         viewModel.openInEditor(entry)
-                                    } else if ((isRclone || viewModel.isSmbProfile()) && entry.isMediaFile(mediaExtensions)) {
-                                        // Rclone / SMB media file: play via the loopback
-                                        // media bridge (Range-capable, no full download).
-                                        viewModel.playMediaFile(entry)
                                     } else if (viewModel.isLocalProfile()) {
                                         // Open local file with system app
                                         try {
@@ -1245,7 +1063,7 @@ fun SftpScreen(
                                         // and other SAF/SSH trees) have no TextMate grammar, so a tap
                                         // fell through to nothing. Open them in the editor — same as
                                         // the long-press "Open in editor". Local files are handled
-                                        // above (system app); this covers SAF/SFTP/SMB/rclone.
+                                        // above (system app); this covers SFTP.
                                         viewModel.openInEditor(entry)
                                     } else {
                                         // No known handler for this extension: default the tap
@@ -1284,19 +1102,7 @@ fun SftpScreen(
                                 onOpenWith = if (!entry.isDirectory) {
                                     { viewModel.openWithExternalApp(entry) }
                                 } else null,
-                                onPlay = if ((isRclone || viewModel.isSmbProfile()) && entry.isMediaFile(mediaExtensions)) {
-                                    { viewModel.playMediaFile(entry) }
-                                } else null,
-                                onSync = if (isRclone && entry.isDirectory) {
-                                    { viewModel.showSyncDialog(entry.path) }
-                                } else null,
                                 onRename = { showRenameDialog = entry },
-                                onShareLink = if (isRclone && capabilities.publicLink) {
-                                    { viewModel.sharePublicLink(entry) }
-                                } else null,
-                                onFolderSize = if (isRclone && entry.isDirectory) {
-                                    { viewModel.calculateFolderSize(entry) }
-                                } else null,
                                 onOpenInEditor = if (!entry.isDirectory) {
                                     { viewModel.openInEditor(entry) }
                                 } else null,
@@ -1422,40 +1228,6 @@ fun SftpScreen(
         PasteConflictDialog(prompt = prompt)
     }
 
-    // Sync dialog
-    if (showSyncDialog) {
-        val savedSyncProfiles by viewModel.savedSyncProfiles.collectAsState()
-        val activeSavedSyncProfileId by viewModel.activeSavedSyncProfileId.collectAsState()
-        SyncDialog(
-            source = syncDialogSource ?: "",
-            remotes = availableRemotes,
-            savedProfiles = savedSyncProfiles,
-            activeSavedProfileId = activeSavedSyncProfileId,
-            onLoadSavedProfile = viewModel::setActiveSavedSyncProfileId,
-            onSaveProfile = viewModel::saveSyncProfile,
-            onDeleteSavedProfile = viewModel::deleteSyncProfile,
-            onDismiss = {
-                viewModel.setActiveSavedSyncProfileId(null)
-                viewModel.dismissSyncDialog()
-            },
-            onStart = { config -> viewModel.startSync(config) },
-        )
-    }
-
-    // Dry run results
-    dryRunResult?.let { result ->
-        AlertDialog(
-            onDismissRequest = { viewModel.dismissDryRunResult() },
-            title = { Text(stringResource(R.string.sftp_dry_run_results)) },
-            text = { Text(result) },
-            confirmButton = {
-                TextButton(onClick = { viewModel.dismissDryRunResult() }) {
-                    Text(stringResource(R.string.common_ok))
-                }
-            },
-        )
-    }
-
     // Rename dialog
     showRenameDialog?.let { entry ->
         var newName by remember(entry) { mutableStateOf(entry.name) }
@@ -1482,26 +1254,6 @@ fun SftpScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showRenameDialog = null }) { Text(stringResource(R.string.common_cancel)) }
-            },
-        )
-    }
-
-    // #415: confirm removing a SAF "local folder" location. Only Haven's access to
-    // the folder is dropped — the files themselves are untouched.
-    safToRemove?.let { profile ->
-        AlertDialog(
-            onDismissRequest = { safToRemove = null },
-            icon = { Icon(Icons.Filled.LinkOff, contentDescription = null) },
-            title = { Text(stringResource(R.string.sftp_remove_folder_title)) },
-            text = { Text(stringResource(R.string.sftp_remove_folder_message, profile.label)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.removeSafFolder(profile.id)
-                    safToRemove = null
-                }) { Text(stringResource(R.string.sftp_remove_folder_confirm)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { safToRemove = null }) { Text(stringResource(R.string.common_cancel)) }
             },
         )
     }
@@ -1628,11 +1380,11 @@ fun SftpScreen(
         val isAudioOnly = isAudioOnlyInput
         var previewSeek by rememberSaveable { mutableFloatStateOf(0f) }
         var previewStale by rememberSaveable { mutableStateOf(false) }
-        // For rclone profiles: default to streaming over HTTP (fast); user
+        // For remote profiles: default to streaming over HTTP (fast); user
         // can force a full download for offline conversion or reliability.
         var downloadFirst by rememberSaveable { mutableStateOf(false) }
         // Where to save the transcoded file — Downloads (local) or alongside
-        // the source (which uploads back to cloud/SFTP/SMB for remote profiles).
+        // the source (which uploads back to SFTP for remote profiles).
         var destinationKey by rememberSaveable { mutableStateOf("downloads") }
 
         // Prepare preview (probe duration, cache remote file) on dialog open
@@ -1823,7 +1575,6 @@ fun SftpScreen(
                     Text(stringResource(R.string.sftp_convert_save_to), style = MaterialTheme.typography.labelMedium)
                     val sourceFolderLabel = when {
                         viewModel.isLocalProfile() -> stringResource(R.string.sftp_convert_dest_same_folder_local)
-                        isRclone -> stringResource(R.string.sftp_convert_dest_same_folder_cloud)
                         else -> stringResource(R.string.sftp_convert_dest_same_folder_server)
                     }
                     val destinationOptions = listOf(
@@ -1847,41 +1598,6 @@ fun SftpScreen(
                         }
                     }
                     Spacer(Modifier.height(8.dp))
-
-                    // "Download first" toggle — rclone only. By default Haven
-                    // streams the file directly into ffmpeg via HTTP (fast);
-                    // enabling this forces a full download before transcode,
-                    // useful for offline conversion or flaky connections.
-                    if (isRclone) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { downloadFirst = !downloadFirst }
-                                .padding(vertical = 4.dp),
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    stringResource(R.string.sftp_convert_download_first),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
-                                Text(
-                                    if (downloadFirst) {
-                                        stringResource(R.string.sftp_convert_download_first_on)
-                                    } else {
-                                        stringResource(R.string.sftp_convert_download_first_off)
-                                    },
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                            androidx.compose.material3.Switch(
-                                checked = downloadFirst,
-                                onCheckedChange = { downloadFirst = it },
-                            )
-                        }
-                        Spacer(Modifier.height(8.dp))
-                    }
 
                     // Compression section (collapsible) — visible when the
                     // user is actually re-encoding. The copy encoder does a
@@ -2096,419 +1812,6 @@ fun SftpScreen(
         }
     }
 
-    // Folder size loading
-    if (folderSizeLoading) {
-        AlertDialog(
-            onDismissRequest = { viewModel.cancelFolderSize() },
-            title = { Text(stringResource(R.string.sftp_folder_size_title)) },
-            text = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                    Text(stringResource(R.string.sftp_calculating_size))
-                }
-            },
-            confirmButton = {},
-            dismissButton = {
-                TextButton(onClick = { viewModel.cancelFolderSize() }) {
-                    Text(stringResource(R.string.common_cancel))
-                }
-            },
-        )
-    }
-
-    // Folder size result
-    folderSizeResult?.let { result ->
-        AlertDialog(
-            onDismissRequest = { viewModel.dismissFolderSize() },
-            title = { Text(stringResource(R.string.sftp_folder_size_title)) },
-            text = { Text(result) },
-            confirmButton = {
-                TextButton(onClick = { viewModel.dismissFolderSize() }) {
-                    Text(stringResource(R.string.common_ok))
-                }
-            },
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SyncDialog(
-    source: String,
-    remotes: List<String>,
-    savedProfiles: List<sh.haven.core.data.db.entities.SyncProfile>,
-    activeSavedProfileId: String?,
-    onLoadSavedProfile: (String?) -> Unit,
-    onSaveProfile: (existingId: String?, name: String, config: SyncConfig) -> Unit,
-    onDeleteSavedProfile: (String) -> Unit,
-    onDismiss: () -> Unit,
-    onStart: (SyncConfig) -> Unit,
-) {
-    var srcFs by remember { mutableStateOf(source) }
-    var dstRemote by remember { mutableStateOf(remotes.firstOrNull() ?: "") }
-    var dstPath by remember { mutableStateOf("") }
-    var mode by remember { mutableStateOf(SyncMode.COPY) }
-    var showFilters by remember { mutableStateOf(false) }
-    var includeText by remember { mutableStateOf("") }
-    var excludeText by remember { mutableStateOf("") }
-    var minSize by remember { mutableStateOf("") }
-    var maxSize by remember { mutableStateOf("") }
-    var bwLimit by remember { mutableStateOf("") }
-    var dryRun by remember { mutableStateOf(false) }
-    var remoteExpanded by remember { mutableStateOf(false) }
-    var savedExpanded by remember { mutableStateOf(false) }
-    var showSaveAsDialog by remember { mutableStateOf(false) }
-
-    // Whenever the user picks a saved profile from the dropdown, populate
-    // every field. Splitting the dstFs back into remote+path is the
-    // inverse of the assembly at confirm time below.
-    LaunchedEffect(activeSavedProfileId) {
-        val id = activeSavedProfileId ?: return@LaunchedEffect
-        val p = savedProfiles.firstOrNull { it.id == id } ?: return@LaunchedEffect
-        srcFs = p.srcFs
-        val colonIdx = p.dstFs.indexOf(':')
-        if (colonIdx > 0) {
-            dstRemote = p.dstFs.substring(0, colonIdx)
-            dstPath = p.dstFs.substring(colonIdx + 1)
-        } else {
-            dstRemote = remotes.firstOrNull() ?: ""
-            dstPath = p.dstFs
-        }
-        mode = runCatching { SyncMode.valueOf(p.mode) }.getOrDefault(SyncMode.COPY)
-        includeText = p.includePatterns
-        excludeText = p.excludePatterns
-        minSize = p.minSize.orEmpty()
-        maxSize = p.maxSize.orEmpty()
-        bwLimit = p.bandwidthLimit.orEmpty()
-        showFilters = includeText.isNotBlank() || excludeText.isNotBlank() ||
-            minSize.isNotBlank() || maxSize.isNotBlank() || bwLimit.isNotBlank()
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.sftp_folder_sync)) },
-        text = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                // Saved sync profiles (#159). Only renders the dropdown when
-                // there are saved entries — first-time users still see the
-                // dialog at the same starting size.
-                if (savedProfiles.isNotEmpty()) {
-                    val activeName = activeSavedProfileId?.let { id ->
-                        savedProfiles.firstOrNull { it.id == id }?.name
-                    } ?: stringResource(R.string.sftp_saved_sync_pick)
-                    ExposedDropdownMenuBox(
-                        expanded = savedExpanded,
-                        onExpandedChange = { savedExpanded = it },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        OutlinedTextField(
-                            value = activeName,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text(stringResource(R.string.sftp_saved_sync_label)) },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(savedExpanded) },
-                            singleLine = true,
-                            modifier = Modifier.menuAnchor().fillMaxWidth(),
-                        )
-                        ExposedDropdownMenu(
-                            expanded = savedExpanded,
-                            onDismissRequest = { savedExpanded = false },
-                        ) {
-                            savedProfiles.forEach { p ->
-                                DropdownMenuItem(
-                                    text = { Text(p.name) },
-                                    onClick = {
-                                        onLoadSavedProfile(p.id)
-                                        savedExpanded = false
-                                    },
-                                    trailingIcon = {
-                                        IconButton(
-                                            onClick = { onDeleteSavedProfile(p.id) },
-                                            modifier = Modifier.size(32.dp),
-                                        ) {
-                                            Icon(
-                                                Icons.Filled.Delete,
-                                                contentDescription = stringResource(R.string.common_delete),
-                                                modifier = Modifier.size(18.dp),
-                                            )
-                                        }
-                                    },
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // Source
-                OutlinedTextField(
-                    value = srcFs,
-                    onValueChange = { srcFs = it },
-                    label = { Text(stringResource(R.string.sftp_source)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-
-                // Destination remote + path
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    ExposedDropdownMenuBox(
-                        expanded = remoteExpanded,
-                        onExpandedChange = { remoteExpanded = it },
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        OutlinedTextField(
-                            value = dstRemote,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text(stringResource(R.string.sftp_destination)) },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(remoteExpanded) },
-                            singleLine = true,
-                            modifier = Modifier.menuAnchor(),
-                        )
-                        ExposedDropdownMenu(
-                            expanded = remoteExpanded,
-                            onDismissRequest = { remoteExpanded = false },
-                        ) {
-                            remotes.forEach { remote ->
-                                DropdownMenuItem(
-                                    text = { Text(remote) },
-                                    onClick = {
-                                        dstRemote = remote
-                                        remoteExpanded = false
-                                    },
-                                )
-                            }
-                        }
-                    }
-                    OutlinedTextField(
-                        value = dstPath,
-                        onValueChange = { dstPath = it },
-                        label = { Text(stringResource(R.string.sftp_destination_path)) },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-
-                // Mode selector
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    SyncMode.entries.forEach { m ->
-                        FilterChip(
-                            selected = mode == m,
-                            onClick = { mode = m },
-                            label = {
-                                Text(
-                                    when (m) {
-                                        SyncMode.COPY -> stringResource(R.string.sftp_mode_copy)
-                                        SyncMode.SYNC -> stringResource(R.string.sftp_mode_sync)
-                                        SyncMode.MOVE -> stringResource(R.string.sftp_mode_move)
-                                    },
-                                )
-                            },
-                        )
-                    }
-                }
-                Text(
-                    when (mode) {
-                        SyncMode.COPY -> stringResource(R.string.sftp_mode_copy_desc)
-                        SyncMode.SYNC -> stringResource(R.string.sftp_mode_sync_desc)
-                        SyncMode.MOVE -> stringResource(R.string.sftp_mode_move_desc)
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-
-                // Advanced filters (collapsible)
-                TextButton(onClick = { showFilters = !showFilters }) {
-                    Icon(
-                        if (showFilters) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                        null,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    Text(stringResource(R.string.sftp_advanced_filters))
-                }
-
-                if (showFilters) {
-                    OutlinedTextField(
-                        value = includeText,
-                        onValueChange = { includeText = it },
-                        label = { Text(stringResource(R.string.sftp_include_patterns)) },
-                        placeholder = { Text("*.mp3\n*.flac") },
-                        minLines = 2,
-                        maxLines = 4,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    OutlinedTextField(
-                        value = excludeText,
-                        onValueChange = { excludeText = it },
-                        label = { Text(stringResource(R.string.sftp_exclude_patterns)) },
-                        placeholder = { Text("*.tmp\nThumbs.db") },
-                        minLines = 2,
-                        maxLines = 4,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(
-                            value = minSize,
-                            onValueChange = { minSize = it },
-                            label = { Text(stringResource(R.string.sftp_min_size)) },
-                            placeholder = { Text("e.g. 1M") },
-                            singleLine = true,
-                            modifier = Modifier.weight(1f),
-                        )
-                        OutlinedTextField(
-                            value = maxSize,
-                            onValueChange = { maxSize = it },
-                            label = { Text(stringResource(R.string.sftp_max_size)) },
-                            placeholder = { Text("e.g. 1G") },
-                            singleLine = true,
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-                    OutlinedTextField(
-                        value = bwLimit,
-                        onValueChange = { bwLimit = it },
-                        label = { Text(stringResource(R.string.sftp_bandwidth_limit)) },
-                        placeholder = { Text("e.g. 10M") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-
-                // Dry run checkbox
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = dryRun, onCheckedChange = { dryRun = it })
-                    Text(stringResource(R.string.sftp_dry_run))
-                }
-
-                // Save / Save-as row (#159). Only meaningful when src and a
-                // destination remote are both set — bare-form saves would
-                // round-trip with empty fields. Save overwrites the loaded
-                // saved profile (visible only when one is loaded). Save-as
-                // always prompts for a name.
-                if (srcFs.isNotBlank() && dstRemote.isNotBlank()) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        if (activeSavedProfileId != null) {
-                            val loadedName = savedProfiles.firstOrNull { it.id == activeSavedProfileId }?.name
-                            TextButton(onClick = {
-                                if (loadedName != null) {
-                                    val dst = if (dstPath.isNotBlank()) "$dstRemote:$dstPath" else "$dstRemote:"
-                                    onSaveProfile(
-                                        activeSavedProfileId,
-                                        loadedName,
-                                        SyncConfig(
-                                            srcFs = srcFs,
-                                            dstFs = dst,
-                                            mode = mode,
-                                            filters = SyncFilters(
-                                                includePatterns = includeText.lines().filter { it.isNotBlank() },
-                                                excludePatterns = excludeText.lines().filter { it.isNotBlank() },
-                                                minSize = minSize.ifBlank { null },
-                                                maxSize = maxSize.ifBlank { null },
-                                                bandwidthLimit = bwLimit.ifBlank { null },
-                                            ),
-                                            dryRun = dryRun,
-                                        ),
-                                    )
-                                }
-                            }) {
-                                Text(stringResource(R.string.sftp_saved_sync_save))
-                            }
-                        }
-                        TextButton(onClick = { showSaveAsDialog = true }) {
-                            Text(stringResource(R.string.sftp_saved_sync_save_as))
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    val dstFs = if (dstPath.isNotBlank()) "$dstRemote:$dstPath" else "$dstRemote:"
-                    onStart(
-                        SyncConfig(
-                            srcFs = srcFs,
-                            dstFs = dstFs,
-                            mode = mode,
-                            filters = SyncFilters(
-                                includePatterns = includeText.lines().filter { it.isNotBlank() },
-                                excludePatterns = excludeText.lines().filter { it.isNotBlank() },
-                                minSize = minSize.ifBlank { null },
-                                maxSize = maxSize.ifBlank { null },
-                                bandwidthLimit = bwLimit.ifBlank { null },
-                            ),
-                            dryRun = dryRun,
-                        ),
-                    )
-                },
-                enabled = srcFs.isNotBlank() && dstRemote.isNotBlank(),
-            ) {
-                Text(if (dryRun) stringResource(R.string.sftp_preview) else stringResource(R.string.sftp_start_sync))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
-        },
-    )
-
-    // Save-as nested dialog (#159). Prompts for a name then persists the
-    // current SyncDialog values as a fresh SyncProfile via onSaveProfile.
-    if (showSaveAsDialog) {
-        var newName by remember { mutableStateOf("") }
-        AlertDialog(
-            onDismissRequest = { showSaveAsDialog = false },
-            title = { Text(stringResource(R.string.sftp_saved_sync_save_as_title)) },
-            text = {
-                OutlinedTextField(
-                    value = newName,
-                    onValueChange = { newName = it },
-                    label = { Text(stringResource(R.string.sftp_saved_sync_name)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val dst = if (dstPath.isNotBlank()) "$dstRemote:$dstPath" else "$dstRemote:"
-                        onSaveProfile(
-                            null,
-                            newName,
-                            SyncConfig(
-                                srcFs = srcFs,
-                                dstFs = dst,
-                                mode = mode,
-                                filters = SyncFilters(
-                                    includePatterns = includeText.lines().filter { it.isNotBlank() },
-                                    excludePatterns = excludeText.lines().filter { it.isNotBlank() },
-                                    minSize = minSize.ifBlank { null },
-                                    maxSize = maxSize.ifBlank { null },
-                                    bandwidthLimit = bwLimit.ifBlank { null },
-                                ),
-                                dryRun = dryRun,
-                            ),
-                        )
-                        showSaveAsDialog = false
-                    },
-                    enabled = newName.isNotBlank(),
-                ) { Text(stringResource(R.string.common_save)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showSaveAsDialog = false }) {
-                    Text(stringResource(R.string.common_cancel))
-                }
-            },
-        )
-    }
 }
 
 /**
@@ -2596,16 +1899,12 @@ private fun FileListItem(
     onCut: () -> Unit = {},
     onPermissions: (() -> Unit)? = null,
     onOwnership: (() -> Unit)? = null,
-    onPlay: (() -> Unit)? = null,
-    onSync: (() -> Unit)? = null,
     onMediaSheet: (() -> Unit)? = null,
     onPlayInBrowser: (() -> Unit)? = null,
     onStream: (() -> Unit)? = null,
     onStreamFolder: (() -> Unit)? = null,
     onOpenWith: (() -> Unit)? = null,
     onRename: () -> Unit = {},
-    onShareLink: (() -> Unit)? = null,
-    onFolderSize: (() -> Unit)? = null,
     onOpenInEditor: (() -> Unit)? = null,
     onOpenInImageTools: (() -> Unit)? = null,
     onEncrypt: (() -> Unit)? = null,
@@ -2722,20 +2021,6 @@ private fun FileListItem(
                     onClick = { showMenu = false; onOwnership() },
                 )
             }
-            if (onPlay != null) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.sftp_play)) },
-                    leadingIcon = { Icon(Icons.Filled.PlayArrow, null) },
-                    onClick = { showMenu = false; onPlay() },
-                )
-            }
-            if (onSync != null) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.sftp_sync)) },
-                    leadingIcon = { Icon(Icons.Filled.Sync, null) },
-                    onClick = { showMenu = false; onSync() },
-                )
-            }
             if (!entry.isDirectory) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.sftp_download)) },
@@ -2812,20 +2097,6 @@ private fun FileListItem(
                 leadingIcon = { Icon(Icons.Filled.ContentCopy, null) },
                 onClick = { showMenu = false; onCopyPath() },
             )
-            if (onShareLink != null) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.sftp_share_link)) },
-                    leadingIcon = { Icon(Icons.Filled.Share, null) },
-                    onClick = { showMenu = false; onShareLink() },
-                )
-            }
-            if (onFolderSize != null) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.sftp_folder_size)) },
-                    leadingIcon = { Icon(Icons.Filled.FolderOpen, null) },
-                    onClick = { showMenu = false; onFolderSize() },
-                )
-            }
             if (onEncrypt != null) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.sftp_encrypt)) },

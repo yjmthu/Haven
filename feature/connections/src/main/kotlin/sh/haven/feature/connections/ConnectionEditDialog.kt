@@ -91,7 +91,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import sh.haven.core.data.NativeFeatures
 import sh.haven.core.data.db.entities.ConnectionProfile
 import sh.haven.core.data.preferences.UserPreferencesRepository
-import sh.haven.core.rclone.RCLONE_OAUTH_PROVIDERS
 import sh.haven.core.knock.KnockSequence
 import sh.haven.core.spa.SpaConfig
 import sh.haven.feature.tunnel.CloudflareAccessLoginContract
@@ -130,7 +129,6 @@ fun ConnectionEditDialog(
      */
     onRevealSavedSecret: (suspend () -> Boolean)? = null,
     discoveredHosts: List<DiscoveredHost> = emptyList(),
-    discoveredSmbHosts: List<DiscoveredHost> = emptyList(),
     sshProfiles: List<ConnectionProfile> = emptyList(),
     groups: List<sh.haven.core.data.db.entities.ConnectionGroup> = emptyList(),
     identities: List<sh.haven.core.data.db.entities.SshIdentity> = emptyList(),
@@ -157,9 +155,7 @@ fun ConnectionEditDialog(
     onManageTunnels: ((preselect: sh.haven.core.data.db.entities.TunnelConfigType?) -> Unit)? = null,
     globalSessionManagerLabel: String = "None",
     subnetScanning: Boolean = false,
-    smbSubnetScanning: Boolean = false,
     onScanSubnet: () -> Unit = {},
-    onScanSubnetSmb: () -> Unit = {},
     /** Scanning the network behind the selected jump host (#NNN). Opt-in. */
     jumpScanning: Boolean = false,
     jumpScanError: String? = null,
@@ -201,8 +197,6 @@ fun ConnectionEditDialog(
         seed?.isUsbSerial == true -> "USBSERIAL"
         seed?.isVnc == true -> "VNC"
         seed?.isRdp == true -> "RDP"
-        seed?.isSmb == true -> "SMB"
-        seed?.isRclone == true -> "RCLONE"
         seed?.isEternalTerminal == true -> "ET"
         seed?.isMosh == true -> "MOSH"
         else -> "SSH"
@@ -215,8 +209,6 @@ fun ConnectionEditDialog(
         "USBSERIAL" -> "USBSERIAL"
         "VNC" -> "VNC"
         "RDP" -> "RDP"
-        "SMB" -> "SMB"
-        "RCLONE" -> "RCLONE"
         else -> "SSH"
     }
     var label by rememberSaveable { mutableStateOf(existing?.label ?: "") }
@@ -245,7 +237,6 @@ fun ConnectionEditDialog(
             when {
                 seed?.isVnc == true -> (seed.vncPort ?: 5900).toString()
                 seed?.isRdp == true -> seed.rdpPort.toString()
-                seed?.isSmb == true -> seed.smbPort.toString()
                 else -> seed?.port?.toString() ?: "22"
             }
         )
@@ -258,11 +249,6 @@ fun ConnectionEditDialog(
     var rdpSshProfileId by rememberSaveable { mutableStateOf(existing?.rdpSshProfileId) }
     var rdpUseNla by rememberSaveable { mutableStateOf(existing?.rdpUseNla ?: true) }
     var rdpColorDepth by rememberSaveable { mutableStateOf(existing?.rdpColorDepth ?: 32) }
-    var smbShare by rememberSaveable { mutableStateOf(existing?.smbShare ?: "") }
-    var smbPassword by rememberSaveable { mutableStateOf(existing?.smbPassword ?: "") }
-    var smbDomain by rememberSaveable { mutableStateOf(existing?.smbDomain ?: "") }
-    var smbSshForward by rememberSaveable { mutableStateOf(existing?.smbSshForward ?: false) }
-    var smbSshProfileId by rememberSaveable { mutableStateOf(existing?.smbSshProfileId) }
     var vncUsername by rememberSaveable { mutableStateOf(existing?.vncUsername ?: "") }
     var vncPassword by rememberSaveable { mutableStateOf(existing?.vncPassword ?: "") }
     var vncSshForward by rememberSaveable {
@@ -369,18 +355,6 @@ fun ConnectionEditDialog(
     var bindAddress by rememberSaveable { mutableStateOf(existing?.bindAddress ?: "") }
     var selectedSessionManager by rememberSaveable { mutableStateOf(seed?.sessionManager) }
     var etPort by rememberSaveable { mutableStateOf(existing?.etPort?.toString() ?: "2022") }
-    var rcloneRemoteName by rememberSaveable { mutableStateOf(existing?.rcloneRemoteName ?: "") }
-    var rcloneProvider by rememberSaveable { mutableStateOf(existing?.rcloneProvider ?: "") }
-    // #410: a short token that makes a fresh rclone remote name unique, so two
-    // connections of the same provider (e.g. two SFTP) don't both save as the
-    // provider name, share one rclone.conf entry, and overwrite each other.
-    val rcloneRemoteToken = rememberSaveable { java.util.UUID.randomUUID().toString().take(6) }
-    // A non-OAuth rclone profile is only really saved once its remote has been
-    // written to rclone.conf via the Configure button — saving a profile shell
-    // that points at a never-created remote silently loses the config (#295).
-    // Existing rclone profiles are already configured; a new one isn't until
-    // Configure succeeds, and editing a credential field invalidates it.
-    var rcloneConfigured by rememberSaveable { mutableStateOf(existing?.connectionType == "RCLONE") }
     var fileTransport by rememberSaveable { mutableStateOf(existing?.fileTransport ?: "AUTO") }
     // Per-profile terminal colour-scheme override (#144). null = inherit
     // the global preference; otherwise one of the
@@ -444,7 +418,7 @@ fun ConnectionEditDialog(
         text = {
         // #166/dialog-tidy: routing + port-knock content as reusable
         // closures so SSH renders them inside Connection / Authentication
-        // while VNC/RDP/SMB keep them as their own sections below.
+        // while VNC/RDP keep them as their own sections below.
         val routingBody: @Composable () -> Unit = {
                     var proxyExpanded by remember { mutableStateOf(false) }
                     val selectedTunnel = tunnelConfigs.firstOrNull { it.id == tunnelConfigId }
@@ -1017,8 +991,6 @@ fun ConnectionEditDialog(
                     "USBSERIAL" to "USB Serial",
                     "VNC" to "VNC (Desktop)",
                     "RDP" to "RDP (Desktop)",
-                    "SMB" to "SMB (File Share)",
-                    "RCLONE" to "Cloud Storage (rclone)",
                 )
                 // #510: the terminal build ships no RDP client, so
                 // offering them here would only produce a profile that fails
@@ -1036,10 +1008,6 @@ fun ConnectionEditDialog(
                     TransportAvailability.offered(
                         allTransportOptions,
                         rdp = native.rdp,
-                        // Probed, not looked for: libgojni.so is present in
-                        // every build, but the terminal flavour's copy is
-                        // built without rclone.
-                        rclone = sh.haven.rclone.bridge.RcloneBridge.available,
                     )
                 }
                 var transportExpanded by remember { mutableStateOf(false) }
@@ -1075,11 +1043,10 @@ fun ConnectionEditDialog(
                                     val defaultPort = when (value) {
                                         "VNC" -> "5900"
                                         "RDP" -> "3389"
-                                        "SMB" -> "445"
                                         "ET" -> "22"
                                         else -> "22"
                                     }
-                                    if (port == "22" || port == "5900" || port == "3389" || port == "445" || port == "2022" || port == "443") {
+                                    if (port == "22" || port == "5900" || port == "3389" || port == "2022" || port == "443") {
                                         port = defaultPort
                                     }
                                 },
@@ -1098,8 +1065,6 @@ fun ConnectionEditDialog(
                             when (connectionType) {
                                 "VNC" -> "My VNC Desktop"
                                 "RDP" -> "My RDP Desktop"
-                                "SMB" -> "My File Share"
-                                "RCLONE" -> "My Google Drive"
                                 else -> "My Server"
                             }
                         )
@@ -1243,161 +1208,6 @@ fun ConnectionEditDialog(
                         onStopBitsChange = { usbStopBits = it },
                         onFlowControlChange = { usbFlow = it },
                     )
-                } else if (connectionType == "RCLONE") {
-                    ConnectionSection(stringResource(R.string.connections_section_cloud_storage))
-                    val providerOptions = listOf(
-                        "drive" to "Google Drive",
-                        "dropbox" to "Dropbox",
-                        "onedrive" to "Microsoft OneDrive",
-                        "s3" to "Amazon S3 / Compatible",
-                        "b2" to "Backblaze B2",
-                        "sftp" to "SFTP (remote)",
-                        "webdav" to "WebDAV",
-                        "ftp" to "FTP",
-                        "mega" to "MEGA",
-                        "pcloud" to "pCloud",
-                        "box" to "Box",
-                        "filen" to "Filen",
-                    )
-                    var providerExpanded by remember { mutableStateOf(false) }
-                    ExposedDropdownMenuBox(
-                        expanded = providerExpanded,
-                        onExpandedChange = { providerExpanded = it },
-                    ) {
-                        OutlinedTextField(
-                            value = providerOptions.firstOrNull { it.first == rcloneProvider }?.second
-                                ?: rcloneProvider.ifEmpty { stringResource(R.string.connections_dropdown_select_provider) },
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text(stringResource(R.string.connections_field_provider)) },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(providerExpanded) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
-                        )
-                        ExposedDropdownMenu(
-                            expanded = providerExpanded,
-                            onDismissRequest = { providerExpanded = false },
-                        ) {
-                            providerOptions.forEach { (value, displayLabel) ->
-                                DropdownMenuItem(
-                                    text = { Text(displayLabel) },
-                                    onClick = {
-                                        rcloneProvider = value
-                                        providerExpanded = false
-                                        // A fresh connection gets a UNIQUE remote name
-                                        // ("<provider>-<token>") so two of the same provider
-                                        // don't collide on one rclone.conf entry (#410). An
-                                        // existing connection keeps the name it was configured
-                                        // under (renaming would orphan its rclone remote).
-                                        if (existing?.isRclone != true) {
-                                            rcloneRemoteName = "$value-$rcloneRemoteToken"
-                                        }
-                                    },
-                                )
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(4.dp))
-                    if (rcloneProvider.isBlank() || rcloneProvider in RCLONE_OAUTH_PROVIDERS) {
-                        // OAuth providers (Drive/Dropbox/…) authenticate via the
-                        // browser flow on first connect — no fields to fill here.
-                        Text(
-                            stringResource(R.string.connections_helper_rclone_signin),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    } else {
-                        // Non-OAuth providers (Filen, s3, b2, mega, sftp, …):
-                        // collect the rclone-declared required fields and write
-                        // the remote via config/create (#181).
-                        val rcloneCfgVm: RcloneConfigViewModel = hiltViewModel()
-                        val rcloneOptions by rcloneCfgVm.options.collectAsState()
-                        val rcloneCfgStatus by rcloneCfgVm.status.collectAsState()
-                        val rcloneParams = remember(rcloneProvider) { mutableStateMapOf<String, String>() }
-                        LaunchedEffect(rcloneProvider) { rcloneCfgVm.loadOptions(rcloneProvider) }
-                        // A successful Configure means the remote is now in
-                        // rclone.conf — only then may the profile be saved (#295).
-                        LaunchedEffect(rcloneCfgStatus) {
-                            if (rcloneCfgStatus is RcloneConfigViewModel.Status.Success) {
-                                rcloneConfigured = true
-                            }
-                        }
-                        Text(
-                            stringResource(R.string.connections_helper_rclone_credentials),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        rcloneOptions.forEach { opt ->
-                            OutlinedTextField(
-                                value = rcloneParams[opt.name] ?: opt.default,
-                                onValueChange = {
-                                    rcloneParams[opt.name] = it
-                                    // Changing a credential invalidates the verified
-                                    // remote — must re-Configure before saving (#295).
-                                    rcloneConfigured = false
-                                    rcloneCfgVm.clearStatus()
-                                },
-                                label = {
-                                    Text(opt.name.replace('_', ' ').replaceFirstChar { c -> c.uppercase() })
-                                },
-                                singleLine = true,
-                                supportingText = opt.help.takeIf { it.isNotBlank() }?.let {
-                                    { Text(it, style = MaterialTheme.typography.labelSmall) }
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                            Spacer(Modifier.height(4.dp))
-                        }
-                        val requiredFilled = rcloneOptions.filter { it.required }
-                            .all { (rcloneParams[it.name] ?: it.default).isNotBlank() }
-                        OutlinedButton(
-                            onClick = {
-                                val name = rcloneRemoteName.ifBlank { "$rcloneProvider-$rcloneRemoteToken" }
-                                val params = rcloneOptions
-                                    .associate { it.name to (rcloneParams[it.name] ?: it.default) }
-                                    .filterValues { it.isNotBlank() }
-                                rcloneCfgVm.configure(name, rcloneProvider, params)
-                            },
-                            enabled = requiredFilled &&
-                                rcloneCfgStatus != RcloneConfigViewModel.Status.Working,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            if (rcloneCfgStatus == RcloneConfigViewModel.Status.Working) {
-                                CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                                Spacer(Modifier.width(8.dp))
-                            }
-                            Text(stringResource(R.string.connections_rclone_configure))
-                        }
-                        when (val s = rcloneCfgStatus) {
-                            is RcloneConfigViewModel.Status.Success -> Text(
-                                stringResource(R.string.connections_rclone_configured_ok),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(top = 4.dp),
-                            )
-                            is RcloneConfigViewModel.Status.Error -> Text(
-                                s.message,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.padding(top = 4.dp),
-                            )
-                            else -> {}
-                        }
-                        // Make the gated Save discoverable: until Configure
-                        // succeeds, Save stays disabled for a non-OAuth remote (#295).
-                        if (!rcloneConfigured && rcloneProvider.isNotBlank() &&
-                            rcloneCfgStatus !is RcloneConfigViewModel.Status.Error
-                        ) {
-                            Text(
-                                stringResource(R.string.connections_rclone_configure_first),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(top = 4.dp),
-                            )
-                        }
-                    }
                 } else if (connectionType == "VNC") {
                     ConnectionSection(stringResource(R.string.connections_section_vnc))
                     // VNC: tunnel toggle first (it changes what Host means),
@@ -1630,200 +1440,6 @@ fun ConnectionEditDialog(
                             }
                         }
                     }
-                } else if (connectionType == "SMB") {
-                    ConnectionSection(stringResource(R.string.connections_section_smb))
-                    // SMB: host (with discovery), share, username, port, password, domain, SSH tunnel
-                    val filteredSmbHosts = remember(discoveredSmbHosts, host) {
-                        val prefix = host.lowercase()
-                        discoveredSmbHosts
-                            .filter {
-                                prefix.isEmpty() ||
-                                    it.address.startsWith(prefix) ||
-                                    it.hostname?.lowercase()?.contains(prefix) == true
-                            }
-                            .take(8)
-                    }
-
-                    // Scan network button
-                    Row(
-                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        if (filteredSmbHosts.isNotEmpty()) {
-                            Text(
-                                stringResource(R.string.connections_discovered_count, filteredSmbHosts.size),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.weight(1f),
-                            )
-                        } else {
-                            Spacer(Modifier.weight(1f))
-                        }
-                        TextButton(
-                            onClick = onScanSubnetSmb,
-                            enabled = !smbSubnetScanning,
-                        ) {
-                            if (smbSubnetScanning) {
-                                CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
-                                Spacer(Modifier.width(4.dp))
-                                Text(stringResource(R.string.connections_scanning), style = MaterialTheme.typography.labelSmall)
-                            } else {
-                                Icon(Icons.Filled.Radar, contentDescription = null, modifier = Modifier.size(16.dp))
-                                Spacer(Modifier.width(4.dp))
-                                Text(stringResource(R.string.connections_scan_network), style = MaterialTheme.typography.labelSmall)
-                            }
-                        }
-                    }
-
-                    var smbHostExpanded by remember { mutableStateOf(false) }
-                    if (discoveredSmbHosts.size > 3) {
-                        ExposedDropdownMenuBox(
-                            expanded = smbHostExpanded,
-                            onExpandedChange = { smbHostExpanded = it },
-                        ) {
-                            OutlinedTextField(
-                                value = host,
-                                onValueChange = {
-                                    host = it
-                                    smbHostExpanded = true
-                                },
-                                label = { Text(stringResource(R.string.connections_field_host)) },
-                                placeholder = { Text("192.168.1.100") },
-                                singleLine = true,
-                                trailingIcon = {
-                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = smbHostExpanded)
-                                },
-                                supportingText = if (filteredSmbHosts.isNotEmpty()) {{
-                                    Text(stringResource(R.string.connections_hosts_discovered, filteredSmbHosts.size))
-                                }} else null,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .menuAnchor(MenuAnchorType.PrimaryEditable),
-                            )
-                            if (filteredSmbHosts.isNotEmpty()) {
-                                ExposedDropdownMenu(
-                                    expanded = smbHostExpanded,
-                                    onDismissRequest = { smbHostExpanded = false },
-                                ) {
-                                    filteredSmbHosts.forEach { disc ->
-                                        DropdownMenuItem(
-                                            text = {
-                                                Column {
-                                                    Text(disc.hostname ?: disc.address)
-                                                    if (disc.hostname != null) {
-                                                        Text(
-                                                            disc.address,
-                                                            style = MaterialTheme.typography.bodySmall,
-                                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                        )
-                                                    }
-                                                }
-                                            },
-                                            onClick = {
-                                                host = disc.address
-                                                if (label.isBlank() && disc.hostname != null) {
-                                                    label = disc.hostname
-                                                }
-                                                smbHostExpanded = false
-                                            },
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        if (filteredSmbHosts.isNotEmpty()) {
-                            FlowRow(
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            ) {
-                                filteredSmbHosts.forEach { disc ->
-                                    val chipLabel = disc.hostname ?: disc.address
-                                    SuggestionChip(
-                                        onClick = {
-                                            host = disc.address
-                                            if (label.isBlank() && disc.hostname != null) {
-                                                label = disc.hostname
-                                            }
-                                        },
-                                        label = {
-                                            Text(
-                                                text = chipLabel,
-                                                style = MaterialTheme.typography.labelSmall,
-                                            )
-                                        },
-                                    )
-                                }
-                            }
-                            Spacer(Modifier.height(4.dp))
-                        }
-                        OutlinedTextField(
-                            value = host,
-                            onValueChange = { host = it },
-                            label = { Text(stringResource(R.string.connections_field_host)) },
-                            placeholder = { Text("192.168.1.100") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                    Spacer(Modifier.height(4.dp))
-                    OutlinedTextField(
-                        value = smbShare,
-                        onValueChange = { smbShare = it },
-                        label = { Text(stringResource(R.string.connections_field_share_name)) },
-                        placeholder = { Text("shared") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        OutlinedTextField(
-                            value = username,
-                            onValueChange = { username = it },
-                            label = { Text(stringResource(R.string.connections_field_username)) },
-                            placeholder = { Text("user") },
-                            singleLine = true,
-                            modifier = Modifier.weight(1f),
-                        )
-                        OutlinedTextField(
-                            value = port,
-                            onValueChange = { port = it.filter { c -> c.isDigit() } },
-                            label = { Text(stringResource(R.string.connections_field_port)) },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.width(80.dp),
-                        )
-                    }
-                    Spacer(Modifier.height(4.dp))
-                    sh.haven.core.ui.PasswordField(
-                        value = smbPassword,
-                        onValueChange = { smbPassword = it },
-                        label = stringResource(R.string.connections_field_password_optional),
-                        modifier = Modifier.fillMaxWidth(),
-                        onRevealRequest = onRevealSavedSecret,
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    OutlinedTextField(
-                        value = smbDomain,
-                        onValueChange = { smbDomain = it },
-                        label = { Text(stringResource(R.string.connections_field_domain_optional)) },
-                        placeholder = { Text("WORKGROUP") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    SshTunnelBlock(
-                        enabled = smbSshForward,
-                        carrierId = smbSshProfileId,
-                        sshProfiles = sshProfiles,
-                        onEnabledChange = { newValue ->
-                            smbSshForward = newValue
-                            if (!newValue) smbSshProfileId = null
-                            host = tunnelHostOnToggle(newValue, host)
-                        },
-                        onCarrierChange = { smbSshProfileId = it },
-                    )
                 } else if (connectionType == "SSH") {
                     CollapsibleSection(stringResource(R.string.connections_section_connection), secConnectionExpanded, { secConnectionExpanded = !secConnectionExpanded }) {
                     // Discovered hosts — filter by typed prefix
@@ -2812,13 +2428,12 @@ fun ConnectionEditDialog(
                 }
 
                 // Port knocking. Visible for any profile with a remote
-                // TCP host — skipped for RCLONE (its own
-                // protocol).
-                if (connectionType in setOf("VNC", "RDP", "SMB")) {
+                // TCP host.
+                if (connectionType in setOf("VNC", "RDP")) {
                     ConnectionSection(stringResource(R.string.connections_section_routing))
                     routingBody()
                 }
-                if (connectionType in setOf("VNC", "RDP", "SMB")) {
+                if (connectionType in setOf("VNC", "RDP")) {
                     ConnectionSection(stringResource(R.string.connections_section_port_knock))
                     portKnockBody()
                     ConnectionSection(stringResource(R.string.connections_section_spa))
@@ -2827,9 +2442,8 @@ fun ConnectionEditDialog(
 
                 // Route through — shared picker for SOCKS / HTTP proxy and
                 // WireGuard / Tailscale tunnel. Was SSH-only until #149;
-                // VNC, RDP, and SMB now also honour profile.tunnelConfigId
+                // VNC and RDP now also honour profile.tunnelConfigId
                 // so the picker has to surface for them too.
-                // network; RCLONE manages its own transport.
                 // Mutually exclusive at the UI layer: picking any tunnel
                 // clears proxy fields; picking any proxy clears
                 // tunnelConfigId. The connect path enforces tunnel >
@@ -2849,11 +2463,6 @@ fun ConnectionEditDialog(
                 "SSH" -> host.isNotBlank()
                 "VNC" -> host.isNotBlank() && tunnelComplete(vncSshForward, vncSshProfileId)
                 "RDP" -> host.isNotBlank() && rdpUsername.isNotBlank() && tunnelComplete(rdpSshForward, rdpSshProfileId)
-                "SMB" -> host.isNotBlank() && smbShare.isNotBlank() && tunnelComplete(smbSshForward, smbSshProfileId)
-                // OAuth providers authenticate on connect (no Configure step); every
-                // other provider must have its remote written via Configure first (#295).
-                "RCLONE" -> rcloneProvider.isNotBlank() &&
-                    (rcloneProvider in sh.haven.core.rclone.RCLONE_OAUTH_PROVIDERS || rcloneConfigured)
                 else -> true
             }
             // Build the profile from the current form state. Shared by Save
@@ -2975,42 +2584,6 @@ fun ConnectionEditDialog(
                                 rdpSshProfileId = tunnelCarrierForSave(rdpSshForward, rdpSshProfileId),
                                 rdpUseNla = rdpUseNla,
                                 rdpColorDepth = rdpColorDepth,
-                                colorTag = colorTag,
-                                groupId = groupId,
-                                identityId = identityId,
-                                portKnockSequence = portKnockSequence.ifBlank { null },
-                                portKnockDelayMs = portKnockDelayMs.toIntOrNull()
-                                    ?.coerceAtLeast(0) ?: KnockSequence.DEFAULT_DELAY_MS,
-                                spaKey = spaKey.ifBlank { null },
-                                spaKeyBase64 = spaKeyBase64,
-                                spaHmacKey = spaHmacKey.ifBlank { null },
-                                spaHmacKeyBase64 = spaHmacKeyBase64,
-                                spaAccessSpec = spaAccessSpec.ifBlank { null },
-                                spaAllowMode = spaAllowMode,
-                                spaExplicitIp = spaExplicitIp.ifBlank { null },
-                                spaPort = spaPort.toIntOrNull()?.takeIf { it in 1..65535 }
-                                    ?: SpaConfig.DEFAULT_SPA_PORT,
-                            ).withRoutingSelection(
-                                proxyType, proxyHost, proxyPort, proxyUser, proxyPassword, tunnelConfigId,
-                            )
-                        } else if (connectionType == "SMB") {
-                            val smbPortInt = port.toIntOrNull() ?: 445
-                            (existing ?: ConnectionProfile(
-                                label = label,
-                                host = host,
-                                username = username,
-                            )).copy(
-                                label = label.ifBlank { "SMB: \\\\$host\\$smbShare" },
-                                host = host,
-                                port = smbPortInt,
-                                username = username,
-                                connectionType = "SMB",
-                                smbPort = smbPortInt,
-                                smbShare = smbShare.ifBlank { null },
-                                smbPassword = smbPassword.ifBlank { null },
-                                smbDomain = smbDomain.ifBlank { null },
-                                smbSshForward = smbSshForward,
-                                smbSshProfileId = tunnelCarrierForSave(smbSshForward, smbSshProfileId),
                                 colorTag = colorTag,
                                 groupId = groupId,
                                 identityId = identityId,
@@ -3405,7 +2978,7 @@ private fun BooleanToggleRow(
  * carrier dropdown (or an "add an SSH connection first" error when no SSH
  * profiles exist). The dropdown sits right next to the toggle so the two
  * fields read as one decision — "tunnel through [this SSH connection]".
- * VNC / RDP / SMB render this at their existing form positions;
+ * VNC / RDP render this at their existing form positions;
  * host-field relabelling stays at the call site because labels,
  * placeholders and helper text are protocol-specific. Host rewrites on
  * toggle go through [tunnelHostOnToggle] in the caller's onEnabledChange.

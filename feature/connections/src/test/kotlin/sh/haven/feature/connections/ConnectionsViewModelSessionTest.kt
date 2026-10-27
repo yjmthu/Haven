@@ -42,7 +42,6 @@ import sh.haven.core.ssh.ConnectionConfig
 import sh.haven.core.et.EtSessionManager
 import sh.haven.core.fido.FidoAuthenticator
 import sh.haven.core.mosh.MoshSessionManager
-import sh.haven.core.smb.SmbSessionManager
 import sh.haven.core.rdp.RdpSessionManager
 import sh.haven.core.ssh.HostKeyVerifier
 import sh.haven.core.ssh.SessionManagerRegistry
@@ -63,7 +62,7 @@ private fun disconnectable(t: Transport, onDisconnect: (String) -> Unit) =
 
 /**
  * Tests that disconnect() and deleteConnection() clean up ALL session manager types.
- * Regression tests for the bug where local and SMB sessions survived disconnect/delete.
+ * Regression tests for the bug where local sessions survived disconnect/delete.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConnectionsViewModelSessionTest {
@@ -78,9 +77,7 @@ class ConnectionsViewModelSessionTest {
     private lateinit var sshSessionManager: SshSessionManager
     private lateinit var moshSessionManager: MoshSessionManager
     private lateinit var etSessionManager: EtSessionManager
-    private lateinit var smbSessionManager: SmbSessionManager
     private lateinit var rdpSessionManager: RdpSessionManager
-    private lateinit var rcloneSessionManager: sh.haven.core.rclone.RcloneSessionManager
     private lateinit var sessionManagerRegistry: SessionManagerRegistry
     private lateinit var sshKeyRepository: SshKeyRepository
     private lateinit var preferencesRepository: UserPreferencesRepository
@@ -112,15 +109,9 @@ class ConnectionsViewModelSessionTest {
             every { sessions } returns MutableStateFlow(emptyMap())
             every { activeSessions } returns emptyList()
         }
-        smbSessionManager = mockk(relaxed = true) {
-            every { sessions } returns MutableStateFlow(emptyMap())
-        }
         rdpSessionManager = mockk(relaxed = true) {
             every { sessions } returns MutableStateFlow(emptyMap())
             every { activeSessions } returns emptyList()
-        }
-        rcloneSessionManager = mockk(relaxed = true) {
-            every { sessions } returns MutableStateFlow(emptyMap())
         }
         // Since #510 the registry takes contributed transports rather than
         // naming each manager, so the bindings that :app provides in
@@ -132,9 +123,7 @@ class ConnectionsViewModelSessionTest {
                 disconnectable(Transport.SSH) { sshSessionManager.removeAllSessionsForProfile(it) },
                 disconnectable(Transport.MOSH) { moshSessionManager.removeAllSessionsForProfile(it) },
                 disconnectable(Transport.ET) { etSessionManager.removeAllSessionsForProfile(it) },
-                disconnectable(Transport.SMB) { smbSessionManager.removeAllSessionsForProfile(it) },
                 disconnectable(Transport.RDP) { rdpSessionManager.removeAllSessionsForProfile(it) },
-                disconnectable(Transport.RCLONE) { rcloneSessionManager.removeAllSessionsForProfile(it) },
                 // The three serial transports were anonymous mocks here before
                 // and nothing asserts them; they stay no-ops.
                 disconnectable(Transport.BTSERIAL) {},
@@ -190,9 +179,6 @@ class ConnectionsViewModelSessionTest {
                 every { sessions } returns kotlinx.coroutines.flow.MutableStateFlow(emptyMap())
             },
             usbBroker = mockk(relaxed = true),
-            smbSessionManager = smbSessionManager,
-            rcloneSessionManager = rcloneSessionManager,
-            rcloneClient = mockk(relaxed = true),
             fidoAuthenticator = mockk(relaxed = true),
             keystoreSshKeySigner = mockk(relaxed = true),
             sessionManagerRegistry = sessionManagerRegistry,
@@ -248,10 +234,7 @@ class ConnectionsViewModelSessionTest {
         verify { sshSessionManager.removeAllSessionsForProfile("profile1") }
         verify { moshSessionManager.removeAllSessionsForProfile("profile1") }
         verify { etSessionManager.removeAllSessionsForProfile("profile1") }
-        verify { smbSessionManager.removeAllSessionsForProfile("profile1") }
-        // #363: rclone was missing from the registry, so disconnect left
-        // the storage card CONNECTED forever.
-        verify { rcloneSessionManager.removeAllSessionsForProfile("profile1") }
+        verify { rdpSessionManager.removeAllSessionsForProfile("profile1") }
     }
 
     @Test
@@ -262,8 +245,7 @@ class ConnectionsViewModelSessionTest {
         verify { sshSessionManager.removeAllSessionsForProfile("profile1") }
         verify { moshSessionManager.removeAllSessionsForProfile("profile1") }
         verify { etSessionManager.removeAllSessionsForProfile("profile1") }
-        verify { smbSessionManager.removeAllSessionsForProfile("profile1") }
-        verify { rcloneSessionManager.removeAllSessionsForProfile("profile1") }
+        verify { rdpSessionManager.removeAllSessionsForProfile("profile1") }
     }
 
     @Test
@@ -842,8 +824,8 @@ class ConnectionsViewModelSessionTest {
      * the jump kept asking on every connect while the target's saved
      * credential was a password the jump never asked for.
      *
-     * The fix routes the terminal path through the same replay the VNC/RDP/
-     * SMB tunnel paths use (#121a): the dialog is labelled for the jump, the
+     * The fix routes the terminal path through the same replay the VNC/RDP
+     * tunnel paths use (#121a): the dialog is labelled for the jump, the
      * remember tick saves there, and the target's already-typed password is
      * queued so the replay re-drives it without asking again.
      */

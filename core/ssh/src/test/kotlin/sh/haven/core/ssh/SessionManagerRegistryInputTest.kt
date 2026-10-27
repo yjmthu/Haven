@@ -147,14 +147,14 @@ class SessionManagerRegistryInputTest {
 
     /**
      * A transport with no [TransportSessionManager.inputName] is never offered
-     * the id at all — RDP and SMB have no PTY to write to, and asking them
-     * would put a bogus "No null session" in the error the user sees.
+     * the id at all — RDP has no PTY to write to, and asking it would put a
+     * bogus "No null session" in the error the user sees.
      */
     @Test
     fun `transports without terminal input are not offered the id`() {
         var asked = false
-        val smb = object : TransportSessionManager {
-            override val transport = Transport.SMB
+        val rdp = object : TransportSessionManager {
+            override val transport = Transport.RDP
             override fun removeAllSessionsForProfile(profileId: String) = Unit
             override fun sendInput(sessionId: String, text: String) {
                 asked = true
@@ -162,10 +162,10 @@ class SessionManagerRegistryInputTest {
         }
 
         try {
-            registry(smb).sendTerminalInput("s1", "x")
+            registry(rdp).sendTerminalInput("s1", "x")
             fail("expected IllegalStateException")
         } catch (e: IllegalStateException) {
-            assertTrue("SMB should not appear in \"${e.message}\"", !e.message!!.contains("SMB"))
+            assertTrue("RDP should not appear in \"${e.message}\"", !e.message!!.contains("RDP"))
         }
         assertTrue("a transport with no inputName must not be asked", !asked)
     }

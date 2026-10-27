@@ -952,7 +952,7 @@ fun SettingsScreen(
                 importLauncher.launch(arrayOf("*/*"))
             },
         )
-        // Push/pull the encrypted backup to an existing SFTP/SMB/rclone
+        // Push/pull the encrypted backup to an existing SSH
         // connection, so config moves between devices without shuffling files
         // by hand (#323).
         run {
@@ -1740,7 +1740,7 @@ private sealed interface BackupAction {
 
 /**
  * Configure and trigger encrypted backup push/pull to an existing remote (#323).
- * Destination = one of the user's SFTP/SMB/rclone connections + a file path;
+ * Destination = one of the user's SSH connections + a file path;
  * changes persist immediately. Push/Pull hand off to [BackupPasswordDialog] for
  * the passphrase (Push encrypts, Pull decrypts + restores).
  */
@@ -2048,10 +2048,8 @@ private fun AboutDialog(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 val libraries = listOf(
-                    "rclone" to "Cloud storage engine (60+ providers) — MIT",
                     "IronRDP" to "RDP protocol (Rust/UniFFI) — MIT/Apache-2.0",
                     "JSch" to "SSH/SFTP protocol — BSD",
-                    "smbj" to "SMB/CIFS protocol — Apache-2.0",
                     "ConnectBot termlib" to "Terminal emulator — Apache-2.0",
                     "Jetpack Compose" to "UI toolkit — Apache-2.0",
                     "Hack Nerd Font Mono" to "Terminal default font — Hack (MIT/Bitstream Vera) + Nerd Fonts patcher (MIT) + Font Awesome (CC-BY 4.0) + Material Design Icons (Apache-2.0) + Devicons/Octicons/Codicons/Powerline/Pomicons/Seti UI (MIT) + Weather Icons (SIL OFL 1.1) + IEC Power Symbols (Public Domain). See NOTICE-Fonts.md.",

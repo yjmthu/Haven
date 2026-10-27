@@ -421,12 +421,6 @@ fun HavenNavHost(
     // TerminalViewModel only collects the bus while TerminalScreen is composed,
     // and the Desktop tab is outside the pager's composition window — the bus
     // event was dropped and no tab opened. HavenNavHost is always composed.
-    // SMB auto-connect params
-    var pendingSmbProfileId by rememberSaveable { mutableStateOf<String?>(null) }
-
-    // Rclone auto-connect params
-    var pendingRcloneProfileId by rememberSaveable { mutableStateOf<String?>(null) }
-
     // Disable pager swipe while terminal text selection is active
     var terminalSelectionActive by remember { mutableStateOf(false) }
     // #524b: while the Swipe key is latched, horizontal swipes inside the
@@ -538,18 +532,6 @@ fun HavenNavHost(
                     // VNC/RDP navigation is handled by the always-composed
                     // collector above (HavenNavHost), not via these callbacks —
                     // see the navigateToVnc/navigateToRdp LaunchedEffects (#121).
-                    onNavigateToSmb = { profileId ->
-                        pendingSmbProfileId = profileId
-                        coroutineScope.launch {
-                            requestScreen(Screen.Sftp)
-                        }
-                    },
-                    onNavigateToRclone = { profileId ->
-                        pendingRcloneProfileId = profileId
-                        coroutineScope.launch {
-                            requestScreen(Screen.Sftp)
-                        }
-                    },
                     onNavigateToConnections = {
                         coroutineScope.launch {
                             requestScreen(Screen.Connections)
@@ -720,8 +702,6 @@ fun HavenNavHost(
                             },
                         )
                     SftpScreen(
-                        pendingSmbProfileId = pendingSmbProfileId,
-                        pendingRcloneProfileId = pendingRcloneProfileId,
                         onEditorOpenChanged = { sftpEditorOpen = it },
                         onImageToolOpenChanged = { sftpImageToolOpen = it },
                         sftpModifier = sftpModifier,
@@ -736,16 +716,6 @@ fun HavenNavHost(
                         },
                         viewModel = sftpViewModel,
                     )
-                    LaunchedEffect(pendingSmbProfileId) {
-                        if (pendingSmbProfileId != null) {
-                            pendingSmbProfileId = null
-                        }
-                    }
-                    LaunchedEffect(pendingRcloneProfileId) {
-                        if (pendingRcloneProfileId != null) {
-                            pendingRcloneProfileId = null
-                        }
-                    }
                 }
                 Screen.Keys -> KeysScreen()
                 Screen.Settings -> {

@@ -43,8 +43,6 @@ dependencies {
     implementation(project(":core:bleserial"))
     implementation(project(":core:usbserial"))
     implementation(project(":core:data"))
-    implementation(project(":core:smb"))
-    implementation(project(":core:rclone"))
     implementation(project(":core:fido"))
     implementation(project(":core:usb"))
     implementation(project(":core:stepca"))

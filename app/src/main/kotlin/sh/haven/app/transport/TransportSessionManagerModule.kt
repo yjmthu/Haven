@@ -9,8 +9,6 @@ import sh.haven.core.bleserial.BleSerialSessionManager
 import sh.haven.core.btserial.BtSerialSessionManager
 import sh.haven.core.et.EtSessionManager
 import sh.haven.core.mosh.MoshSessionManager
-import sh.haven.core.rclone.RcloneSessionManager
-import sh.haven.core.smb.SmbSessionManager
 import sh.haven.core.ssh.SessionManager
 import sh.haven.core.ssh.SshSessionManager
 import sh.haven.core.ssh.Transport
@@ -117,30 +115,4 @@ object TransportSessionManagerModule {
             }
     }
 
-    // No sendInput: SMB is a file share, not a terminal.
-    @Provides @IntoSet
-    fun smb(m: SmbSessionManager): TransportSessionManager = object : TransportSessionManager {
-        override val transport = Transport.SMB
-        override fun removeAllSessionsForProfile(profileId: String) = m.removeAllSessionsForProfile(profileId)
-        override val activeSessionCount get() = m.activeSessions.size
-        override val sessions
-            get() = m.sessions.value.values.map {
-                UnifiedSession(it.sessionId, it.profileId, it.label, mapStatus(it.status.name), Transport.SMB)
-            }
-    }
-
-    /**
-     * Disconnect-only. rclone remotes are storage handles, not live transport
-     * sessions — they don't keep the FGS alive and the connections UI reads
-     * RcloneSessionManager's flow directly, so rclone is deliberately absent
-     * from hasActiveSessions/allSessions (it leaves [sessions] and
-     * [activeSessionCount] at their inert defaults). Before this wiring,
-     * disconnecting an rclone profile was a silent no-op and the card stayed
-     * CONNECTED forever (#363).
-     */
-    @Provides @IntoSet
-    fun rclone(m: RcloneSessionManager): TransportSessionManager = object : TransportSessionManager {
-        override val transport = Transport.RCLONE
-        override fun removeAllSessionsForProfile(profileId: String) = m.removeAllSessionsForProfile(profileId)
-    }
 }

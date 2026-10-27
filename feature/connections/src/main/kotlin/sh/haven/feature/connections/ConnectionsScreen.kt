@@ -41,7 +41,7 @@ import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.CreateNewFolder
-import androidx.compose.material.icons.filled.MoreVert
+
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Delete
@@ -159,8 +159,6 @@ fun ConnectionsScreen(
     // VNC/RDP desktop navigation is collected at the nav-host level
     // (HavenNavHost), not here — so a tab opens regardless of which screen is
     // composed (fixes Retry / connect_profile reliability, #121).
-    onNavigateToSmb: (profileId: String) -> Unit = {},
-    onNavigateToRclone: (profileId: String) -> Unit = {},
     onNavigateToConnections: () -> Unit = {},
     /**
      * Slot for the Workspaces section, supplied by the host (HavenNavHost
@@ -212,8 +210,6 @@ fun ConnectionsScreen(
     val connectConfirm by viewModel.connectConfirm.collectAsState()
     val prefillNewConnection by viewModel.prefillNewConnection.collectAsState()
     val navigateToTerminal by viewModel.navigateToTerminal.collectAsState()
-    val navigateToSmb by viewModel.navigateToSmb.collectAsState()
-    val navigateToRclone by viewModel.navigateToRclone.collectAsState()
     val navigateBackToConnections by viewModel.navigateToConnections.collectAsState()
     val deploySuccess by viewModel.deploySuccess.collectAsState()
     val sessionSelection by viewModel.sessionSelection.collectAsState()
@@ -227,8 +223,6 @@ fun ConnectionsScreen(
     val subnetScanning by viewModel.subnetScanning.collectAsState()
     val jumpScanning by viewModel.jumpScanning.collectAsState()
     val jumpScanError by viewModel.jumpScanError.collectAsState()
-    val discoveredSmbHosts by viewModel.discoveredSmbHosts.collectAsState()
-    val smbSubnetScanning by viewModel.smbSubnetScanning.collectAsState()
     val showMoshSetupGuide by viewModel.showMoshSetupGuide.collectAsState()
     val showMoshClientMissing by viewModel.showMoshClientMissing.collectAsState()
     val groupLaunchState by viewModel.groupLaunchState.collectAsState()
@@ -237,20 +231,6 @@ fun ConnectionsScreen(
     LaunchedEffect(navigateToTerminal) {
         navigateToTerminal?.let { profileId ->
             onNavigateToTerminal(profileId)
-            viewModel.onNavigated()
-        }
-    }
-
-    LaunchedEffect(navigateToSmb) {
-        navigateToSmb?.let { profileId ->
-            onNavigateToSmb(profileId)
-            viewModel.onNavigated()
-        }
-    }
-
-    LaunchedEffect(navigateToRclone) {
-        navigateToRclone?.let { profileId ->
-            onNavigateToRclone(profileId)
             viewModel.onNavigated()
         }
     }
@@ -274,8 +254,6 @@ fun ConnectionsScreen(
     // link with no saved match (#305). Cleared when the dialog closes so a
     // later manual "Add" isn't pre-filled.
     var prefillDraft by remember { mutableStateOf<ConnectionProfile?>(null) }
-    var showOverflowMenu by remember { mutableStateOf(false) }
-    var showImportRclone by rememberSaveable { mutableStateOf(false) }
     var editingProfileId by rememberSaveable { mutableStateOf<String?>(null) }
     val editingProfile = editingProfileId?.let { id -> connections.firstOrNull { it.id == id } }
     var connectingProfile by remember { mutableStateOf<ConnectionProfile?>(null) }
@@ -470,7 +448,6 @@ fun ConnectionsScreen(
         ConnectionEditDialog(
             prefill = prefillDraft,
             discoveredHosts = discoveredHosts,
-            discoveredSmbHosts = discoveredSmbHosts,
             sshProfiles = connections,
             groups = groups,
             identities = identities,
@@ -484,9 +461,7 @@ fun ConnectionsScreen(
             },
             globalSessionManagerLabel = globalSessionManagerLabel,
             subnetScanning = subnetScanning,
-            smbSubnetScanning = smbSubnetScanning,
             onScanSubnet = { viewModel.scanSubnet() },
-            onScanSubnetSmb = { viewModel.scanSubnetSmb() },
             jumpScanning = jumpScanning,
             jumpScanError = jumpScanError,
             onScanSubnetViaJump = { jumpId -> viewModel.scanSubnetViaJump(jumpId) },
@@ -551,10 +526,6 @@ fun ConnectionsScreen(
         )
     }
 
-    if (showImportRclone) {
-        ImportRcloneConfigDialog(onDismiss = { showImportRclone = false })
-    }
-
     editingProfile?.let { profile ->
         // Load the embedded Cloudflare Tunnel (if any) before showing the
         // dialog so the inline transport fields can pre-populate. Loading
@@ -574,7 +545,6 @@ fun ConnectionsScreen(
             existing = profile,
             onRevealSavedSecret = { viewModel.authToRevealPassword(revealTitle, revealSubtitle) },
             discoveredHosts = discoveredHosts,
-            discoveredSmbHosts = discoveredSmbHosts,
             sshProfiles = connections,
             groups = groups,
             identities = identities,
@@ -589,9 +559,7 @@ fun ConnectionsScreen(
             },
             globalSessionManagerLabel = globalSessionManagerLabel,
             subnetScanning = subnetScanning,
-            smbSubnetScanning = smbSubnetScanning,
             onScanSubnet = { viewModel.scanSubnet() },
-            onScanSubnetSmb = { viewModel.scanSubnetSmb() },
             jumpScanning = jumpScanning,
             jumpScanError = jumpScanError,
             onScanSubnetViaJump = { jumpId -> viewModel.scanSubnetViaJump(jumpId) },
@@ -889,21 +857,6 @@ fun ConnectionsScreen(
                     IconButton(onClick = { showNewGroupDialog = true }) {
                         Icon(Icons.Filled.CreateNewFolder, contentDescription = stringResource(R.string.connections_new_group_action))
                     }
-                    IconButton(onClick = { showOverflowMenu = true }) {
-                        Icon(Icons.Filled.MoreVert, contentDescription = null)
-                    }
-                    DropdownMenu(
-                        expanded = showOverflowMenu,
-                        onDismissRequest = { showOverflowMenu = false },
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.rclone_import_menu)) },
-                            onClick = {
-                                showOverflowMenu = false
-                                showImportRclone = true
-                            },
-                        )
-                    }
                 },
             )
         },
@@ -1016,14 +969,13 @@ fun ConnectionsScreen(
                 val dependentsByParent = connections
                     .mapNotNull { profile ->
                         // Nest a profile under the SSH profile that carries its
-                        // tunnel: a jump-host chain, or a VNC/RDP/SMB-over-SSH
-                        // forward. VNC/SMB are gated by their forward flag
+                        // tunnel: a jump-host chain, or a VNC/RDP-over-SSH
+                        // forward. VNC is gated by its forward flag
                         // (vncSshForward defaults true) so a direct connection
                         // with a stale sshProfileId isn't wrongly nested.
                         val parentId = profile.jumpProfileId
                             ?: profile.vncSshProfileId?.takeIf { profile.vncSshForward }
                             ?: profile.rdpSshProfileId
-                            ?: profile.smbSshProfileId?.takeIf { profile.smbSshForward }
                         if (parentId != null && parentId in profileMap) parentId to profile else null
                     }
                     .groupBy({ it.first }, { it.second })
@@ -1235,7 +1187,7 @@ fun ConnectionsScreen(
                                         onTapProfile(
                                             profile, profileStatuses[profile.id], sshKeys,
                                             id != null && (id.keyId != null || id.password != null),
-                                            viewModel, onNavigateToSmb, onNavigateToRclone,
+                                            viewModel,
                                         ) { connectingProfile = profile }
                                     },
                                     onRename = { newLabel -> viewModel.saveConnection(profile.copy(label = newLabel)) },
@@ -1247,8 +1199,6 @@ fun ConnectionsScreen(
                                     onConnectWithPassword = { connectingProfile = profile },
                                     onForgetPassword = { viewModel.forgetPassword(profile.id) },
                                     onPortForwards = { portForwardProfile = profile },
-                                    onReauthRclone = { viewModel.reauthRcloneProfile(profile) },
-                                    onCancelOAuth = { viewModel.cancelPendingOAuth(profile) },
                                     onNewSession = { viewModel.openNewSession(profile.id) },
                                     enableDrag = !isFiltering,
                                     dragModifier = if (!isFiltering) Modifier
@@ -1353,7 +1303,7 @@ fun ConnectionsScreen(
                                             onTapProfile(
                                                 dep, profileStatuses[dep.id], sshKeys,
                                                 id != null && (id.keyId != null || id.password != null),
-                                                viewModel, onNavigateToSmb, onNavigateToRclone,
+                                                viewModel,
                                             ) { connectingProfile = dep }
                                         },
                                         onRename = { newLabel -> viewModel.saveConnection(dep.copy(label = newLabel)) },
@@ -1365,8 +1315,6 @@ fun ConnectionsScreen(
                                         onConnectWithPassword = { connectingProfile = dep },
                                         onForgetPassword = { viewModel.forgetPassword(dep.id) },
                                         onPortForwards = { portForwardProfile = dep },
-                                        onReauthRclone = { viewModel.reauthRcloneProfile(dep) },
-                                        onCancelOAuth = { viewModel.cancelPendingOAuth(dep) },
                                         onNewSession = { viewModel.openNewSession(dep.id) },
                                         dragModifier = if (ancestorDragged) Modifier
                                             .zIndex(1f)
@@ -1441,15 +1389,9 @@ private fun onTapProfile(
     sshKeys: List<sh.haven.core.data.db.entities.SshKey>,
     hasUsableIdentity: Boolean,
     viewModel: ConnectionsViewModel,
-    onNavigateToSmb: (String) -> Unit,
-    onNavigateToRclone: (String) -> Unit,
     showPasswordDialog: () -> Unit,
 ) {
-    if (profileStatus == ProfileStatus.CONNECTED && profile.isRclone) {
-        onNavigateToRclone(profile.id)
-    } else if (profileStatus == ProfileStatus.CONNECTED && profile.isSmb) {
-        onNavigateToSmb(profile.id)
-    } else if (profileStatus == ProfileStatus.CONNECTED && (profile.isVnc || profile.isRdp)) {
+    if (profileStatus == ProfileStatus.CONNECTED && (profile.isVnc || profile.isRdp)) {
         // Desktop already open — re-issuing connect navigates to the Desktop
         // screen and the dedup in addVncSession/addRdpSession switches to the
         // existing tab instead of reconnecting. (A VNC/RDP-over-SSH profile
@@ -1467,21 +1409,6 @@ private fun onTapProfile(
         } else {
             showPasswordDialog()
         }
-    } else if (profile.isSmb) {
-        val savedPassword = profile.smbPassword
-        if (savedPassword != null) {
-            viewModel.connect(profile, savedPassword)
-        } else {
-            showPasswordDialog()
-        }
-    } else if (profile.isRclone) {
-        // Rclone profiles don't take a Haven-side password — credentials
-        // live inside rclone's own config, and OAuth providers run their
-        // browser flow via RcloneSessionManager.connectSession. Routing
-        // straight through `connect()` lets connectRclone handle that
-        // (#108: previously fell through to the password catch-all and
-        // confused the user).
-        viewModel.connect(profile, "")
     } else if (hasUsableIdentity) {
         // An assigned identity supplies the username plus a key or password at
         // connect time (#360). connect() resolves it via applyTo(), so route
@@ -1524,8 +1451,6 @@ private fun ConnectionTreeItem(
     onConnectWithPassword: () -> Unit,
     onForgetPassword: () -> Unit,
     onPortForwards: () -> Unit,
-    onReauthRclone: () -> Unit,
-    onCancelOAuth: () -> Unit,
     onNewSession: () -> Unit,
     enableDrag: Boolean = true,
     dragModifier: Modifier = Modifier,
@@ -1692,30 +1617,12 @@ private fun ConnectionTreeItem(
             ListItem(
                 headlineContent = { Text(profile.label) },
                 supportingContent = {
-                    if (profile.isRclone) {
-                        val providerLabel = when (profile.rcloneProvider) {
-                            "drive" -> "Google Drive"
-                            "dropbox" -> "Dropbox"
-                            "onedrive" -> "OneDrive"
-                            "s3" -> "Amazon S3"
-                            "b2" -> "Backblaze B2"
-                            "sftp" -> "SFTP (rclone)"
-                            "webdav" -> "WebDAV"
-                            "ftp" -> "FTP"
-                            "mega" -> "MEGA"
-                            "pcloud" -> "pCloud"
-                            "box" -> "Box"
-                            else -> profile.rcloneProvider ?: stringResource(R.string.connections_rclone_provider_cloud)
-                        }
-                        Text("$providerLabel \u2022 ${profile.rcloneRemoteName ?: ""}")
-                    } else {
-                        val via = when {
-                            jumpHostLabel != null && indent == 0 -> " " + stringResource(R.string.connections_list_via, jumpHostLabel)
-                            profile.proxyType != null && indent == 0 -> " " + stringResource(R.string.connections_list_via, profile.proxyType.toString())
-                            else -> ""
-                        }
-                        Text("${profile.username}@${profile.host}:${profile.port}$via")
+                    val via = when {
+                        jumpHostLabel != null && indent == 0 -> " " + stringResource(R.string.connections_list_via, jumpHostLabel)
+                        profile.proxyType != null && indent == 0 -> " " + stringResource(R.string.connections_list_via, profile.proxyType.toString())
+                        else -> ""
                     }
+                    Text("${profile.username}@${profile.host}:${profile.port}$via")
                 },
                 modifier = Modifier
                     .weight(1f)
@@ -1764,31 +1671,6 @@ private fun ConnectionTreeItem(
                     text = { Text(stringResource(R.string.connections_forget_password)) },
                     leadingIcon = { Icon(Icons.Filled.NoEncryption, null) },
                     onClick = { showMenu = false; showForgetPasswordConfirm = true },
-                )
-            }
-            if (profile.isRclone) {
-                // For OAuth rclone providers (gdrive, dropbox, onedrive…)
-                // tokens go stale and the rclone backend silently fails
-                // to refresh, leaving Haven unable to connect. This
-                // forces a fresh OAuth flow without the user needing
-                // to delete + re-add the connection.
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.connections_action_reauthenticate)) },
-                    leadingIcon = { Icon(Icons.Filled.Refresh, null) },
-                    onClick = { showMenu = false; onReauthRclone() },
-                )
-            }
-            if (profile.isRclone && profileStatus == ProfileStatus.CONNECTING) {
-                // OAuth has a 5-min timeout, but if the user dismissed
-                // the browser or the callback never reaches rclone's
-                // listener, this lets them clear the spinner manually.
-                // Underlying gomobile worker keeps blocking until
-                // process restart — that's an rclone-android limitation
-                // documented in RcloneSessionManager.cancelPendingOAuth.
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.connections_action_cancel_oauth)) },
-                    leadingIcon = { Icon(Icons.Filled.Close, null) },
-                    onClick = { showMenu = false; onCancelOAuth() },
                 )
             }
             if (profile.isSsh && profileStatus == ProfileStatus.CONNECTED) {

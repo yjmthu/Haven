@@ -503,9 +503,9 @@ class WorkspaceLauncher @Inject constructor(
 
 /**
  * True when the profile resolves to a file-browser tab. Mirrors the
- * `isTerminal` / `isDesktop` helpers but covers the SFTP / SMB / Rclone
- * / Local file-browser kinds explicitly so workspace items don't have to
+ * `isTerminal` / `isDesktop` helpers but covers the SFTP / Local
+ * file-browser kinds explicitly so workspace items don't have to
  * duplicate the predicate.
  */
 private fun ConnectionProfile.isFileBrowser(): Boolean =
-    isSsh || isSmb || isRclone || isLocal
+    isSsh || isLocal

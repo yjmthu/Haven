@@ -321,7 +321,7 @@ class SettingsViewModel @Inject constructor(
 
     // ── Encrypted backup sync to an existing remote (#323) ────────────────
 
-    /** SFTP/SMB/rclone profiles eligible as a backup destination (id + label). */
+    /** SSH profiles eligible as a backup destination (id + label). */
     val backupSyncCandidates: StateFlow<List<Pair<String, String>>> =
         connectionRepository.observeAll()
             .map { list ->
@@ -1141,6 +1141,6 @@ class SettingsViewModel @Inject constructor(
 
     companion object {
         /** Connection types that can host a backup file (#323). LOCAL is excluded — it's the device itself, not a cross-device destination. */
-        private val BACKUP_SYNC_TYPES = setOf("SSH", "SMB", "RCLONE")
+        private val BACKUP_SYNC_TYPES = setOf("SSH")
     }
 }

@@ -8,7 +8,6 @@ import dagger.multibindings.IntoSet
 import kotlinx.coroutines.flow.map
 import sh.haven.core.et.EtSessionManager
 import sh.haven.core.mosh.MoshSessionManager
-import sh.haven.core.smb.SmbSessionManager
 import sh.haven.core.ssh.ForegroundSessionParticipant
 import sh.haven.core.ssh.SshSessionManager
 
@@ -47,10 +46,4 @@ object ForegroundSessionParticipantModule {
         override fun disconnectAll() = m.disconnectAll()
     }
 
-    @Provides @IntoSet
-    fun smb(m: SmbSessionManager): ForegroundSessionParticipant = object : ForegroundSessionParticipant {
-        override val activeSessions get() = m.activeSessions.map { SessionInfo(it.profileId, it.label) }
-        override val changes get() = m.sessions.map { }
-        override fun disconnectAll() = m.disconnectAll()
-    }
 }

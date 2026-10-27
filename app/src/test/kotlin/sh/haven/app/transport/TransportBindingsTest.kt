@@ -34,8 +34,6 @@ class TransportBindingsTest {
             btSerial(manager()),
             bleSerial(manager()),
             usbSerial(manager()),
-            smb(manager()),
-            rclone(manager()),
         )
     }
 

@@ -5,7 +5,7 @@ import javax.inject.Singleton
 
 /**
  * Reads/writes the encrypted backup blob to a remote destination the user
- * already trusts — an existing connected SFTP / SMB / rclone profile (#323).
+ * already trusts — an existing connected SSH profile (#323).
  * The interface lives in core/data so [BackupSyncManager] and the settings
  * layer depend only on it; the transport-backed implementation lives in the
  * app module (it needs `feature/sftp`'s `TransportSelector`, the same seam

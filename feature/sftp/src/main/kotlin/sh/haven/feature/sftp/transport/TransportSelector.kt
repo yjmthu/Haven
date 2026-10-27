@@ -7,9 +7,6 @@ import sh.haven.core.data.db.entities.ConnectionProfile
 import sh.haven.core.data.repository.ConnectionRepository
 import sh.haven.core.et.EtSessionManager
 import sh.haven.core.mosh.MoshSessionManager
-import sh.haven.core.rclone.RcloneClient
-import sh.haven.core.rclone.RcloneSessionManager
-import sh.haven.core.smb.SmbSessionManager
 import sh.haven.core.ssh.SshClient
 import sh.haven.core.ssh.SshSessionManager
 import sh.haven.core.ssh.sftp.SftpSession
@@ -43,9 +40,6 @@ class TransportSelector @Inject constructor(
     private val sessionManager: SshSessionManager,
     private val moshSessionManager: MoshSessionManager,
     private val etSessionManager: EtSessionManager,
-    private val smbSessionManager: SmbSessionManager,
-    private val rcloneSessionManager: RcloneSessionManager,
-    private val rcloneClient: RcloneClient,
     private val connectionRepository: ConnectionRepository,
     @ApplicationContext private val appContext: Context,
 ) {
@@ -130,31 +124,15 @@ class TransportSelector @Inject constructor(
 
     /**
      * Pick the [FileBackend] for [profileId]. Local profiles short-circuit
-     * (no DB row exists for "local"); SMB and rclone profiles look up the
-     * active client/remote on their session managers; everything else
-     * falls through to the SSH path via [resolve], which still requires
-     * a [ConnectionProfile] from the DB.
+     * (no DB row exists for "local"); everything else falls through to the
+     * SSH path via [resolve], which still requires a [ConnectionProfile]
+     * from the DB.
      */
     suspend fun resolveFileBackend(profileId: String): FileBackendResolution? {
         if (profileId == "local") {
             return FileBackendResolution(LocalFileBackend(appContext))
         }
-        if (smbSessionManager.isProfileConnected(profileId)) {
-            val client = smbSessionManager.getClientForProfile(profileId) ?: return null
-            return FileBackendResolution(SmbFileBackend(client))
-        }
-        if (rcloneSessionManager.isProfileConnected(profileId)) {
-            val remote = rcloneSessionManager.getRemoteNameForProfile(profileId) ?: return null
-            return FileBackendResolution(RcloneFileBackend(rcloneClient, remote, appContext))
-        }
         val profile = connectionRepository.getById(profileId) ?: return null
-        // SAF "local folder" locations (#415) carry no session — they fall through
-        // every isProfileConnected() check to here, resolved straight from the
-        // persisted tree Uri on the profile.
-        if (profile.isSaf) {
-            val uri = profile.safTreeUri ?: return null
-            return FileBackendResolution(SafFileBackend(appContext, android.net.Uri.parse(uri)))
-        }
         // The SSH session may be mid-(re)connect — e.g. right after the app
         // restarts from a self-install, the restored session is briefly
         // RECONNECTING. Without this wait, resolve() returns null and the

@@ -33,12 +33,4 @@ interface Session {
 
 enum class SessionStatus { CONNECTING, CONNECTED, RECONNECTING, DISCONNECTED, ERROR }
 
-// RCLONE and GUEST are last so the existing ordinals are unchanged. RCLONE
-// names a transport that contributes no sessions — rclone remotes are storage
-// handles that are disconnected with everything else but never listed (#363) —
-// and exists so its registry entry can identify itself honestly rather than
-// borrowing another transport's name. GUEST is the UML guest, which follows the
-// LOCAL pattern but runs a real kernel as its process.
-// OPENAI is last for the same reason as RCLONE/GUEST (ordinals load-bearing):
-// an HTTP client session — no terminal, no input.
-enum class Transport { SSH, MOSH, ET, RDP, SMB, BTSERIAL, BLESERIAL, USBSERIAL, RCLONE }
+enum class Transport { SSH, MOSH, ET, RDP, BTSERIAL, BLESERIAL, USBSERIAL }

@@ -47,8 +47,6 @@ class NetworkDiscovery(private val context: Context) {
     private val _hosts = MutableStateFlow<List<DiscoveredHost>>(emptyList())
     val hosts: StateFlow<List<DiscoveredHost>> = _hosts.asStateFlow()
 
-    private val _smbHosts = MutableStateFlow<List<DiscoveredHost>>(emptyList())
-    val smbHosts: StateFlow<List<DiscoveredHost>> = _smbHosts.asStateFlow()
 
     /**
      * Master switch for the Tailscale LocalAPI probe (#654). Set from the
@@ -64,7 +62,7 @@ class NetworkDiscovery(private val context: Context) {
     private val mdnsHosts = mutableSetOf<DiscoveredHost>()
     private val arpHosts = mutableSetOf<DiscoveredHost>()
     private val tailscaleHosts = mutableSetOf<DiscoveredHost>()
-    private val smbScanHosts = mutableSetOf<DiscoveredHost>()
+
     private val jumpHosts = mutableSetOf<DiscoveredHost>()
 
     fun start() {
@@ -77,9 +75,7 @@ class NetworkDiscovery(private val context: Context) {
         arpHosts.clear()
         synchronized(jumpHosts) { jumpHosts.clear() }
         tailscaleHosts.clear()
-        smbScanHosts.clear()
         _hosts.value = emptyList()
-        _smbHosts.value = emptyList()
     }
 
     private fun isTailscaleAppInstalled(): Boolean {
@@ -274,56 +270,6 @@ class NetworkDiscovery(private val context: Context) {
         mergeAndEmit()
     }
 
-    /**
-     * Scan the local /24 subnet for hosts with SMB on port 445.
-     */
-    suspend fun scanSubnetSmb() {
-        withContext(Dispatchers.IO) {
-            try {
-                val baseIp = getLocalSubnetBase() ?: run {
-                    Log.d(TAG, "Could not determine local subnet")
-                    return@withContext
-                }
-                Log.d(TAG, "Scanning subnet $baseIp.1-254 for SMB")
-
-                coroutineScope {
-                    val jobs = (1..254).map { i ->
-                        async(Dispatchers.IO) {
-                            val ip = "$baseIp.$i"
-                            if (probePort(ip, 445, timeoutMs = 400)) {
-                                val hostname = resolveHostname(ip)
-                                val host = DiscoveredHost(
-                                    address = ip,
-                                    hostname = hostname,
-                                    port = 445,
-                                    source = "scan",
-                                )
-                                synchronized(smbScanHosts) {
-                                    smbScanHosts.add(host)
-                                }
-                                mergeSmbAndEmit()
-                                Log.d(TAG, "SMB found: ${LogRedact.of(ip)} (${LogRedact.of(hostname)})")
-                            }
-                        }
-                    }
-                    jobs.awaitAll()
-                }
-                Log.d(TAG, "SMB subnet scan complete: ${smbScanHosts.size} hosts found")
-            } catch (e: Exception) {
-                Log.e(TAG, "SMB subnet scan failed", e)
-            }
-        }
-    }
-
-    private fun mergeSmbAndEmit() {
-        val all = smbScanHosts.toList()
-            .distinctBy { it.address }
-            .sortedWith(compareBy(
-                { it.hostname == null },
-                { it.address },
-            ))
-        _smbHosts.value = all
-    }
 
     @SuppressLint("MissingPermission") // ACCESS_NETWORK_STATE declared in app manifest
     private fun getLocalSubnetBase(): String? {

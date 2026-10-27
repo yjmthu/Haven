@@ -169,20 +169,14 @@ data class CapturedDraft(
 /**
  * Map the unified [Transport] enum to its [WorkspaceItem.Kind]:
  * - SSH / Mosh / ET / Reticulum / Local → TERMINAL
- * - SMB → FILE_BROWSER
  * - RDP → DESKTOP
  *
  * VNC is not in [SessionManagerRegistry] (no session manager), so it
  * isn't represented here — automatic capture skips VNC tabs in v1.
- * RCLONE never reaches here: it contributes no sessions to the registry
- * (storage handles, not live sessions — #363), so nothing carries that
- * transport into a workspace item.
  */
 private fun Transport.toWorkspaceKind(): WorkspaceItem.Kind? = when (this) {
     Transport.SSH, Transport.MOSH, Transport.ET,
     Transport.BTSERIAL, Transport.BLESERIAL, Transport.USBSERIAL ->
         WorkspaceItem.Kind.TERMINAL
-    Transport.SMB -> WorkspaceItem.Kind.FILE_BROWSER
     Transport.RDP -> WorkspaceItem.Kind.DESKTOP
-    Transport.RCLONE -> null
 }

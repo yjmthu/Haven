@@ -38,12 +38,6 @@
     <!-- FAB actions -->
     <string name="sftp_new_folder">New folder</string>
     <string name="sftp_upload_folder">Upload folder</string>
-    <string name="sftp_add_folder_location">Add folder location</string>
-    <string name="sftp_saf_grant_failed">Couldn\'t keep access to that folder</string>
-    <string name="sftp_remove_folder_location">Remove folder location</string>
-    <string name="sftp_remove_folder_title">Remove folder location?</string>
-    <string name="sftp_remove_folder_message">%1$s will be removed from Files. Your files aren\'t deleted — only Haven\'s access to this folder.</string>
-    <string name="sftp_remove_folder_confirm">Remove</string>
     <string name="sftp_rename_not_supported">This location doesn\'t support renaming</string>
     <string name="sftp_upload_file">Upload file</string>
     <string name="sftp_paste">Paste</string>
@@ -69,40 +63,12 @@
     <string name="sftp_path_copied">Path copied</string>
 
     <!-- Media playback -->
-    <string name="sftp_play">Play</string>
-    <string name="sftp_play_folder">Play folder</string>
+    <string name="sftp_preview">Preview</string>
 
     <!-- Folder sync -->
-    <string name="sftp_sync">Sync</string>
-    <string name="sftp_new_sync">New rclone sync</string>
-    <string name="sftp_folder_sync">Folder Sync</string>
-    <string name="sftp_source">Source</string>
-    <string name="sftp_destination">Destination</string>
-    <string name="sftp_destination_path">Path</string>
-    <string name="sftp_mode_copy">Copy</string>
-    <string name="sftp_mode_sync">Mirror</string>
-    <string name="sftp_mode_move">Move</string>
-    <string name="sftp_mode_copy_desc">Copy new and updated files. No deletions.</string>
-    <string name="sftp_mode_sync_desc">Make destination identical to source. Deletes extras.</string>
-    <string name="sftp_mode_move_desc">Move files to destination. Deletes from source.</string>
-    <string name="sftp_advanced_filters">Advanced filters</string>
-    <string name="sftp_include_patterns">Include patterns (one per line)</string>
-    <string name="sftp_exclude_patterns">Exclude patterns (one per line)</string>
-    <string name="sftp_min_size">Min size</string>
-    <string name="sftp_max_size">Max size</string>
-    <string name="sftp_bandwidth_limit">Bandwidth limit</string>
-    <string name="sftp_dry_run">Dry run (preview only)</string>
-    <string name="sftp_start_sync">Start</string>
-    <string name="sftp_preview">Preview</string>
     <string name="sftp_dry_run_results">Dry Run Results</string>
     <string name="sftp_start_for_real">Start for real</string>
     <string name="sftp_sync_cancelled">Sync cancelled</string>
-    <string name="sftp_saved_sync_label">Saved configuration</string>
-    <string name="sftp_saved_sync_pick">Pick a saved configuration</string>
-    <string name="sftp_saved_sync_save">Save</string>
-    <string name="sftp_saved_sync_save_as">Save as…</string>
-    <string name="sftp_saved_sync_save_as_title">Save sync configuration</string>
-    <string name="sftp_saved_sync_name">Name</string>
 
     <!-- FileListItem -->
     <string name="sftp_directory">Directory</string>
@@ -241,13 +207,7 @@
     <string name="sftp_new_name">New name</string>
 
     <!-- Share link -->
-    <string name="sftp_share_link">Share link</string>
     <string name="sftp_link_copied">Link copied</string>
-
-    <!-- Folder size -->
-    <string name="sftp_folder_size">Folder size</string>
-    <string name="sftp_folder_size_title">Folder Size</string>
-    <string name="sftp_calculating_size">Calculating…</string>
 
     <!-- Filter -->
     <string name="sftp_filter">Filter files</string>
@@ -274,13 +234,7 @@
     <!-- Convert dialog: destination options -->
     <string name="sftp_convert_dest_downloads">Downloads (this device)</string>
     <string name="sftp_convert_dest_same_folder_local">Same folder as source</string>
-    <string name="sftp_convert_dest_same_folder_cloud">Back to cloud (same folder)</string>
     <string name="sftp_convert_dest_same_folder_server">Back to server (same folder)</string>
-
-    <!-- Convert dialog: download-first toggle -->
-    <string name="sftp_convert_download_first">Download first</string>
-    <string name="sftp_convert_download_first_on">Downloads the whole file before transcoding</string>
-    <string name="sftp_convert_download_first_off">Streams from cloud (faster for large files)</string>
 
     <!-- Convert dialog: preview area -->
     <string name="sftp_preview_preparing_long">Preparing preview…</string>
@@ -307,10 +261,6 @@
     <string name="sftp_conflict_size_summary">Existing: %1$s  ·  New: %2$s</string>
     <string name="sftp_conflict_resume_hint">Existing file is smaller than the source — resume continues from the current offset.</string>
     <string name="sftp_conflict_apply_to_all">Apply to all remaining files</string>
-
-    <!-- DLNA -->
-    <string name="sftp_start_dlna">Start DLNA server</string>
-    <string name="sftp_stop_dlna">Stop DLNA server</string>
 
     <!-- #135 third pass: hardcoded literals in SftpScreen + media UI -->
     <string name="sftp_attach_use_folder">Use this folder</string>

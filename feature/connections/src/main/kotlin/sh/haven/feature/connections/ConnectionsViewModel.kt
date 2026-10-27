@@ -65,8 +65,6 @@ import sh.haven.core.mosh.MoshSessionManager
 import sh.haven.core.et.EtSessionManager
 import sh.haven.core.fido.FidoAuthenticator
 import sh.haven.core.fido.FidoTouchPrompt
-import sh.haven.core.rclone.RcloneClient
-import sh.haven.core.rclone.RcloneSessionManager
 import sh.haven.core.security.Totp
 import sh.haven.core.knock.KnockResult
 import sh.haven.core.knock.KnockSequence
@@ -75,7 +73,6 @@ import sh.haven.core.spa.SpaConfig
 import sh.haven.core.spa.SpaResult
 import sh.haven.core.security.CredentialEncryption
 import sh.haven.feature.connections.R
-import sh.haven.core.smb.SmbSessionManager
 import sh.haven.core.stepca.CertRenewalGate
 import android.util.Log
 import sh.haven.core.ssh.HavenProxy
@@ -209,9 +206,6 @@ class ConnectionsViewModel @Inject constructor(
     private val bleSerialSessionManager: sh.haven.core.bleserial.BleSerialSessionManager,
     private val usbSerialSessionManager: sh.haven.core.usbserial.UsbSerialSessionManager,
     private val usbBroker: sh.haven.core.usb.UsbBroker,
-    private val smbSessionManager: SmbSessionManager,
-    private val rcloneSessionManager: RcloneSessionManager,
-    private val rcloneClient: RcloneClient,
     private val fidoAuthenticator: FidoAuthenticator,
     /** Security-chip SSH keys sign through the Keystore + biometric ceremony. */
     private val keystoreSshKeySigner: KeystoreSshKeySigner,
@@ -448,7 +442,6 @@ class ConnectionsViewModel @Inject constructor(
     // would otherwise misroute a host-less profile to the SSH path); they're
     // created, browsed and managed entirely from the Files tab.
     val connections: StateFlow<List<ConnectionProfile>> = repository.observeAll()
-        .map { profiles -> profiles.filterNot { it.isSaf } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val groups: StateFlow<List<sh.haven.core.data.db.entities.ConnectionGroup>> =
@@ -558,22 +551,14 @@ class ConnectionsViewModel @Inject constructor(
                 moshSessionManager.sessions,
                 etSessionManager.sessions,
             ) { ssh, mosh, et -> arrayOf(ssh, mosh, et) },
-            combine(
-                smbSessionManager.sessions,
-                rcloneSessionManager.sessions,
-            ) { smb, rclone -> arrayOf(smb, rclone) },
             desktopSessionRegistry.statuses,
-        ) { base, extra, deskMap ->
+        ) { base, deskMap ->
             @Suppress("UNCHECKED_CAST")
             val sshMap = base[0] as Map<String, SshSessionManager.SessionState>
             @Suppress("UNCHECKED_CAST")
             val moshMap = base[1] as Map<String, MoshSessionManager.SessionState>
             @Suppress("UNCHECKED_CAST")
             val etMap = base[2] as Map<String, EtSessionManager.SessionState>
-            @Suppress("UNCHECKED_CAST")
-            val smbMap = extra[0] as Map<String, SmbSessionManager.SessionState>
-            @Suppress("UNCHECKED_CAST")
-            val rcloneMap = extra[1] as Map<String, RcloneSessionManager.SessionState>
             val result = mutableMapOf<String, ProfileStatus>()
 
             // Track which profiles have transport-specific sessions (Mosh/ET/RNS/Local).
@@ -614,36 +599,6 @@ class ConnectionsViewModel @Inject constructor(
                     EtSessionManager.SessionState.Status.CONNECTING in statuses -> ProfileStatus.CONNECTING
                     EtSessionManager.SessionState.Status.ERROR in statuses -> ProfileStatus.ERROR
                     else -> ProfileStatus.DISCONNECTED
-                }
-            }
-
-            // SMB statuses (merge — SMB coexists with SSH, doesn't replace it)
-            smbMap.values.groupBy { it.profileId }.forEach { (profileId, states) ->
-                val statuses = states.map { it.status }
-                val smbStatus = when {
-                    SmbSessionManager.SessionState.Status.CONNECTED in statuses -> ProfileStatus.CONNECTED
-                    SmbSessionManager.SessionState.Status.CONNECTING in statuses -> ProfileStatus.CONNECTING
-                    SmbSessionManager.SessionState.Status.ERROR in statuses -> ProfileStatus.ERROR
-                    else -> ProfileStatus.DISCONNECTED
-                }
-                val existing = result[profileId]
-                if (existing == null || smbStatus.ordinal < existing.ordinal) {
-                    result[profileId] = smbStatus
-                }
-            }
-
-            // Rclone statuses (merge)
-            rcloneMap.values.groupBy { it.profileId }.forEach { (profileId, states) ->
-                val statuses = states.map { it.status }
-                val rcloneStatus = when {
-                    RcloneSessionManager.SessionState.Status.CONNECTED in statuses -> ProfileStatus.CONNECTED
-                    RcloneSessionManager.SessionState.Status.CONNECTING in statuses -> ProfileStatus.CONNECTING
-                    RcloneSessionManager.SessionState.Status.ERROR in statuses -> ProfileStatus.ERROR
-                    else -> ProfileStatus.DISCONNECTED
-                }
-                val existing = result[profileId]
-                if (existing == null || rcloneStatus.ordinal < existing.ordinal) {
-                    result[profileId] = rcloneStatus
                 }
             }
 
@@ -742,7 +697,7 @@ class ConnectionsViewModel @Inject constructor(
     }
 
     /**
-     * VNC/RDP/SMB-over-SSH-tunnel paths used to fail silently when the
+     * VNC/RDP-over-SSH-tunnel paths used to fail silently when the
      * jump host had no saved password — they auto-connected with empty
      * credentials and the resulting "Auth cancel for methods…" error
      * went unsurfaced (#121a, KoriKraut). We now detect "no saved auth"
@@ -759,7 +714,7 @@ class ConnectionsViewModel @Inject constructor(
     // replay has to re-drive the TARGET connect with the password the user
     // already typed for it (and the remember tick from that dialog), or the
     // target comes up password-less and fails its own auth a second time.
-    // Tunnel-mode dependents (VNC/RDP/SMB) authenticate later in their own
+    // Tunnel-mode dependents (VNC/RDP) authenticate later in their own
     // dialogs, so they thread null and keep today's behaviour.
     private val _pendingDependentPassword = MutableStateFlow<String?>(null)
     private val _pendingDependentRememberPassword = MutableStateFlow<Boolean?>(null)
@@ -970,13 +925,6 @@ class ConnectionsViewModel @Inject constructor(
     private val _navigateToRdp = MutableStateFlow<RdpNavigation?>(null)
     val navigateToRdp: StateFlow<RdpNavigation?> = _navigateToRdp.asStateFlow()
 
-    /** Emitted to navigate to Files tab for an SMB connection. */
-    private val _navigateToSmb = MutableStateFlow<String?>(null)
-    val navigateToSmb: StateFlow<String?> = _navigateToSmb.asStateFlow()
-
-    private val _navigateToRclone = MutableStateFlow<String?>(null)
-    val navigateToRclone: StateFlow<String?> = _navigateToRclone.asStateFlow()
-
     /** Emitted to open a new session (new tab) on an already-connected profile. */
     private val _newSessionProfileId = MutableStateFlow<String?>(null)
     val newSessionProfileId: StateFlow<String?> = _newSessionProfileId.asStateFlow()
@@ -1185,8 +1133,6 @@ class ConnectionsViewModel @Inject constructor(
         _navigateToTerminal.value = null
         _navigateToVnc.value = null
         _navigateToRdp.value = null
-        _navigateToSmb.value = null
-        _navigateToRclone.value = null
         _navigateToConnections.value = false
         _newSessionProfileId.value = null
     }
@@ -1197,7 +1143,7 @@ class ConnectionsViewModel @Inject constructor(
      * connect emits, independent of which screen is on-screen — fixes Retry /
      * MCP connect_profile failing to open a tab when the Connections screen
      * isn't composed (#121). Separate from [onNavigated] so it doesn't clobber a
-     * concurrent terminal/SMB navigation owned by the Connections screen.
+     * concurrent terminal navigation owned by the Connections screen.
      */
     fun onDesktopNavigated() {
         _navigateToVnc.value = null
@@ -1211,7 +1157,6 @@ class ConnectionsViewModel @Inject constructor(
 
     private val networkDiscovery = NetworkDiscovery(appContext)
     val discoveredHosts: StateFlow<List<DiscoveredHost>> = networkDiscovery.hosts
-    val discoveredSmbHosts: StateFlow<List<DiscoveredHost>> = networkDiscovery.smbHosts
     init {
         // Feed the Tailscale-discovery preference (#654) into the probe: the
         // scan paths read the @Volatile flag, so flipping the setting takes
@@ -1326,17 +1271,6 @@ class ConnectionsViewModel @Inject constructor(
             client.execCommand("ip -o -4 route show default", timeoutMs = 8_000)
         }.getOrNull()
         return NetworkDiscovery.parseSubnetBases(addrs.stdout, route?.stdout)
-    }
-
-    private val _smbSubnetScanning = MutableStateFlow(false)
-    val smbSubnetScanning: StateFlow<Boolean> = _smbSubnetScanning.asStateFlow()
-
-    fun scanSubnetSmb() {
-        viewModelScope.launch {
-            _smbSubnetScanning.value = true
-            networkDiscovery.scanSubnetSmb()
-            _smbSubnetScanning.value = false
-        }
     }
 
     fun stopNetworkDiscovery() {
@@ -1494,7 +1428,7 @@ class ConnectionsViewModel @Inject constructor(
 
     /**
      * Returns true if the profile can connect without interactive dialogs.
-     * VNC/RDP/SMB are excluded (they navigate to non-terminal screens).
+     * VNC/RDP are excluded (they navigate to non-terminal screens).
      * SSH/Mosh/ET require a saved password or SSH keys.
      */
     /**
@@ -1677,7 +1611,6 @@ class ConnectionsViewModel @Inject constructor(
     }
 
     private fun canAutoConnect(profile: ConnectionProfile, keys: List<SshKey>): Boolean = when {
-        profile.isRclone -> true
         // Connect only on explicit tap: a BT link is slow/blocking and needs the
         // adapter powered + the device in range (#406).
         profile.isBtSerial -> false
@@ -1689,8 +1622,6 @@ class ConnectionsViewModel @Inject constructor(
         profile.isUsbSerial -> false
         profile.isVnc -> false
         profile.isRdp -> false
-        profile.isSmb -> false
-        profile.isSaf -> false
         else -> !profile.sshPassword.isNullOrBlank() || keys.isNotEmpty()
     }
 
@@ -1844,7 +1775,7 @@ class ConnectionsViewModel @Inject constructor(
         val profile = _passwordFallback.value ?: return
         val pending = _pendingTunnelDependent.value
         if (pending != null) {
-            // Tunnel-mode (#121a): the prompt was opened for a VNC/RDP/SMB
+            // Tunnel-mode (#121a): the prompt was opened for a VNC/RDP
             // dependent whose jump host needs a password — route to the
             // tunnel-replay path.
             connectTunnelDependentAfterAuth(
@@ -1882,7 +1813,7 @@ class ConnectionsViewModel @Inject constructor(
         jumpProfileId: String,
     ): ConnectionProfile? {
         // A live jump session already exists → reuse it silently, no prompt.
-        // Without this, the post-auth replay of connectVnc/connectRdp/connectSmb
+        // Without this, the post-auth replay of connectVnc/connectRdp
         // re-prompts forever when the entered password wasn't saved ("remember"
         // off): the prompt check fires before connectJumpHost's connected-session
         // reuse, so it never sees that auth already succeeded — an endless
@@ -1989,7 +1920,7 @@ class ConnectionsViewModel @Inject constructor(
     }
 
     /**
-     * Surface a jump-host connect failure — the VNC/RDP/SMB-over-SSH tunnel
+     * Surface a jump-host connect failure — the VNC/RDP-over-SSH tunnel
      * paths (#121a) and, since #729, a terminal-SSH dependent whose jump leg
      * failed. On an authentication failure with a recoverable credential path,
      * re-open the password prompt wired to [connectTunnelDependentAfterAuth] so
@@ -2099,12 +2030,6 @@ class ConnectionsViewModel @Inject constructor(
         sessionName: String? = null,
         startupCommand: String? = null,
     ) {
-        if (profile.isSaf) {
-            // SAF "local folder" locations (#415) have no connection to open — they're
-            // browsed straight from the Files tab. No-op so a connect-by-id path (MCP
-            // connect_profile, a deep link) can't misroute this host-less profile to SSH.
-            return
-        }
         if (profile.isBtSerial) {
             connectBtSerial(profile)
             return
@@ -2123,14 +2048,6 @@ class ConnectionsViewModel @Inject constructor(
         }
         if (profile.isRdp) {
             connectRdp(profile, password)
-            return
-        }
-        if (profile.isSmb) {
-            connectSmb(profile, password)
-            return
-        }
-        if (profile.isRclone) {
-            connectRclone(profile)
             return
         }
         // SSH-family: if the saved profile has no username, the user must supply one
@@ -2259,219 +2176,6 @@ class ConnectionsViewModel @Inject constructor(
                 }
             } else {
                 _navigateToRdp.value = RdpNavigation(host, port, username, rdpPassword, domain, profile.rdpSshForward, profileId = profile.id, useNla = profile.rdpUseNla, colorDepth = profile.rdpColorDepth, portKnockSequence = profile.portKnockSequence, portKnockDelayMs = profile.portKnockDelayMs)
-            }
-        }
-    }
-
-    private fun connectSmb(profile: ConnectionProfile, password: String) {
-        val host = profile.host
-        val port = profile.smbPort
-        val shareName = profile.smbShare ?: return
-        val smbUsername = profile.username
-        val smbPassword = password.ifBlank { profile.smbPassword ?: "" }
-        val domain = profile.smbDomain ?: ""
-        viewModelScope.launch {
-            repository.markConnected(profile.id)
-            // Hoisted out of try so the catch block can see them when
-            // cleaning up after a connect failure (#121).
-            var sshClientCloseable: java.io.Closeable? = null
-            var tunnelPort: Int? = null
-            try {
-                _connectingProfileId.value = profile.id
-                val sshProfileId = profile.smbSshProfileId
-
-                if (profile.smbSshForward && sshProfileId != null) {
-                    val needsPrompt = jumpHostNeedsPasswordPrompt(sshProfileId)
-                    if (needsPrompt != null) {
-                        _pendingTunnelDependent.value = profile
-                        _passwordFallback.value = needsPrompt
-                        _connectingProfileId.value = null
-                        return@launch
-                    }
-                    // Isolate the jump-host connect: an auth failure here is the
-                    // SSH credential, not the SMB share's — route it to the
-                    // password prompt rather than the SMB-auth error path (#121).
-                    val sshSessionId = try {
-                        connectJumpHost(sshProfileId, "", tunnelOwnerProfileId = profile.id).first
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Failed to connect SSH tunnel host for SMB", e)
-                        handleTunnelJumpFailure(e, profile, sshProfileId)
-                        _connectingProfileId.value = null
-                        return@launch
-                    }
-                    val sshClient = sshSessionManager.sessions.value[sshSessionId]?.client
-                        ?: throw IllegalStateException("SSH tunnel session not found")
-                    // Set up local port forward: random port -> remoteHost:smbPort
-                    tunnelPort = withContext(Dispatchers.IO) {
-                        sshClient.setPortForwardingL("127.0.0.1", 0, host, port)
-                    }
-                    sshClientCloseable = sshClient
-                    Log.d(TAG, "SMB SSH tunnel: 127.0.0.1:$tunnelPort -> ${LogRedact.host(host, port)}")
-                }
-
-                // WireGuard / Tailscale routing — only used when not going
-                // through SSH RemoteForward. SSH-forward already provides
-                // tunneled connectivity via 127.0.0.1:<localPort>, and
-                // routing the SMB profile's own tunnelConfigId through the
-                // SSH session would be a double-hop. (#149)
-                val socketFactory = if (sshClientCloseable == null) {
-                    tunnelResolver.socketFactory(profile)
-                } else {
-                    null
-                }
-
-                // Knock against the SMB host only when going direct. When
-                // tunneled via SSH RemoteForward the SMB server sees
-                // packets from the SSH host's IP, so a knock from the
-                // Android client wouldn't reach the right firewall —
-                // the SSH session is already gating access in that case.
-                if (sshClientCloseable == null) {
-                    buildKnockHook(profile, verboseLogger = null)?.invoke()
-                }
-
-                val sessionId = smbSessionManager.registerSession(profile.id, profile.label)
-                withContext(Dispatchers.IO) {
-                    smbSessionManager.connectSession(
-                        sessionId, host, port, shareName, smbUsername, smbPassword, domain,
-                        sshClient = sshClientCloseable,
-                        tunnelPort = tunnelPort,
-                        socketFactory = socketFactory,
-                    )
-                }
-                _navigateToSmb.value = profile.id
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to connect SMB", e)
-                // Connect-failure cleanup — same pattern as the VNC/RDP
-                // path in DesktopViewModel (#121). On failure neither the
-                // local port forward nor the SSH tunnel-dependent set
-                // unwound on its own, leaving the SSH session green-dotted
-                // in the connections list and the next retry racing
-                // against stale state.
-                if (tunnelPort != null && sshClientCloseable is SshClient) {
-                    try {
-                        withContext(Dispatchers.IO) {
-                            sshClientCloseable.delPortForwardingL("127.0.0.1", tunnelPort!!)
-                        }
-                    } catch (cleanupErr: Throwable) {
-                        Log.w(TAG, "SMB tunnel cleanup failed after connect error", cleanupErr)
-                    }
-                }
-                sshSessionManager.releaseTunnelDependent(profile.id)
-                _error.value = "SMB: ${e.message}"
-            } finally {
-                _connectingProfileId.value = null
-            }
-        }
-    }
-
-    /**
-     * Cancel an in-flight OAuth flow for [profile]. Best-effort: marks
-     * the underlying rclone session ERROR so the UI clears the spinner;
-     * the gomobile worker thread keeps running in the background until
-     * app restart (rclone-android has no cancellation primitive).
-     */
-    fun cancelPendingOAuth(profile: ConnectionProfile) {
-        rcloneSessionManager.getSessionsForProfile(profile.id).forEach {
-            rcloneSessionManager.cancelPendingOAuth(it.sessionId)
-        }
-    }
-
-    /**
-     * Force a fresh OAuth flow on an rclone profile by dropping the
-     * stored remote in rclone's config, then running the normal connect
-     * path (which sees no remote and starts OAuth via
-     * [RcloneSessionManager.connectSession]). Use this when stored
-     * tokens have gone stale and silent refresh is failing — saves the
-     * user from delete-and-re-add the entire Haven profile (#108).
-     *
-     * Disconnects any live session first so the existing connection's
-     * state doesn't survive the re-auth and confuse the next connect.
-     */
-    fun reauthRcloneProfile(profile: ConnectionProfile) {
-        val remoteName = profile.rcloneRemoteName ?: return
-        viewModelScope.launch {
-            // Tear down any live rclone session for this profile before
-            // we drop the underlying config. Otherwise the stale
-            // session sits in CONNECTED with credentials that no
-            // longer exist.
-            rcloneSessionManager.removeAllSessionsForProfile(profile.id)
-            val deleted = withContext(Dispatchers.IO) {
-                try {
-                    rcloneClient.deleteRemote(remoteName)
-                    true
-                } catch (e: Exception) {
-                    Log.w(TAG, "deleteRemote('$remoteName') failed before re-auth: ${e.message}")
-                    false
-                }
-            }
-            if (!deleted) {
-                // The stored remote survived, so the connect path below
-                // would find it, see it still answers with the OLD token,
-                // and mark it connected without ever starting a fresh
-                // sign-in — re-authenticate silently doing nothing (#697).
-                // Fail loudly instead.
-                _error.value = "Couldn't drop the stored '$remoteName' credentials — re-authentication aborted. Try again, or delete and re-add the connection if it repeats."
-                return@launch
-            }
-            connectRclone(profile)
-        }
-    }
-
-    private fun connectRclone(profile: ConnectionProfile) {
-        val remoteName = profile.rcloneRemoteName ?: return
-        val provider = profile.rcloneProvider ?: ""
-        viewModelScope.launch {
-            repository.markConnected(profile.id)
-            try {
-                _connectingProfileId.value = profile.id
-                // Route rclone's HTTP traffic through the per-profile
-                // tunnel's SOCKS5 listener if one is configured (#149).
-                // Set BEFORE the first RPC for this remote — rclone
-                // caches HTTP clients per-fs, so a later swap wouldn't
-                // take effect.
-                val socksAddr = tunnelResolver.socksEndpoint(profile)
-                rcloneClient.setProxy(socksAddr?.let { "socks5://${it.hostString}:${it.port}" })
-                val sessionId = rcloneSessionManager.registerSession(profile.id, profile.label)
-                withContext(Dispatchers.IO) {
-                    rcloneSessionManager.connectSession(sessionId, remoteName, provider)
-                }
-                // If connected immediately (no OAuth needed), navigate to Files
-                if (rcloneSessionManager.isProfileConnected(profile.id)) {
-                    _navigateToRclone.value = profile.id
-                }
-                // Otherwise OAuth is in progress — the session will become
-                // CONNECTED when the user completes the browser flow.
-                // Watch for both terminal states: CONNECTED → navigate;
-                // ERROR → surface the rclone error message as a toast so
-                // the user isn't stuck on a silent spinner if OAuth fails
-                // (browser dismissed, no browser app installed, bad
-                // client_id, network blip during token exchange, etc).
-                else {
-                    launch {
-                        rcloneSessionManager.sessions.collect { sessions ->
-                            val ours = sessions.values.firstOrNull { it.profileId == profile.id }
-                                ?: return@collect
-                            when (ours.status) {
-                                RcloneSessionManager.SessionState.Status.CONNECTED -> {
-                                    _navigateToRclone.value = profile.id
-                                    return@collect
-                                }
-                                RcloneSessionManager.SessionState.Status.ERROR -> {
-                                    _error.value = ours.errorMessage
-                                        ?: "rclone connection failed — see Settings → Connection log"
-                                    _connectingProfileId.value = null
-                                    return@collect
-                                }
-                                else -> Unit
-                            }
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to connect rclone remote", e)
-                _error.value = "rclone: ${e.message}"
-            } finally {
-                _connectingProfileId.value = null
             }
         }
     }
@@ -3858,7 +3562,7 @@ class ConnectionsViewModel @Inject constructor(
         val jumpProfile = repository.getById(jumpProfileId)
             ?: throw Exception("Jump host profile not found")
 
-        // Auto-connect paths (VNC/RDP/SMB-over-SSH-tunnel) call us with an
+        // Auto-connect paths (VNC/RDP-over-SSH-tunnel) call us with an
         // empty password — they don't have one to pass. Fall back to the
         // jump-host profile's saved sshPassword so password-auth jumps
         // actually succeed instead of bouncing off "Auth cancel for methods
