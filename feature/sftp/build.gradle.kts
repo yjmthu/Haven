@@ -34,7 +34,6 @@ dependencies {
     implementation(project(":feature:imagetools"))
     implementation(project(":core:mosh"))
     implementation(project(":core:et"))
-    implementation(project(":core:reticulum"))
     implementation(project(":core:data"))
     implementation(project(":core:security"))
     implementation(project(":core:smb"))

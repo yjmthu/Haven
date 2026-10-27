@@ -216,7 +216,6 @@ class SftpViewModel @Inject constructor(
     private val etSessionManager: EtSessionManager,
     private val smbSessionManager: SmbSessionManager,
     private val rcloneSessionManager: RcloneSessionManager,
-    private val reticulumSessionManager: sh.haven.core.reticulum.ReticulumSessionManager,
     private val rcloneClient: RcloneClient,
     private val repository: ConnectionRepository,
     private val connectionLogRepository: ConnectionLogRepository,
@@ -1191,15 +1190,6 @@ class SftpViewModel @Inject constructor(
     private val _isRcloneProfile = MutableStateFlow(false)
     val isRcloneProfile: StateFlow<Boolean> = _isRcloneProfile.asStateFlow()
 
-    /**
-     * Tracks whether the active profile is a Reticulum profile. Set once at
-     * [selectProfile] (like [_isSmbProfile]/[_isRcloneProfile]) so file ops
-     * dispatch on a stable profile-TYPE flag, not a live
-     * `reticulumSessionManager.isProfileConnected()` snapshot that can read
-     * false mid-(re)connect and misroute to the SSH path.
-     */
-    private val _isReticulumProfile = MutableStateFlow(false)
-
     /** Tracks whether the active profile is the local filesystem. */
     private val _isLocalProfile = MutableStateFlow(false)
 
@@ -1299,14 +1289,7 @@ class SftpViewModel @Inject constructor(
                 .map { it.profileId }
                 .toSet()
 
-            // Collect profile IDs from Reticulum/rnsh sessions — file ops run
-            // over the command-exec substrate (ReticulumFileBackend).
-            val reticulumProfileIds = reticulumSessionManager.sessions.value.values
-                .filter { it.status == sh.haven.core.reticulum.ReticulumSessionManager.SessionState.Status.CONNECTED }
-                .map { it.profileId }
-                .toSet()
-
-            val connectedProfileIds = sshProfileIds + moshProfileIds + etProfileIds + smbProfileIds + rcloneProfileIds + reticulumProfileIds
+            val connectedProfileIds = sshProfileIds + moshProfileIds + etProfileIds + smbProfileIds + rcloneProfileIds
 
             val profiles = withContext(Dispatchers.IO) { repository.getAll() }
             val remoteProfiles = profiles.filter { it.id in connectedProfileIds }
@@ -1440,12 +1423,10 @@ class SftpViewModel @Inject constructor(
         val isSaf = !isLocal && _connectedProfiles.value.find { it.id == profileId }?.isSaf == true
         val isSmb = !isLocal && smbSessionManager.isProfileConnected(profileId)
         val isRclone = !isLocal && rcloneSessionManager.isProfileConnected(profileId)
-        val isReticulum = !isLocal && reticulumSessionManager.isProfileConnected(profileId)
         _isLocalProfile.value = isLocal
         _isSafProfile.value = isSaf
         _isSmbProfile.value = isSmb
         _isRcloneProfile.value = isRclone
-        _isReticulumProfile.value = isReticulum
         _activeProfileId.value = profileId
         sftpSession = null
         activeSmbClient = null
@@ -1481,7 +1462,6 @@ class SftpViewModel @Inject constructor(
                 isSmb -> {
                     activeSmbClient = smbSessionManager.getClientForProfile(profileId)
                 }
-                isReticulum -> { /* backend resolved on demand via TransportSelector */ }
                 else -> {
                     viewModelScope.launch(Dispatchers.IO) {
                         try {
@@ -1502,7 +1482,6 @@ class SftpViewModel @Inject constructor(
                 isSaf -> loadDirectoryEntries(landing)
                 isRclone -> openRcloneAndList(profileId)
                 isSmb -> openSmbAndList(profileId)
-                isReticulum -> loadDirectoryEntries(landing)
                 else -> openSftpAndList(profileId, landing)
             }
         }
@@ -3080,21 +3059,6 @@ class SftpViewModel @Inject constructor(
                             client.upload(input, destPath, fileSize) { transferred, total ->
                                 _transferProgress.value = TransferProgress(fileName, total, transferred)
                             }
-                        } else if (_isReticulumProfile.value) {
-                            // Reticulum has no streaming transport.upload(); route through the
-                            // resolved FileBackend (Reticulum SFTP writeBytes, or the exec
-                            // ReticulumFileBackend's octal-printf). Dispatch on the stable
-                            // profile-TYPE flag (like rclone/SMB above), NOT a live
-                            // isProfileConnected() snapshot — the latter can read false
-                            // mid-(re)connect (e.g. after the SAF picker backgrounded Haven)
-                            // and misroute a Reticulum upload to the SSH branch, throwing a
-                            // misleading "Not connected". A genuinely-down session instead
-                            // gets a correctly-attributed Reticulum error from currentFileBackend().
-                            val backend = currentFileBackend()
-                                ?: throw IllegalStateException("Reticulum profile not connected")
-                            val data = input.readBytes()
-                            backend.writeBytes(destPath, data)
-                            _transferProgress.value = TransferProgress(fileName, data.size.toLong(), data.size.toLong())
                         } else {
                             val transport = currentSshTransport() ?: throw IllegalStateException("Not connected")
                             transport.upload(input, fileSize, destPath) { transferred, total ->

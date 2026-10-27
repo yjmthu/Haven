@@ -106,8 +106,6 @@ class McpToolsConsentTest {
             // Real holder: get_app_info reads typed StateFlow values a relaxed
             // mock answers with bare Objects (ClassCastException).
             mcpStatusHolder = sh.haven.core.data.agent.McpStatusHolder(),
-            reticulumSessionManager = mockk(relaxed = true),
-            reticulumForwardServer = mockk(relaxed = true),
             agentActivityHolder = mockk(relaxed = true),
         )
     }

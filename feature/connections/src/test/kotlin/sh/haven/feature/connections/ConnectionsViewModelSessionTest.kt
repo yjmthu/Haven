@@ -45,8 +45,6 @@ import sh.haven.core.local.DesktopManager
 import sh.haven.core.local.LocalSessionManager
 import sh.haven.core.local.ProotManager
 import sh.haven.core.mosh.MoshSessionManager
-import sh.haven.core.reticulum.ReticulumTransport
-import sh.haven.core.reticulum.ReticulumSessionManager
 import sh.haven.core.smb.SmbSessionManager
 import sh.haven.core.rdp.RdpSessionManager
 import sh.haven.core.ssh.HostKeyVerifier
@@ -81,7 +79,6 @@ class ConnectionsViewModelSessionTest {
     private lateinit var repository: ConnectionRepository
     private lateinit var portForwardRepository: PortForwardRepository
     private lateinit var sshSessionManager: SshSessionManager
-    private lateinit var reticulumSessionManager: ReticulumSessionManager
     private lateinit var moshSessionManager: MoshSessionManager
     private lateinit var etSessionManager: EtSessionManager
     private lateinit var smbSessionManager: SmbSessionManager
@@ -112,10 +109,6 @@ class ConnectionsViewModelSessionTest {
         sshSessionManager = mockk(relaxed = true) {
             every { sessions } returns MutableStateFlow(emptyMap())
             every { hasActiveSessions } returns false
-        }
-        reticulumSessionManager = mockk(relaxed = true) {
-            every { sessions } returns MutableStateFlow(emptyMap())
-            every { activeSessions } returns emptyList()
         }
         moshSessionManager = mockk(relaxed = true) {
             every { sessions } returns MutableStateFlow(emptyMap())
@@ -153,7 +146,6 @@ class ConnectionsViewModelSessionTest {
         sessionManagerRegistry = SessionManagerRegistry(
             transports = setOf(
                 disconnectable(Transport.SSH) { sshSessionManager.removeAllSessionsForProfile(it) },
-                disconnectable(Transport.RETICULUM) { reticulumSessionManager.removeAllSessionsForProfile(it) },
                 disconnectable(Transport.MOSH) { moshSessionManager.removeAllSessionsForProfile(it) },
                 disconnectable(Transport.ET) { etSessionManager.removeAllSessionsForProfile(it) },
                 disconnectable(Transport.SMB) { smbSessionManager.removeAllSessionsForProfile(it) },
@@ -201,7 +193,6 @@ class ConnectionsViewModelSessionTest {
             // ordinary session behaviour.
             backgroundDisconnectDetector = mockk(relaxed = true),
             sshSessionAttacher = mockk(relaxed = true),
-            reticulumSessionManager = reticulumSessionManager,
             moshSessionManager = moshSessionManager,
             etSessionManager = etSessionManager,
             btSerialSessionManager = mockk(relaxed = true) {
@@ -216,10 +207,6 @@ class ConnectionsViewModelSessionTest {
                 every { sessions } returns kotlinx.coroutines.flow.MutableStateFlow(emptyMap())
             },
             usbBroker = mockk(relaxed = true),
-            reticulumTransport = mockk(relaxed = true) {
-                every { discoveredDestinations } returns kotlinx.coroutines.flow.MutableStateFlow(emptyList())
-            },
-            reticulumForwardServer = mockk(relaxed = true),
             smbSessionManager = smbSessionManager,
             rcloneSessionManager = rcloneSessionManager,
             rcloneClient = mockk(relaxed = true),
@@ -288,7 +275,6 @@ class ConnectionsViewModelSessionTest {
         viewModel.disconnect("profile1")
 
         verify { sshSessionManager.removeAllSessionsForProfile("profile1") }
-        verify { reticulumSessionManager.removeAllSessionsForProfile("profile1") }
         verify { moshSessionManager.removeAllSessionsForProfile("profile1") }
         verify { etSessionManager.removeAllSessionsForProfile("profile1") }
         verify { smbSessionManager.removeAllSessionsForProfile("profile1") }
@@ -311,7 +297,6 @@ class ConnectionsViewModelSessionTest {
         testDispatcher.scheduler.advanceUntilIdle()
 
         verify { sshSessionManager.removeAllSessionsForProfile("profile1") }
-        verify { reticulumSessionManager.removeAllSessionsForProfile("profile1") }
         verify { moshSessionManager.removeAllSessionsForProfile("profile1") }
         verify { etSessionManager.removeAllSessionsForProfile("profile1") }
         verify { smbSessionManager.removeAllSessionsForProfile("profile1") }

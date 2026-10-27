@@ -211,10 +211,9 @@ class WorkspaceViewModelTest {
     }
 
     @Test
-    fun captureSkipsEtAndReticulumWhenDisconnected() = runTest(testDispatcher) {
+    fun captureSkipsEtWhenDisconnected() = runTest(testDispatcher) {
         every { registry.allSessions } returns listOf(
             session("et-id", "p-et", Transport.ET, SessionStatus.ERROR),
-            session("rns-id", "p-rns", Transport.RETICULUM, SessionStatus.RECONNECTING),
             session("ssh-id", "p-ssh", Transport.SSH, SessionStatus.CONNECTED),
         )
 

@@ -116,8 +116,6 @@ class McpWorkspaceToolsTest {
             usbSerialSessionManager = mockk(relaxed = true),
             headlessSshExec = mockk(relaxed = true),
             hardwareKeySource = mockk(relaxed = true),
-            reticulumSessionManager = mockk(relaxed = true),
-            reticulumForwardServer = mockk(relaxed = true),
             agentActivityHolder = mockk(relaxed = true),
         )
         // #337 mechanism 3: an unanswered consent HOLDS for the wait

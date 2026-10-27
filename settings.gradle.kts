@@ -71,16 +71,6 @@ includeBuild("spice-kotlin") {
     }
 }
 
-// Prns (Personal Reticulum, Rust engine) JVM SDK — upstream's own Gradle
-// project inside the submodule, consumed unmodified so the submodule tracks
-// pure upstream trunk (Prns#94: app-supplied Pipe transports). The native
-// capsule (libprns_host.so) is cross-built by :core:prns's buildPrnsNative,
-// not by this included build.
-includeBuild("prns/prns-host/bindings/jvm") {
-    dependencySubstitution {
-        substitute(module("rs.reticulum:personal-rns")).using(project(":"))
-    }
-}
 
 // Go bridge compiled via gomobile, single libgojni.so containing:
 //   - rcbridge: rclone for cloud storage backends
@@ -93,25 +83,7 @@ includeBuild("rclone-android") {
     }
 }
 
-// rnsh-kt: Kotlin rnsh client library (submodule).
-includeBuild("rnsh-kt") {
-    dependencySubstitution {
-        substitute(module("tech.torlando:rnsh-core"))
-            .using(project(":rnsh-core"))
-    }
-}
 
-// reticulum-kt upstream (submodule, pinned to 83c92af). See issue #79.
-includeBuild("reticulum-kt") {
-    dependencySubstitution {
-        substitute(module("network.reticulum:rns-core"))
-            .using(project(":rns-core"))
-        substitute(module("network.reticulum:rns-interfaces"))
-            .using(project(":rns-interfaces"))
-        substitute(module("network.reticulum:rns-android"))
-            .using(project(":rns-android"))
-    }
-}
 
 rootProject.name = "Haven"
 
@@ -135,7 +107,6 @@ include(":feature:terminal")
 include(":feature:sftp")
 include(":feature:keys")
 include(":feature:tunnel")
-include(":core:reticulum")
 include(":core:mosh")
 include(":core:et")
 include(":core:btserial")
@@ -143,7 +114,6 @@ include(":core:usbserial")
 include(":core:bleserial")
 include(":core:vnc")
 include(":core:rdp")
-include(":core:prns")
 include(":core:spice")
 include(":core:glkvm")
 include(":core:smb")

@@ -37,7 +37,6 @@ dependencies {
     implementation(project(":core:knock"))
     implementation(project(":core:spa"))
     implementation(project(":feature:tunnel"))
-    implementation(project(":core:reticulum"))
     implementation(project(":core:mosh"))
     implementation(project(":core:et"))
     implementation(project(":core:btserial"))

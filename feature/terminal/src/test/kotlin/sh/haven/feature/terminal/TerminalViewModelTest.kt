@@ -26,13 +26,12 @@ import org.junit.Test
 import sh.haven.core.et.EtSessionManager
 import sh.haven.core.local.LocalSessionManager
 import sh.haven.core.mosh.MoshSessionManager
-import sh.haven.core.reticulum.ReticulumSessionManager
 import sh.haven.core.ssh.SshClient
 import sh.haven.core.ssh.SshSessionManager
 
 class TerminalViewModelTest {
 
-    // The ViewModel's init launches eight `sessions.collect { syncSessions() }`
+    // The ViewModel's init launches several `sessions.collect { syncSessions() }`
     // collectors. Without a pinned Main dispatcher viewModelScope falls back
     // to EmptyCoroutineContext and they run on Dispatchers.Default — real
     // threads, parallel with the test body — where a reconcile to zero tabs
@@ -40,7 +39,6 @@ class TerminalViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
 
     private lateinit var sessionManager: SshSessionManager
-    private lateinit var reticulumSessionManager: ReticulumSessionManager
     private lateinit var moshSessionManager: MoshSessionManager
     private lateinit var etSessionManager: EtSessionManager
     private lateinit var localSessionManager: LocalSessionManager
@@ -59,9 +57,6 @@ class TerminalViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         sessionManager = SshSessionManager(mockk(relaxed = true), mockk(relaxed = true))
-        reticulumSessionManager = mockk<ReticulumSessionManager>(relaxed = true) {
-            every { sessions } returns MutableStateFlow(emptyMap())
-        }
         moshSessionManager = mockk<MoshSessionManager>(relaxed = true) {
             every { sessions } returns MutableStateFlow(emptyMap())
         }
@@ -104,7 +99,6 @@ class TerminalViewModelTest {
         mockk(relaxed = true),
         sessionManager,
         mockk(relaxed = true), // SshSessionAttacher
-        reticulumSessionManager,
         moshSessionManager,
         etSessionManager,
         btSerialSessionManager,
@@ -279,9 +273,8 @@ class TerminalViewModelTest {
 
     @Test
     fun `closeTab tears down a BLE-serial session`() {
-        // Regression: removeTabAndSync only knew SSH/mosh/et/local/reticulum, so a
-        // serial session fell through to reticulum (no-op), stayed alive, and
-        // syncSessions rebuilt its tab — the tab wouldn't close.
+        // Regression: removeTabAndSync did not know the serial transports, so a
+        // serial session survived the close and syncSessions rebuilt its tab.
         val sessionId = "ble-1"
         // Drive the already-stubbed flow rather than re-stubbing the mock (#465).
         bleSerialSessions.value = mapOf(sessionId to mockk(relaxed = true))
@@ -302,255 +295,6 @@ class TerminalViewModelTest {
 
         assertEquals(0, sessionManager.getSessionsForProfile("profile1").size)
     }
-
-    // #601: a second Reticulum session connected, the notification counted
-    // two sessions, but no tab ever appeared and every later sync logged
-    // "CONNECTED but not ready for terminal" with no createTerminalSession
-    // line. syncSessions snapshots the session maps, then suspends at the
-    // withContext(Dispatchers.IO) profile batch; nine collectors fire it
-    // concurrently, so a pass whose snapshot predates the new CONNECTED
-    // session resumes with a stale activeRnsIds and its removal logic deletes
-    // the tab a concurrent pass just created — untracking it without
-    // detaching, which leaves reticulumSession non-null forever. The fix
-    // serialises syncSessions so a pass can never act on a stale snapshot.
-    @Test
-    fun `a concurrent syncSessions pass cannot delete a tab it snapshotted away`() =
-        runTest(testDispatcher) {
-            // Real manager over a mocked transport: createTerminalSession
-            // actually sets reticulumSession, so the not-ready gate is the
-            // production one rather than a stubbed boolean.
-            val transport = mockk<sh.haven.core.reticulum.ReticulumTransport>(relaxed = true)
-            // transport.init stays relaxed (returns "") — connectSession only
-            // logs the identity; a relaxed mock also matches the null
-            // ifac/dialer args, which any() would not.
-            val shell = mockk<sh.haven.core.reticulum.RnshShellSession>(relaxed = true)
-            // A relaxed mock's Flow completes on collect, which ReticulumSession
-            // reads as "output flow ended" → DISCONNECTED. Keep it open.
-            every { shell.output } returns
-                kotlinx.coroutines.flow.MutableSharedFlow(extraBufferCapacity = 8)
-            // A relaxed mock's exitCode.await() completes immediately, which
-            // ReticulumSession reads as an exit → onDisconnected → a status
-            // emission whose Main-dispatched collector wake can land after
-            // resetMain and poison the next test. Keep it pending.
-            every { shell.exitCode } returns kotlinx.coroutines.CompletableDeferred()
-            coEvery { transport.openSession(any(), any(), any()) } returns shell
-            val rnsManager = sh.haven.core.reticulum.ReticulumSessionManager(
-                transport, mockk(relaxed = true),
-            )
-            // The RNS tab branch builds a real TerminalEmulator, whose default
-            // looper arg reads Looper.getMainLooper() — null in a plain JVM
-            // test, and the $default bridge evaluates it before dispatching to
-            // the stubbed create, so both the static and the factory are
-            // stubbed. The tab machinery only needs an emulator to exist.
-            io.mockk.mockkStatic(android.os.Looper::class)
-            every { android.os.Looper.getMainLooper() } returns mockk(relaxed = true)
-            io.mockk.mockkObject(org.connectbot.terminal.TerminalEmulatorFactory.Companion)
-            every { org.connectbot.terminal.TerminalEmulatorFactory.create(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns
-                mockk<org.connectbot.terminal.TerminalEmulator>(relaxed = true)
-            // The VM reads reticulumSessionManager.sessions.value on every
-            // sync — delegate to the real manager's flow so the snapshot it
-            // acts on carries the reticulumSession field createTerminalSession
-            // sets, exactly as production does.
-            every { reticulumSessionManager.sessions } returns rnsManager.sessions
-            every { reticulumSessionManager.isReadyForTerminal(any()) } answers {
-                val s = rnsManager.sessions.value[firstArg<String>()]
-                s?.status == sh.haven.core.reticulum.ReticulumSessionManager.SessionState.Status.CONNECTED &&
-                    s.reticulumSession == null
-            }
-            every { reticulumSessionManager.createTerminalSession(any(), any()) } answers {
-                rnsManager.createTerminalSession(firstArg(), secondArg())
-            }
-
-            // syncSessions suspends at its withContext(Dispatchers.IO) profile
-            // batch — on a real thread, invisible to the test scheduler — so
-            // the two passes are launched directly and synchronised on
-            // latches: pass A parks inside its batch, pass B runs to tab
-            // creation, then pass A resumes on its stale snapshot. This is
-            // what nine collectors firing on different emissions do on their
-            // own in production.
-            val gate = kotlinx.coroutines.CompletableDeferred<Unit>()
-            val parked = java.util.concurrent.atomic.AtomicBoolean(false)
-            var firstFetch = true
-            coEvery { connectionRepository.getById("p1") } coAnswers {
-                if (firstFetch) {
-                    firstFetch = false
-                    parked.set(true)
-                    gate.await()
-                }
-                null
-            }
-
-            // An SSH session (CONNECTING, so never a tab) gives both passes a
-            // profile to fetch — the first fetch parks, the second returns.
-            sessionManager.registerSession("p1", "Server", mockk<SshClient>(relaxed = true))
-
-            // Pass A snapshots rnsSessions while it is still empty, then
-            // parks in its profile batch.
-            val passA = launch { viewModel.syncSessions() }
-            withContext(Dispatchers.IO) {
-                while (!parked.get()) kotlinx.coroutines.delay(2)
-            }
-
-            // The RNS session connects while pass A is parked. The stubbed
-            // sessions flow delegates to the manager, so the next snapshot
-            // sees it CONNECTED.
-            val rnsId = rnsManager.registerSession("rns-p", "RNS", "deadbeef")
-            rnsManager.connectSession(rnsId, "/tmp", "127.0.0.1", 37428)
-
-            // Pass B sees the session and creates its tab while A is parked.
-            // B's own profile batch runs on a real IO thread, so the wait
-            // alternates scheduler steps with wall-clock time; bounded so a
-            // fixed pass (post-fix, B queues on the mutex and the tab only
-            // appears after A finishes) falls through instead of hanging.
-            val passB = launch { viewModel.syncSessions() }
-            val deadline = System.currentTimeMillis() + 2_000
-            while (viewModel.tabs.value.none { it.transportType == "RETICULUM" } &&
-                System.currentTimeMillis() < deadline
-            ) {
-                testDispatcher.scheduler.advanceUntilIdle()
-                Thread.sleep(2)
-            }
-
-            // Pass A resumes on its stale snapshot (rnsSessions empty).
-            gate.complete(Unit)
-            advanceUntilIdle()
-            passA.join()
-            passB.join()
-
-            // A later reconcile (what every subsequent emission does): the
-            // tab must still be there. Pre-fix, pass A deleted it and the
-            // not-ready gate skips the session forever.
-            viewModel.syncSessions()
-
-            assertEquals(
-                "the RNS tab must survive a concurrent sync pass",
-                1,
-                viewModel.tabs.value.count { it.transportType == "RETICULUM" },
-            )
-
-        }
-
-    // #728: the last tab emptying on its own (session exited / transport
-    // dropped) returns to Connect only when that session had actually been up
-    // for a moment — a connect that fails right away stays put so the error
-    // is visible (the #208 flicker). The real-RNS recipe from the #601 test
-    // gives a genuine tab whose openedAtMs the reconcile pass carries across.
-    private fun stubRealRnsManager(): sh.haven.core.reticulum.ReticulumSessionManager {
-        val transport = mockk<sh.haven.core.reticulum.ReticulumTransport>(relaxed = true)
-        val shell = mockk<sh.haven.core.reticulum.RnshShellSession>(relaxed = true)
-        // A relaxed mock's Flow completes on collect → DISCONNECTED; keep open.
-        every { shell.output } returns
-            kotlinx.coroutines.flow.MutableSharedFlow(extraBufferCapacity = 8)
-        every { shell.exitCode } returns kotlinx.coroutines.CompletableDeferred()
-        coEvery { transport.openSession(any(), any(), any()) } returns shell
-        val rnsManager = sh.haven.core.reticulum.ReticulumSessionManager(
-            transport, mockk(relaxed = true),
-        )
-        io.mockk.mockkStatic(android.os.Looper::class)
-        every { android.os.Looper.getMainLooper() } returns mockk(relaxed = true)
-        io.mockk.mockkObject(org.connectbot.terminal.TerminalEmulatorFactory.Companion)
-        every { org.connectbot.terminal.TerminalEmulatorFactory.create(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns
-            mockk<org.connectbot.terminal.TerminalEmulator>(relaxed = true)
-        every { reticulumSessionManager.sessions } returns rnsManager.sessions
-        every { reticulumSessionManager.isReadyForTerminal(any()) } answers {
-            val s = rnsManager.sessions.value[firstArg<String>()]
-            s?.status == sh.haven.core.reticulum.ReticulumSessionManager.SessionState.Status.CONNECTED &&
-                s.reticulumSession == null
-        }
-        every { reticulumSessionManager.createTerminalSession(any(), any()) } answers {
-            rnsManager.createTerminalSession(firstArg(), secondArg())
-        }
-        // closeTab's removeSession must reach the real manager, or the
-        // session stays CONNECTED and the next reconcile rebuilds the tab.
-        every { reticulumSessionManager.removeSession(any()) } answers {
-            rnsManager.removeSession(firstArg())
-        }
-        return rnsManager
-    }
-
-    private fun awaitRnsTab() {
-        val deadline = System.currentTimeMillis() + 2_000
-        while (viewModel.tabs.value.none { it.transportType == "RETICULUM" } &&
-            System.currentTimeMillis() < deadline
-        ) {
-            testDispatcher.scheduler.advanceUntilIdle()
-            Thread.sleep(2)
-        }
-    }
-
-    @Test
-    fun `the last tab dying after being open returns to Connect`() = runTest(testDispatcher) {
-        viewModel.naturalEmptyBounceMinMs = 0L
-        val rnsManager = stubRealRnsManager()
-        val rnsId = rnsManager.registerSession("rns-p", "RNS", "deadbeef")
-        rnsManager.connectSession(rnsId, "/tmp", "127.0.0.1", 37428)
-        viewModel.syncSessions()
-        awaitRnsTab()
-        assertEquals(1, viewModel.tabs.value.size)
-        assertEquals(false, viewModel.navigateToConnections.value)
-
-        rnsManager.removeSession(rnsId)
-        viewModel.syncSessions()
-        advanceUntilIdle()
-
-        assertEquals(0, viewModel.tabs.value.size)
-        assertEquals(
-            "a session that was up and then died should bounce to Connect",
-            true, viewModel.navigateToConnections.value,
-        )
-    }
-
-    @Test
-    fun `the last tab dying right after connect does not bounce`() = runTest(testDispatcher) {
-        viewModel.naturalEmptyBounceMinMs = 60_000L
-        val rnsManager = stubRealRnsManager()
-        val rnsId = rnsManager.registerSession("rns-p", "RNS", "deadbeef")
-        rnsManager.connectSession(rnsId, "/tmp", "127.0.0.1", 37428)
-        viewModel.syncSessions()
-        awaitRnsTab()
-        assertEquals(1, viewModel.tabs.value.size)
-
-        rnsManager.removeSession(rnsId)
-        viewModel.syncSessions()
-        advanceUntilIdle()
-
-        assertEquals(0, viewModel.tabs.value.size)
-        assertEquals(
-            "a connect that failed right away must stay on Terminal (#208)",
-            false, viewModel.navigateToConnections.value,
-        )
-    }
-
-    @Test
-    fun `an explicit close of the last tab returns to Connect even when young`() =
-        runTest(testDispatcher) {
-            viewModel.naturalEmptyBounceMinMs = 60_000L
-            val rnsManager = stubRealRnsManager()
-            val rnsId = rnsManager.registerSession("rns-p", "RNS", "deadbeef")
-            rnsManager.connectSession(rnsId, "/tmp", "127.0.0.1", 37428)
-            viewModel.syncSessions()
-            awaitRnsTab()
-            assertEquals(1, viewModel.tabs.value.size)
-
-            viewModel.closeTab(rnsId)
-            // removeTabAndSync launches syncSessions, which hops to the real
-            // Dispatchers.IO for its profile batch — advanceUntilIdle alone
-            // can return before that resumes (same shape as the init-reconcile
-            // flake above), so pump until the bounce lands, bounded.
-            val deadline = System.currentTimeMillis() + 2_000
-            while (!viewModel.navigateToConnections.value &&
-                System.currentTimeMillis() < deadline
-            ) {
-                testDispatcher.scheduler.advanceUntilIdle()
-                Thread.sleep(10)
-            }
-
-            assertEquals(0, viewModel.tabs.value.size)
-            assertEquals(
-                "an explicit close bounces unconditionally",
-                true, viewModel.navigateToConnections.value,
-            )
-        }
 
     @Test
     fun `selectTabByProfileId with no matching tab is no-op`() {

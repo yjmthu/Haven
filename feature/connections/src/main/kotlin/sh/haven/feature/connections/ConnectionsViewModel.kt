@@ -69,10 +69,6 @@ import sh.haven.core.local.LocalSessionManager
 import sh.haven.core.rclone.RcloneClient
 import sh.haven.core.rclone.RcloneSessionManager
 import sh.haven.core.security.Totp
-import sh.haven.core.reticulum.DiscoveredDestination
-import sh.haven.core.reticulum.ReticulumSessionManager
-import sh.haven.core.reticulum.ReticulumIdentityImport
-import sh.haven.core.reticulum.ReticulumTransport
 import sh.haven.core.knock.KnockResult
 import sh.haven.core.knock.KnockSequence
 import sh.haven.core.knock.PortKnocker
@@ -193,7 +189,7 @@ private const val HOST_KEY_PROMPT_TIMEOUT_MS = 90_000L
  */
 private const val MCP_REVERSE_TUNNEL_PORT = 8730
 
-/** Unified connection status that maps both SSH and Reticulum states. */
+/** Unified connection status that maps transport session states. */
 enum class ProfileStatus { CONNECTING, CONNECTED, RECONNECTING, DISCONNECTED, ERROR }
 
 /**
@@ -224,15 +220,12 @@ class ConnectionsViewModel @Inject constructor(
     private val sshSessionManager: SshSessionManager,
     private val backgroundDisconnectDetector: sh.haven.core.ssh.BackgroundDisconnectDetector,
     private val sshSessionAttacher: sh.haven.core.ssh.SshSessionAttacher,
-    private val reticulumSessionManager: ReticulumSessionManager,
     private val moshSessionManager: MoshSessionManager,
     private val etSessionManager: EtSessionManager,
     private val btSerialSessionManager: sh.haven.core.btserial.BtSerialSessionManager,
     private val bleSerialSessionManager: sh.haven.core.bleserial.BleSerialSessionManager,
     private val usbSerialSessionManager: sh.haven.core.usbserial.UsbSerialSessionManager,
     private val usbBroker: sh.haven.core.usb.UsbBroker,
-    private val reticulumTransport: ReticulumTransport,
-    private val reticulumForwardServer: sh.haven.core.reticulum.ReticulumForwardServer,
     private val smbSessionManager: SmbSessionManager,
     private val rcloneSessionManager: RcloneSessionManager,
     private val rcloneClient: RcloneClient,
@@ -467,7 +460,6 @@ class ConnectionsViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 sshSessionManager.sessions,
-                reticulumSessionManager.sessions,
                 moshSessionManager.sessions,
                 etSessionManager.sessions,
                 localSessionManager.sessions,
@@ -614,15 +606,14 @@ class ConnectionsViewModel @Inject constructor(
             map.toMap()
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
-    /** Derive profile-level statuses for the connections list UI (merges SSH + Reticulum + Mosh + ET). */
+    /** Derive profile-level statuses for the connections list UI (merges SSH + Mosh + ET). */
     val profileStatuses: StateFlow<Map<String, ProfileStatus>> =
         combine(
             combine(
                 sshSessionManager.sessions,
-                reticulumSessionManager.sessions,
                 moshSessionManager.sessions,
                 etSessionManager.sessions,
-            ) { ssh, rns, mosh, et -> arrayOf(ssh, rns, mosh, et) },
+            ) { ssh, mosh, et -> arrayOf(ssh, mosh, et) },
             combine(
                 smbSessionManager.sessions,
                 localSessionManager.sessions,
@@ -634,11 +625,9 @@ class ConnectionsViewModel @Inject constructor(
             @Suppress("UNCHECKED_CAST")
             val sshMap = base[0] as Map<String, SshSessionManager.SessionState>
             @Suppress("UNCHECKED_CAST")
-            val rnsMap = base[1] as Map<String, ReticulumSessionManager.SessionState>
+            val moshMap = base[1] as Map<String, MoshSessionManager.SessionState>
             @Suppress("UNCHECKED_CAST")
-            val moshMap = base[2] as Map<String, MoshSessionManager.SessionState>
-            @Suppress("UNCHECKED_CAST")
-            val etMap = base[3] as Map<String, EtSessionManager.SessionState>
+            val etMap = base[2] as Map<String, EtSessionManager.SessionState>
             @Suppress("UNCHECKED_CAST")
             val smbMap = extra[0] as Map<String, SmbSessionManager.SessionState>
             @Suppress("UNCHECKED_CAST")
@@ -662,18 +651,6 @@ class ConnectionsViewModel @Inject constructor(
                     SshSessionManager.SessionState.Status.RECONNECTING in statuses -> ProfileStatus.RECONNECTING
                     SshSessionManager.SessionState.Status.CONNECTING in statuses -> ProfileStatus.CONNECTING
                     SshSessionManager.SessionState.Status.ERROR in statuses -> ProfileStatus.ERROR
-                    else -> ProfileStatus.DISCONNECTED
-                }
-            }
-
-            // Reticulum statuses
-            rnsMap.values.groupBy { it.profileId }.forEach { (profileId, states) ->
-                transportProfiles.add(profileId)
-                val statuses = states.map { it.status }
-                result[profileId] = when {
-                    ReticulumSessionManager.SessionState.Status.CONNECTED in statuses -> ProfileStatus.CONNECTED
-                    ReticulumSessionManager.SessionState.Status.CONNECTING in statuses -> ProfileStatus.CONNECTING
-                    ReticulumSessionManager.SessionState.Status.ERROR in statuses -> ProfileStatus.ERROR
                     else -> ProfileStatus.DISCONNECTED
                 }
             }
@@ -1356,133 +1333,6 @@ class ConnectionsViewModel @Inject constructor(
         _newSessionProfileId.value = profileId
     }
 
-    private val _discoveredDestinations = MutableStateFlow<List<DiscoveredDestination>>(emptyList())
-    val discoveredDestinations: StateFlow<List<DiscoveredDestination>> = _discoveredDestinations.asStateFlow()
-
-    private val _reticulumScanning = MutableStateFlow(false)
-    val reticulumScanning: StateFlow<Boolean> = _reticulumScanning.asStateFlow()
-
-    private val _reticulumIdentityHash = MutableStateFlow<String?>(null)
-
-    /**
-     * The identity hash this device presents to rnsh servers, or null if none
-     * has been created yet (#585).
-     *
-     * Read rather than derived, because it changes underneath the UI: an import
-     * replaces it, and the first connection of a fresh install creates it.
-     */
-    val reticulumIdentityHash: StateFlow<String?> = _reticulumIdentityHash.asStateFlow()
-
-    /** The Reticulum config dir — one place, since three call sites want it. */
-    private fun reticulumConfigDir(): File =
-        File(appContext.filesDir, "reticulum").apply { mkdirs() }
-
-    fun refreshReticulumIdentity() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _reticulumIdentityHash.value = runCatching {
-                reticulumTransport.clientIdentityHash(reticulumConfigDir().absolutePath)
-            }.getOrNull()
-        }
-    }
-
-    /**
-     * Adopt a Reticulum identity the user picked from storage (#585).
-     *
-     * The file is copied into the cache first because the transport works on
-     * files and a SAF pick is a stream, then deleted again — it is a private
-     * key, and leaving a second copy of it in the cache would be the kind of
-     * quiet mistake that is hard to notice later.
-     */
-    fun importReticulumIdentity(source: Uri) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val staged = File(appContext.cacheDir, "reticulum-identity-import")
-            try {
-                val copied = runCatching {
-                    appContext.contentResolver.openInputStream(source)?.use { input ->
-                        staged.outputStream().use { output -> input.copyTo(output) }
-                    } != null
-                }.getOrDefault(false)
-                if (!copied) {
-                    _error.value = appContext.getString(R.string.connections_identity_unreadable)
-                    return@launch
-                }
-
-                when (
-                    val result = reticulumTransport.importClientIdentity(
-                        reticulumConfigDir().absolutePath,
-                        staged,
-                    )
-                ) {
-                    is ReticulumIdentityImport.Installed -> {
-                        _reticulumIdentityHash.value = result.hexHash
-                        _warning.value = if (result.takesEffectAfterRestart) {
-                            appContext.getString(
-                                R.string.connections_identity_imported_restart,
-                                result.hexHash,
-                            )
-                        } else {
-                            appContext.getString(R.string.connections_identity_imported, result.hexHash)
-                        }
-                    }
-                    is ReticulumIdentityImport.NotAnIdentity ->
-                        _error.value = appContext.getString(R.string.connections_identity_not_an_identity)
-                    is ReticulumIdentityImport.InstallFailed ->
-                        _error.value = appContext.getString(
-                            R.string.connections_identity_install_failed,
-                            result.reason,
-                        )
-                }
-            } finally {
-                staged.delete()
-            }
-        }
-    }
-
-    /**
-     * Scan for rnsh nodes by initialising Reticulum with the given gateway
-     * and waiting for announces. Called from the edit dialog's Scan button.
-     */
-    fun scanReticulumDestinations(host: String, port: Int, networkName: String?, passphrase: String?) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _reticulumScanning.value = true
-            try {
-                val configDir = File(appContext.filesDir, "reticulum")
-                    .apply { mkdirs() }.absolutePath
-                reticulumTransport.init(configDir, host, port, networkName, passphrase)
-                Log.d(TAG, "scanReticulum: transport initialised, waiting for gateway stabilisation...")
-
-                // Wait for the gateway's IFAC handshake and tunnel synthesis
-                // to complete before starting the announce collection window.
-                kotlinx.coroutines.delay(5000)
-
-                // Also request paths for any saved rnsh destinations — this
-                // triggers the gateway to forward cached announces/paths.
-                requestPathsForSavedConnections()
-
-                // Collect announces for 10 seconds (init + TCP connect + announce
-                // propagation can take several seconds)
-                val job = launch {
-                    reticulumTransport.discoveredDestinations.collect { list ->
-                        _discoveredDestinations.value = list
-                        if (list.isNotEmpty()) {
-                            Log.d(TAG, "scanReticulum: ${list.size} destination(s) discovered so far")
-                        }
-                    }
-                }
-                kotlinx.coroutines.delay(10_000)
-                job.cancel()
-
-                // Final snapshot
-                _discoveredDestinations.value = reticulumTransport.discoveredDestinations.value
-                Log.d(TAG, "Scan complete: ${_discoveredDestinations.value.size} destinations found")
-            } catch (e: Exception) {
-                Log.e(TAG, "scanReticulumDestinations failed", e)
-            } finally {
-                _reticulumScanning.value = false
-            }
-        }
-    }
-
     private val networkDiscovery = NetworkDiscovery(appContext)
     val discoveredHosts: StateFlow<List<DiscoveredHost>> = networkDiscovery.hosts
     val discoveredSmbHosts: StateFlow<List<DiscoveredHost>> = networkDiscovery.smbHosts
@@ -1503,23 +1353,6 @@ class ConnectionsViewModel @Inject constructor(
                 networkDiscovery.tailscaleDiscoveryEnabled = it
             }
         }
-    }
-
-    private var periodicRefreshJob: Job? = null
-
-    fun startPeriodicRefresh() {
-        stopPeriodicRefresh()
-        periodicRefreshJob = viewModelScope.launch {
-            while (true) {
-                refreshDiscoveredDestinations()
-                delay(30_000)
-            }
-        }
-    }
-
-    fun stopPeriodicRefresh() {
-        periodicRefreshJob?.cancel()
-        periodicRefreshJob = null
     }
 
     fun startNetworkDiscovery() {
@@ -1647,40 +1480,6 @@ class ConnectionsViewModel @Inject constructor(
 
     fun stopNetworkDiscovery() {
         networkDiscovery.stop() // also stops VM polling
-    }
-
-    fun refreshDiscoveredDestinations() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                if (!reticulumTransport.isInitialised) {
-                    Log.d(TAG, "RNS not initialised, skipping destination refresh")
-                    return@launch
-                }
-
-                // Proactively request paths for saved Reticulum connections
-                requestPathsForSavedConnections()
-
-                // Read discovered destinations from the transport's StateFlow
-                val list = reticulumTransport.discoveredDestinations.value
-                Log.d(TAG, "Discovered ${list.size} destinations: ${list.map { it.hash.take(8) }}")
-                _discoveredDestinations.value = list
-            } catch (e: Exception) {
-                Log.e(TAG, "refreshDiscoveredDestinations failed", e)
-            }
-        }
-    }
-
-    private suspend fun requestPathsForSavedConnections() {
-        try {
-            val saved = connections.value.filter { it.isReticulum && !it.destinationHash.isNullOrBlank() }
-            for (profile in saved) {
-                val hash = profile.destinationHash ?: continue
-                val alreadyKnown = reticulumTransport.requestPath(hash)
-                Log.d(TAG, "requestPath(${hash.take(8)}...): known=$alreadyKnown")
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "requestPathsForSavedConnections failed", e)
-        }
     }
 
     fun saveConnection(profile: ConnectionProfile) {
@@ -2018,7 +1817,6 @@ class ConnectionsViewModel @Inject constructor(
 
     private fun canAutoConnect(profile: ConnectionProfile, keys: List<SshKey>): Boolean = when {
         profile.isLocal -> true
-        profile.isReticulum -> true
         profile.isRclone -> true
         // Connect only on explicit tap: a BT link is slow/blocking and needs the
         // adapter powered + the device in range (#406).
@@ -2142,7 +1940,7 @@ class ConnectionsViewModel @Inject constructor(
     }
 
     fun connectWithKey(profile: ConnectionProfile) {
-        if (profile.username.isBlank() && (profile.isSsh || profile.isReticulum)) {
+        if (profile.username.isBlank() && profile.isSsh) {
             // Route through the prompt dialog so the user can supply a username first.
             _passwordFallback.value = profile
             return
@@ -2407,7 +2205,7 @@ class ConnectionsViewModel @Inject constructor(
         // credentials. A no-op (returns the profile unchanged) when no
         // identity is assigned or resolvable, so existing per-host
         // credentials behave exactly as before. Needs a DAO read → suspend.
-        if (profile.isSsh || profile.isReticulum) {
+        if (profile.isSsh) {
             viewModelScope.launch {
                 val resolved = sshIdentityRepository.applyTo(profile)
                 // If the caller didn't already carry a typed password, adopt
@@ -2507,10 +2305,6 @@ class ConnectionsViewModel @Inject constructor(
         }
         if (profile.isRclone) {
             connectRclone(profile)
-            return
-        }
-        if (profile.isReticulum) {
-            connectReticulum(profile)
             return
         }
         // SSH-family: if the saved profile has no username, the user must supply one
@@ -3900,50 +3694,6 @@ class ConnectionsViewModel @Inject constructor(
         }
     }
 
-    private fun connectReticulum(profile: ConnectionProfile) {
-        val destinationHash = profile.destinationHash ?: return
-        viewModelScope.launch {
-            _connectingProfileId.value = profile.id
-            _error.value = null
-
-            val sessionId = reticulumSessionManager.registerSession(
-                profileId = profile.id,
-                label = profile.label,
-                destinationHash = destinationHash,
-            )
-
-            try {
-                val configDir = File(appContext.filesDir, "reticulum").apply { mkdirs() }.absolutePath
-
-                val dialer = tunnelResolver.socketDialer(profile)
-                withContext(Dispatchers.IO) {
-                    reticulumSessionManager.connectSession(
-                        sessionId = sessionId,
-                        configDir = configDir,
-                        host = profile.reticulumHost,
-                        port = profile.reticulumPort,
-                        ifacNetname = profile.reticulumNetworkName,
-                        ifacNetkey = profile.reticulumPassphrase,
-                        socketDialer = dialer,
-                    )
-                }
-
-                repository.markConnected(profile.id)
-                connectionLogRepository.logEvent(profile.id, ConnectionLog.Status.CONNECTED)
-                startForegroundServiceIfNeeded()
-                _navigateToTerminal.value = profile.id
-            } catch (e: Exception) {
-                reticulumSessionManager.updateStatus(
-                    sessionId,
-                    ReticulumSessionManager.SessionState.Status.ERROR,
-                )
-                reticulumSessionManager.removeSession(sessionId)
-                _error.value = e.message ?: "Reticulum connection failed"
-            } finally {
-                _connectingProfileId.value = null
-            }
-        }
-    }
 
     /**
      * Phase-1 SSH bootstrap shared by the four Mosh/ET connect paths:
@@ -6126,7 +5876,6 @@ class ConnectionsViewModel @Inject constructor(
     private suspend fun connectSilent(profile: ConnectionProfile) {
         when {
             profile.isLocal -> connectLocalSilent(profile)
-            profile.isReticulum -> connectReticulumSilent(profile)
             profile.isEternalTerminal -> connectEtSilent(profile)
             profile.isMosh -> connectMoshSilent(profile)
             else -> connectSshSilent(profile)
@@ -6155,40 +5904,6 @@ class ConnectionsViewModel @Inject constructor(
             connectionLogRepository.logEvent(profile.id, ConnectionLog.Status.FAILED, details = e.message)
             localSessionManager.updateStatus(sessionId, LocalSessionManager.SessionState.Status.ERROR)
             localSessionManager.removeSession(sessionId)
-            throw e
-        }
-    }
-
-    private suspend fun connectReticulumSilent(profile: ConnectionProfile) {
-        val destinationHash = profile.destinationHash
-            ?: throw Exception("No destination hash for ${profile.label}")
-
-        val sessionId = reticulumSessionManager.registerSession(
-            profileId = profile.id,
-            label = profile.label,
-            destinationHash = destinationHash,
-        )
-
-        try {
-            val configDir = File(appContext.filesDir, "reticulum").apply { mkdirs() }.absolutePath
-            val dialer = tunnelResolver.socketDialer(profile)
-            withContext(Dispatchers.IO) {
-                reticulumSessionManager.connectSession(
-                    sessionId = sessionId,
-                    configDir = configDir,
-                    host = profile.reticulumHost,
-                    port = profile.reticulumPort,
-                    ifacNetname = profile.reticulumNetworkName,
-                    ifacNetkey = profile.reticulumPassphrase,
-                    socketDialer = dialer,
-                )
-            }
-            repository.markConnected(profile.id)
-            connectionLogRepository.logEvent(profile.id, ConnectionLog.Status.CONNECTED)
-            startForegroundServiceIfNeeded()
-        } catch (e: Exception) {
-            reticulumSessionManager.updateStatus(sessionId, ReticulumSessionManager.SessionState.Status.ERROR)
-            reticulumSessionManager.removeSession(sessionId)
             throw e
         }
     }

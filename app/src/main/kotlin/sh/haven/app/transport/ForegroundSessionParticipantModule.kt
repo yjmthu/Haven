@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.map
 import sh.haven.core.et.EtSessionManager
 import sh.haven.core.local.LocalSessionManager
 import sh.haven.core.mosh.MoshSessionManager
-import sh.haven.core.reticulum.ReticulumSessionManager
 import sh.haven.core.smb.SmbSessionManager
 import sh.haven.core.local.uml.UmlGuestManager
 import sh.haven.core.ssh.ForegroundSessionParticipant
@@ -31,13 +30,6 @@ object ForegroundSessionParticipantModule {
 
     @Provides @IntoSet
     fun ssh(m: SshSessionManager): ForegroundSessionParticipant = object : ForegroundSessionParticipant {
-        override val activeSessions get() = m.activeSessions.map { SessionInfo(it.profileId, it.label) }
-        override val changes get() = m.sessions.map { }
-        override fun disconnectAll() = m.disconnectAll()
-    }
-
-    @Provides @IntoSet
-    fun reticulum(m: ReticulumSessionManager): ForegroundSessionParticipant = object : ForegroundSessionParticipant {
         override val activeSessions get() = m.activeSessions.map { SessionInfo(it.profileId, it.label) }
         override val changes get() = m.sessions.map { }
         override fun disconnectAll() = m.disconnectAll()

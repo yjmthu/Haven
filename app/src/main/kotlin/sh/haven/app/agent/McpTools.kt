@@ -75,8 +75,6 @@ internal class McpTools(
     private val portForwardRepository: PortForwardRepository,
     private val sshSessionManager: SshSessionManager,
     private val sessionManagerRegistry: SessionManagerRegistry,
-    private val reticulumSessionManager: sh.haven.core.reticulum.ReticulumSessionManager,
-    private val reticulumForwardServer: sh.haven.core.reticulum.ReticulumForwardServer,
     private val rcloneClient: RcloneClient,
     private val sftpStreamServer: SftpStreamServer,
     private val hlsStreamServer: HlsStreamServer,
@@ -3553,29 +3551,6 @@ internal class McpTools(
         )
         portForwardRepository.save(rule)
 
-        // Reticulum profiles tunnel over the rnsh exec substrate (nc), not
-        // an SSH session — dispatch to the forward server instead.
-        if (reticulumSessionManager.isProfileConnected(profileId)) {
-            val destHash = reticulumSessionManager.getSessionsForProfile(profileId)
-                .firstOrNull { it.status == sh.haven.core.reticulum.ReticulumSessionManager.SessionState.Status.CONNECTED }
-                ?.destinationHash
-            if (destHash != null) {
-                val bound = when (rule.type) {
-                    PortForwardRule.Type.LOCAL -> reticulumForwardServer.startLocalForward(
-                        profileId, destHash, rule.bindAddress, rule.bindPort, rule.targetHost, rule.targetPort)
-                    PortForwardRule.Type.DYNAMIC -> reticulumForwardServer.startDynamicForward(
-                        profileId, destHash, rule.bindAddress, rule.bindPort)
-                    PortForwardRule.Type.REMOTE -> throw McpError(-32602,
-                        "Remote (-R) forwarding is not supported over Reticulum yet")
-                }
-                return@withContext JSONObject().apply {
-                    put("ruleId", rule.id)
-                    put("activated", true)
-                    put("actualBoundPort", bound)
-                }
-            }
-        }
-
         // Activate immediately if the profile has a connected session.
         // Mirrors the UI's savePortForwardRule path. Multiple connected
         // sessions per profile are unusual but possible (multi-tab); we
@@ -3634,18 +3609,12 @@ internal class McpTools(
             if (r != null) { owningProfileId = p.id; owningRule = r; break }
         }
         if (owningProfileId != null) {
-            if (reticulumSessionManager.isProfileConnected(owningProfileId)) {
-                // Reticulum forwards key on the bound port (bindPort=0 OS-pick
-                // not deactivatable by id in v1).
-                owningRule?.let { reticulumForwardServer.stopForward(owningProfileId, it.bindPort) }
-            } else {
-                val session = sshSessionManager.getSessionsForProfile(owningProfileId)
-                    .firstOrNull { it.status == SshSessionManager.SessionState.Status.CONNECTED }
-                if (session != null) {
-                    val forward = session.activeForwards.firstOrNull { it.ruleId == ruleId }
-                    if (forward != null) {
-                        sshSessionManager.removePortForward(session.sessionId, forward)
-                    }
+            val session = sshSessionManager.getSessionsForProfile(owningProfileId)
+                .firstOrNull { it.status == SshSessionManager.SessionState.Status.CONNECTED }
+            if (session != null) {
+                val forward = session.activeForwards.firstOrNull { it.ruleId == ruleId }
+                if (forward != null) {
+                    sshSessionManager.removePortForward(session.sessionId, forward)
                 }
             }
         }

@@ -59,7 +59,6 @@ class EditorLargeFileGuardTest {
             etSessionManager = mockk(relaxed = true),
             smbSessionManager = mockk(relaxed = true),
             rcloneSessionManager = mockk(relaxed = true),
-            reticulumSessionManager = mockk(relaxed = true),
             rcloneClient = mockk(relaxed = true),
             repository = mockk(relaxed = true),
             connectionLogRepository = mockk(relaxed = true),

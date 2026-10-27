@@ -55,7 +55,6 @@ class SessionManagerRegistryInputTest {
         Transport.LOCAL to "local",
         Transport.MOSH to "mosh",
         Transport.ET to "ET",
-        Transport.RETICULUM to "Reticulum",
         Transport.BTSERIAL to "Bluetooth-serial",
         Transport.BLESERIAL to "BLE-serial",
         Transport.USBSERIAL to "USB-serial",

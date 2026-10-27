@@ -11,7 +11,6 @@ import sh.haven.core.et.EtSessionManager
 import sh.haven.core.local.LocalSessionManager
 import sh.haven.core.mosh.MoshSessionManager
 import sh.haven.core.rclone.RcloneSessionManager
-import sh.haven.core.reticulum.ReticulumSessionManager
 import sh.haven.core.smb.SmbSessionManager
 import sh.haven.core.ssh.SessionManager
 import sh.haven.core.ssh.SshSessionManager
@@ -52,19 +51,6 @@ object TransportSessionManagerModule {
                     it.chosenSessionName,
                     sessionManagerLabel = it.sessionManager.takeIf { sm -> sm != SessionManager.NONE }?.label,
                 )
-            }
-    }
-
-    @Provides @IntoSet
-    fun reticulum(m: ReticulumSessionManager): TransportSessionManager = object : TransportSessionManager {
-        override val transport = Transport.RETICULUM
-        override val inputName = "Reticulum"
-        override fun removeAllSessionsForProfile(profileId: String) = m.removeAllSessionsForProfile(profileId)
-        override fun sendInput(sessionId: String, text: String) = m.sendInput(sessionId, text)
-        override val activeSessionCount get() = m.activeSessions.size
-        override val sessions
-            get() = m.sessions.value.values.map {
-                UnifiedSession(it.sessionId, it.profileId, it.label, mapStatus(it.status.name), Transport.RETICULUM)
             }
     }
 
