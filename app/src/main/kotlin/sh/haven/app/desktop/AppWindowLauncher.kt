@@ -3,7 +3,6 @@ package sh.haven.app.desktop
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import sh.haven.core.data.agent.AgentPresentationManager
 import sh.haven.core.data.message.UserMessage
 import sh.haven.core.data.message.UserMessageBus
 import sh.haven.core.data.preferences.AppWindowDef
@@ -14,20 +13,14 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Starts a saved app window (cage kiosk) and queues it into the
- * presentation overlay, with no composed UI required. Extracted from
- * [DesktopViewModel.launchAppWindow] so a home-screen launcher shortcut can
- * reach it on a cold start: the presentation goes straight onto
- * [AgentPresentationManager]'s retained queue — the `AgentUiCommandBus` is
- * `replay = 0` and would drop an emit fired before any collector mounts,
- * whereas the presentation queue is rendered whenever `PresentationHost`
- * composes.
+ * Starts a saved app window (cage kiosk), with no composed UI required.
+ * Extracted from [DesktopViewModel.launchAppWindow] so a home-screen
+ * launcher shortcut can reach it on a cold start.
  */
 @Singleton
 class AppWindowLauncher @Inject constructor(
     private val preferencesRepository: UserPreferencesRepository,
     localSessionManager: LocalSessionManager,
-    private val presentationManager: AgentPresentationManager,
     private val userMessageBus: UserMessageBus,
 ) {
     private val desktopManager: DesktopManager = localSessionManager.desktopManager
@@ -70,15 +63,6 @@ class AppWindowLauncher @Inject constructor(
         if (session.state != DesktopManager.DesktopState.RUNNING) {
             return@withContext "Couldn't launch ${def.label}: ${session.errorMessage ?: "failed to start"}"
         }
-        presentationManager.presentAppWindow(
-            host = "127.0.0.1",
-            port = session.vncPort,
-            sessionId = session.sessionId,
-            caption = def.label,
-            fullscreen = def.fullscreen,
-            scale = scale,
-            resolution = resolution,
-        )
         // Preserve the def's own resolution/scale/runAsRoot choice (null = use global).
         preferencesRepository.upsertAppWindowDef(
             def.label, def.command, def.createdBy, def.fullscreen, def.resolution, def.scale, def.runAsRoot,

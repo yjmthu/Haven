@@ -72,7 +72,6 @@ class EditorLargeFileGuardTest {
             pasteQueueDao = mockk(relaxed = true),
             agentUiCommandBus = bus,
             attachCoordinator = mockk(relaxed = true),
-            servedFileTracker = mockk(relaxed = true),
             appContext = app,
         ).also { it.backendOverride = { fakeBackend } }
     }

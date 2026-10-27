@@ -237,7 +237,6 @@ fun SftpScreen(
     val filterMode by viewModel.filterMode.collectAsState()
 
     val selectedPaths by viewModel.selectedPaths.collectAsState()
-    val agentServedPaths by viewModel.agentServedPaths.collectAsState()
     val selectionMode by viewModel.selectionMode.collectAsState()
     val attachRequest by viewModel.attachRequest.collectAsState()
     val attachProgress by viewModel.attachProgress.collectAsState()
@@ -1198,7 +1197,6 @@ fun SftpScreen(
                                 entry = entry,
                                 selected = entry.path in selectedPaths,
                                 selectionActive = selectionMode,
-                                agentServing = entry.path in agentServedPaths,
                                 onToggleSelect = { viewModel.toggleSelection(entry) },
                                 onEnterSelection = { viewModel.toggleSelection(entry) },
                                 onPermissions = if (viewModel.supportsPermissions()) {
@@ -2594,7 +2592,6 @@ private fun FileListItem(
     onCopyPath: () -> Unit,
     selected: Boolean = false,
     selectionActive: Boolean = false,
-    agentServing: Boolean = false,
     onToggleSelect: () -> Unit = {},
     onEnterSelection: () -> Unit = {},
     onCopy: () -> Unit = {},
@@ -2634,19 +2631,7 @@ private fun FileListItem(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f, fill = false),
                     )
-                    if (agentServing) {
-                        Surface(
-                            color = MaterialTheme.colorScheme.tertiaryContainer,
-                            shape = MaterialTheme.shapes.small,
-                        ) {
-                            Text(
-                                stringResource(R.string.sftp_agent_chip),
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onTertiaryContainer,
-                            )
-                        }
-                    }
+
                 }
             },
             supportingContent = {

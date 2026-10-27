@@ -92,7 +92,6 @@ include(":core:data")
 include(":core:redact")
 include(":core:tunnel")
 include(":core:knock")
-include(":core:mcp")
 include(":core:spa")
 include(":core:stepca")
 

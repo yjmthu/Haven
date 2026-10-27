@@ -99,29 +99,9 @@ fun HavenNavHost(
     sshKeyRepository: sh.haven.core.data.repository.SshKeyRepository,
     agentUiCommandBus: sh.haven.core.data.agent.AgentUiCommandBus,
     userMessageBus: sh.haven.core.data.message.UserMessageBus,
-    mcpStatusHolder: sh.haven.core.data.agent.McpStatusHolder,
 ) {
     // Desktop multi-session ViewModel — hoisted to nav scope so it survives tab switches
     val desktopViewModel: DesktopViewModel = hiltViewModel()
-
-    // Agent activity audit overlay — opened by the AgentActiveChip on the
-    // Connections top bar, dismissed via the screen's back arrow. Lifted
-    // here so the chip can deep-link directly instead of jumping to
-    // Settings as a fallback. Settings still has its own entry; both
-    // surfaces render the same screen.
-    var showAgentActivityOverlay by remember { mutableStateOf(false) }
-
-    // Notification "Agent log" action → open the audit overlay. Latched state
-    // on the holder (not a bus event) so a tap that cold-starts the app, or
-    // lands while the biometric lock delays composition, isn't dropped;
-    // consumed once shown so back-dismiss sticks (#239).
-    val openAgentLogRequested by mcpStatusHolder.openActivityLog.collectAsState()
-    LaunchedEffect(openAgentLogRequested) {
-        if (openAgentLogRequested) {
-            showAgentActivityOverlay = true
-            mcpStatusHolder.consumeOpenActivityLog()
-        }
-    }
 
     // Native Wayland desktop — poll compositor state reactively
     var waylandRunning by remember { mutableStateOf(false) }
@@ -608,7 +588,6 @@ fun HavenNavHost(
                             requestScreen(Screen.Connections)
                         }
                     },
-                    onNavigateToAgentActivity = { showAgentActivityOverlay = true },
                     workspaceSection = { sh.haven.app.workspace.ui.WorkspaceSection() },
                 )
                 Screen.Terminal -> {
@@ -1030,14 +1009,6 @@ fun HavenNavHost(
         }
     }
 
-    // Agent-activity audit overlay — rendered above the pager when the
-    // chip on the Connections top bar (or any future deep-link) toggles
-    // it on. Dismissed via the screen's back arrow.
-    if (showAgentActivityOverlay) {
-        sh.haven.feature.settings.AgentActivityScreen(
-            onBack = { showAgentActivityOverlay = false },
-        )
-    }
 }
 
 /**

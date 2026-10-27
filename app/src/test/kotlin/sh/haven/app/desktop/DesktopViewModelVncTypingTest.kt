@@ -76,7 +76,6 @@ class DesktopViewModelVncTypingTest {
             agentUiCommandBus = commandBus,
             localSessionManager = localSessionManager,
             desktopSessionRegistry = mockk(relaxed = true),
-            presentationManager = mockk(relaxed = true),
             appWindowLauncher = mockk(relaxed = true),
             appWindowShortcutManager = mockk(relaxed = true),
             usbDriveVmManager = usbDriveVmManager,

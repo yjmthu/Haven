@@ -269,7 +269,6 @@ dependencies {
     implementation(project(":core:stepca"))
     implementation(project(":core:tunnel"))
     implementation(project(":core:knock"))
-    implementation(project(":core:mcp"))
     implementation(project(":core:spa"))
 
     implementation(project(":feature:connections"))

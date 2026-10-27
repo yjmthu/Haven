@@ -17,7 +17,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
-import sh.haven.core.data.agent.AgentPresentationManager
 import sh.haven.core.data.agent.AgentUiCommandBus
 import sh.haven.core.data.desktop.DesktopSessionRegistry
 import sh.haven.core.data.preferences.UserPreferencesRepository
@@ -100,7 +99,6 @@ class DesktopViewModelDistroAddConfirmTest {
             agentUiCommandBus = commandBus,
             localSessionManager = localSessionManager,
             desktopSessionRegistry = mockk(relaxed = true),
-            presentationManager = mockk(relaxed = true),
             appWindowLauncher = mockk(relaxed = true),
             appWindowShortcutManager = mockk(relaxed = true),
             usbDriveVmManager = usbDriveVmManager,

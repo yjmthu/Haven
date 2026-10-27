@@ -83,8 +83,6 @@ object DatabaseModule {
     fun provideMailRulePendingActionDao(db: HavenDatabase): MailRulePendingActionDao =
         db.mailRulePendingActionDao()
 
-    @Provides
-    fun provideStandingPolicyDao(db: HavenDatabase): StandingPolicyDao = db.standingPolicyDao()
 
     @Provides
     fun provideAgeIdentityDao(db: HavenDatabase): AgeIdentityDao = db.ageIdentityDao()

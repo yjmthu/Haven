@@ -182,23 +182,8 @@ internal fun jumpConnectPassword(
  */
 private const val HOST_KEY_PROMPT_TIMEOUT_MS = 90_000L
 
-/**
- * Port the MCP server binds (first free in 8730..8739). The reverse-tunnel
- * rule maps this 1:1 so an MCP client on the SSH server reaches Haven at
- * `http://127.0.0.1:8730/mcp`.
- */
-private const val MCP_REVERSE_TUNNEL_PORT = 8730
-
 /** Unified connection status that maps transport session states. */
 enum class ProfileStatus { CONNECTING, CONNECTED, RECONNECTING, DISCONNECTED, ERROR }
-
-/**
- * How a connection exposes Haven's MCP server to its sessions. INTERACTIVE = a
- * per-connection reverse-tunnel rule (rides the user's own sessions); HEADLESS
- * = the designated always-on endpoint (a dedicated self-healing tunnel).
- * Absence from the [ConnectionsViewModel.mcpExposure] map = not exposed.
- */
-enum class McpExposureKind { INTERACTIVE, HEADLESS }
 
 data class GroupLaunchState(
     val groupId: String,
@@ -213,7 +198,6 @@ data class GroupLaunchState(
 class ConnectionsViewModel @Inject constructor(
     @ApplicationContext private val appContext: Context,
     private val repository: ConnectionRepository,
-    private val agentActivityHolder: sh.haven.core.data.agent.AgentActivityHolder,
     private val connectionGroupDao: sh.haven.core.data.db.ConnectionGroupDao,
     private val sshIdentityRepository: sh.haven.core.data.repository.SshIdentityRepository,
     private val portForwardRepository: PortForwardRepository,
@@ -578,33 +562,6 @@ class ConnectionsViewModel @Inject constructor(
     }
 
     val sessions: StateFlow<Map<String, SshSessionManager.SessionState>> = sshSessionManager.sessions
-
-    /**
-     * Which connections expose Haven's MCP to their sessions, and how:
-     * INTERACTIVE = a per-connection reverse-tunnel rule; HEADLESS = the
-     * designated always-on endpoint ([UserPreferencesRepository.mcpTunnelEndpointProfileId]).
-     * Absence = not exposed. Drives the connections-row MCP badge so it's clear
-     * which connection serves `:8730` to all of its sessions.
-     */
-    /** `profileId → last-agent-activity-millis`, for the per-connection MCP indicator glow. */
-    val agentActiveProfiles: StateFlow<Map<String, Long>> = agentActivityHolder.activeProfiles
-
-    /** Toggle whether the MCP agent may operate on [profileId]. */
-    fun toggleMcpEnabled(profileId: String, enabled: Boolean) {
-        viewModelScope.launch { repository.updateMcpEnabled(profileId, enabled) }
-    }
-
-    val mcpExposure: StateFlow<Map<String, McpExposureKind>> =
-        combine(
-            portForwardRepository.observeAll(),
-            preferencesRepository.mcpTunnelEndpointProfileId,
-        ) { rules, endpointId ->
-            val map = mutableMapOf<String, McpExposureKind>()
-            rules.filter { it.isMcpReverseTunnel() }
-                .forEach { map[it.profileId] = McpExposureKind.INTERACTIVE }
-            endpointId?.let { map[it] = McpExposureKind.HEADLESS }
-            map.toMap()
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     /** Derive profile-level statuses for the connections list UI (merges SSH + Mosh + ET). */
     val profileStatuses: StateFlow<Map<String, ProfileStatus>> =
@@ -4471,13 +4428,7 @@ class ConnectionsViewModel @Inject constructor(
         // only produces "port already registered" failures.
         if (!sshSessionManager.isClientShared(sessionId)) {
             withContext(Dispatchers.IO) {
-                val mcpEndpointId = preferencesRepository.mcpTunnelEndpointProfileId.first()
                 val rules = portForwardRepository.getEnabledForProfile(profileId)
-                    // One :8730 owner per host: when this profile is the designated
-                    // always-on (headless) MCP endpoint, the dedicated McpTunnelManager
-                    // tunnel owns the -R 8730 — skip the per-connection rule so the two
-                    // don't collide on the remote sshd bind.
-                    .filterNot { mcpEndpointId == profileId && it.isMcpReverseTunnel() }
                 if (rules.isNotEmpty()) {
                     sshSessionManager.applyPortForwards(
                         sessionId,
@@ -5399,50 +5350,6 @@ class ConnectionsViewModel @Inject constructor(
                 }
             }
             portForwardRepository.delete(ruleId)
-        }
-    }
-
-    /**
-     * Identifies the MCP reverse-tunnel rule: a `-R` forward mapping
-     * [MCP_REVERSE_TUNNEL_PORT] on the server back to the same port on
-     * the phone's loopback.
-     */
-    private fun PortForwardRule.isMcpReverseTunnel(): Boolean =
-        type == PortForwardRule.Type.REMOTE &&
-            bindPort == MCP_REVERSE_TUNNEL_PORT &&
-            targetPort == MCP_REVERSE_TUNNEL_PORT &&
-            targetHost == "127.0.0.1"
-
-    /** True if [profileId] carries the MCP reverse-tunnel port-forward rule. */
-    suspend fun hasMcpReverseTunnel(profileId: String): Boolean =
-        portForwardRepository.observeForProfile(profileId).first()
-            .any { it.isMcpReverseTunnel() }
-
-    /**
-     * Bring [profileId]'s MCP reverse-tunnel rule in line with [enabled]:
-     * create the `-R 8730:127.0.0.1:8730` rule when enabling and it's
-     * missing, delete it when disabling. Reuses [savePortForwardRule] /
-     * [deletePortForwardRule] so a connected session is updated live.
-     */
-    fun reconcileMcpReverseTunnel(profileId: String, enabled: Boolean) {
-        viewModelScope.launch {
-            val existing = portForwardRepository.observeForProfile(profileId).first()
-                .firstOrNull { it.isMcpReverseTunnel() }
-            when {
-                enabled && existing == null -> savePortForwardRule(
-                    PortForwardRule(
-                        profileId = profileId,
-                        type = PortForwardRule.Type.REMOTE,
-                        bindAddress = "127.0.0.1",
-                        bindPort = MCP_REVERSE_TUNNEL_PORT,
-                        targetHost = "127.0.0.1",
-                        targetPort = MCP_REVERSE_TUNNEL_PORT,
-                        enabled = true,
-                    ),
-                )
-                !enabled && existing != null ->
-                    deletePortForwardRule(existing.id, profileId)
-            }
         }
     }
 

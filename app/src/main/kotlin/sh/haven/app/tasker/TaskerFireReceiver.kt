@@ -19,7 +19,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import sh.haven.app.R
-import sh.haven.app.agent.HeadlessSshExec
 import javax.inject.Inject
 
 /**

@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
-import sh.haven.core.data.agent.McpStatusHolder
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -64,10 +63,6 @@ class SshConnectionService : Service() {
     @Inject
     lateinit var reviveTicker: ForegroundReviveTicker
 
-    /** Live MCP activity, folded into the ongoing notification (#239). */
-    @Inject
-    lateinit var mcpStatusHolder: McpStatusHolder
-
     /** Stamps process background/foreground so a drop can be attributed (#495). */
     @Inject
     lateinit var backgroundDisconnectDetector: BackgroundDisconnectDetector
@@ -104,13 +99,6 @@ class SshConnectionService : Service() {
         const val CHANNEL_ID = "haven_connection"
         const val NOTIFICATION_ID = 1
         const val ACTION_DISCONNECT_ALL = "sh.haven.action.DISCONNECT_ALL"
-
-        /**
-         * Boolean extra on the launch intent fired by the notification's
-         * "Agent log" action; MainActivity routes it to
-         * [McpStatusHolder.requestOpenActivityLog] (#239).
-         */
-        const val EXTRA_OPEN_AGENT_LOG = "sh.haven.extra.OPEN_AGENT_LOG"
 
         /**
          * Boolean extra the service puts on the launch intent it fires after
@@ -165,20 +153,6 @@ class SshConnectionService : Service() {
         // Re-post the ongoing notification when MCP activity changes so the
         // endpoint line (running tool / last error) stays current (#239).
         // drop(1): skip the StateFlow's initial replay — the startForeground
-        // in onStartCommand posts the first notification. Debounced because
-        // tool calls can fire in quick bursts; the channel is IMPORTANCE_LOW
-        // so updates are silent.
-        serviceScope.launch {
-            mcpStatusHolder.activity
-                .drop(1)
-                .debounce(400)
-                .collect {
-                    runCatching {
-                        getSystemService(NotificationManager::class.java)
-                            ?.notify(NOTIFICATION_ID, buildNotification())
-                    }
-                }
-        }
         // #757: keep the ongoing notification honest when a session ENDS.
         // The notification used to be rebuilt only at startForeground (a session
         // starting) and on MCP activity, so a session dying on its own — typed
@@ -307,22 +281,6 @@ class SshConnectionService : Service() {
                 "Disconnect All",
                 disconnectPending,
             )
-        if (mcpStatusHolder.activity.value.running) {
-            val agentLogIntent = packageManager.getLaunchIntentForPackage(packageName)?.apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                putExtra(EXTRA_OPEN_AGENT_LOG, true)
-            }
-            if (agentLogIntent != null) {
-                builder.addAction(
-                    R.drawable.ic_haven_notification,
-                    "Agent log",
-                    PendingIntent.getActivity(
-                        this, 2, agentLogIntent,
-                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-                    ),
-                )
-            }
-        }
         return builder.build()
     }
 

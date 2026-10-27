@@ -1,11 +1,10 @@
-package sh.haven.app.agent
+package sh.haven.app.tasker
 
 import android.util.Log
 import sh.haven.core.data.db.entities.ConnectionProfile
 import sh.haven.core.data.repository.ConnectionRepository
 import sh.haven.core.data.repository.SshIdentityRepository
 import sh.haven.core.data.repository.SshKeyRepository
-import sh.haven.core.mcp.McpError
 import sh.haven.core.ssh.ConnectionConfig
 import sh.haven.core.ssh.ExecResult
 import sh.haven.core.ssh.HostKeyResult
@@ -71,14 +70,14 @@ class HeadlessSshExec @Inject constructor(
     /**
      * Run [command] on [profileId], bounded by [timeoutMs] (a timeout
      * force-closes the exec channel and returns the partial output with
-     * `timedOut = true` rather than failing). Throws [McpError] with an
+     * `timedOut = true` rather than failing). Throws [HeadlessSshExecException] with an
      * actionable message on every non-exec failure.
      */
     suspend fun run(profileId: String, command: String, timeoutMs: Long): Outcome {
         val stored = connectionRepository.getById(profileId)
-            ?: throw McpError(-32602, "Unknown connection profile: $profileId (see list_connections)")
+            ?: throw HeadlessSshExecException("Unknown connection profile: $profileId (see list_connections)")
         if (!stored.isSsh) {
-            throw McpError(-32602, "Profile '${stored.label}' is ${stored.connectionType}, not SSH — run_command needs an SSH profile")
+            throw HeadlessSshExecException("Profile '${stored.label}' is ${stored.connectionType}, not SSH — run_command needs an SSH profile")
         }
 
         sshSessionManager.getSshClientForProfile(profileId)?.let { live ->
@@ -94,9 +93,7 @@ class HeadlessSshExec @Inject constructor(
 
         val profile = sshIdentityRepository.applyTo(stored)
         val auth = HeadlessSshAuth.resolve(profile, sshKeyRepository)
-            ?: throw McpError(
-                -32603,
-                "Profile '${profile.label}' has no headless-usable credential (needs a stored password or an " +
+            ?: throw HeadlessSshExecException("Profile '${profile.label}' has no headless-usable credential (needs a stored password or an " +
                     "unencrypted non-FIDO2 key). Connect it in Haven first — run_command reuses a live connection.",
             )
         val config = ConnectionConfig(
@@ -122,25 +119,21 @@ class HeadlessSshExec @Inject constructor(
                     runCatching { hostRediscovery.rediscover(profile) }.getOrNull()
                 } else null
                 if (newHost == null) {
-                    throw McpError(-32603, "Connect to '${profile.label}' failed: ${e.message ?: e.cause?.message ?: e.javaClass.simpleName}")
+                    throw HeadlessSshExecException("Connect to '${profile.label}' failed: ${e.message ?: e.cause?.message ?: e.javaClass.simpleName}")
                 }
                 Log.i(TAG, "'${LogRedact.of(profile.label)}' host rediscovered ${LogRedact.of(profile.host)} → ${LogRedact.of(newHost)} — retrying")
                 try {
                     client.connect(config.copy(host = newHost), trustedHostCaKeys = hostKeyVerifier.trustedHostCaKeys())
                 } catch (e2: Exception) {
-                    throw McpError(-32603, "Connect to '${profile.label}' failed after host rediscovery ($newHost): ${e2.message ?: e2.javaClass.simpleName}")
+                    throw HeadlessSshExecException("Connect to '${profile.label}' failed after host rediscovery ($newHost): ${e2.message ?: e2.javaClass.simpleName}")
                 }
             }
             when (if (hostKeyEntry == null) HostKeyResult.Trusted else hostKeyVerifier.verify(hostKeyEntry)) {
                 is HostKeyResult.Trusted -> { /* ok */ }
-                is HostKeyResult.NewHost -> throw McpError(
-                    -32603,
-                    "Unknown host key for '${profile.label}' — refusing (fail-closed TOFU). " +
+                is HostKeyResult.NewHost -> throw HeadlessSshExecException("Unknown host key for '${profile.label}' — refusing (fail-closed TOFU). " +
                         "Connect the profile interactively once to trust the host, then retry.",
                 )
-                is HostKeyResult.KeyChanged -> throw McpError(
-                    -32603,
-                    "HOST KEY CHANGED for '${profile.label}' — refusing (possible MITM). " +
+                is HostKeyResult.KeyChanged -> throw HeadlessSshExecException("HOST KEY CHANGED for '${profile.label}' — refusing (possible MITM). " +
                         "Reconnect interactively in Haven to review the new key.",
                 )
             }
@@ -210,3 +203,6 @@ internal object HeadlessSshAuth {
         return null
     }
 }
+
+/** Raised for a rejected headless run (bad profile, connect failure, timeout). */
+class HeadlessSshExecException(message: String) : Exception(message)

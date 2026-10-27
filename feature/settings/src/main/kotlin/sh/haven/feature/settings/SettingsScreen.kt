@@ -219,10 +219,6 @@ fun SettingsScreen(
     val verboseLoggingEnabled by viewModel.verboseLoggingEnabled.collectAsState()
     val rdpProgressiveUpgrade by viewModel.rdpProgressiveUpgrade.collectAsState()
     val rdpAvcEnabled by viewModel.rdpAvcEnabled.collectAsState()
-    val mcpAgentEndpointEnabled by viewModel.mcpAgentEndpointEnabled.collectAsState()
-    val agentAllowFileRead by viewModel.agentAllowFileRead.collectAsState()
-    val unseenAgentActivity by viewModel.unseenAgentActivity.collectAsState()
-    val requireAgentConsentForWrites by viewModel.requireAgentConsentForWrites.collectAsState()
     val mouseInputEnabled by viewModel.mouseInputEnabled.collectAsState()
     val remoteClipboardToLocal by viewModel.remoteClipboardToLocalEnabled.collectAsState()
     val desktopInputMode by viewModel.desktopInputMode.collectAsState()
@@ -248,9 +244,6 @@ fun SettingsScreen(
     val terminalLocale by viewModel.terminalLocale.collectAsState()
     var showAuditLog by remember { mutableStateOf(false) }
     var showProotInstallLog by remember { mutableStateOf(false) }
-    var showAgentActivity by remember { mutableStateOf(false) }
-    var showPairedClients by remember { mutableStateOf(false) }
-    var showMcpTools by remember { mutableStateOf(false) }
     var showFontUrlDialog by remember { mutableStateOf(false) }
     var showRecommendedFontsDialog by remember { mutableStateOf(false) }
     // Lifted to SettingsScreen scope so a dialog's confirm handler can
@@ -328,9 +321,6 @@ fun SettingsScreen(
     val fontInstallingToastTmpl = stringResource(R.string.settings_font_installing_toast)
     val fontNamedInstalledToastTmpl = stringResource(R.string.settings_font_named_installed_toast)
     val fontResetMsg = stringResource(R.string.settings_terminal_font_reset_toast)
-    val mcpUrlCopiedMsg = stringResource(R.string.settings_mcp_url_copied_toast)
-    val mcpConfigCopiedMsg = stringResource(R.string.settings_mcp_config_copied_toast)
-    val agentAllowsClearedMsg = stringResource(R.string.settings_agent_allows_cleared_toast)
 
     // SAF launchers for backup/restore
     var pendingPassword by remember { mutableStateOf("") }
@@ -408,18 +398,6 @@ fun SettingsScreen(
         ProotInstallLogScreen(onBack = { showProotInstallLog = false })
         return
     }
-    if (showAgentActivity) {
-        AgentActivityScreen(onBack = { showAgentActivity = false })
-        return
-    }
-    if (showPairedClients) {
-        PairedClientsScreen(onBack = { showPairedClients = false })
-        return
-    }
-    if (showMcpTools) {
-        McpToolsScreen(onBack = { showMcpTools = false })
-        return
-    }
     if (showFontUrlDialog) {
         FontFromUrlDialog(
             onInstall = { url ->
@@ -466,7 +444,6 @@ fun SettingsScreen(
     val settingsExpanded = remember {
         androidx.compose.runtime.mutableStateListOf(
             false, false, false, false, false, false, false, false, false, false,
-            false, // [10] AI agent (MCP)
         )
     }
     Column(modifier = Modifier.fillMaxSize()) {
@@ -1142,8 +1119,7 @@ fun SettingsScreen(
             onCheckedChange = viewModel::setExcludeFromRecents,
         )
 
-        // Media extensions stays in Advanced (moved up from below the MCP
-        // block when the MCP/agent settings were split into their own section).
+        // Media extensions stays in Advanced.
         // Which file extensions get ffmpeg previews and streaming.
         if (nativeFeatures.ffmpeg) {
             SettingsItem(
@@ -1155,292 +1131,6 @@ fun SettingsScreen(
         }
         }
 
-        // ── AI agent (MCP) — its own top-level section ──
-        // Every "lets an outside thing poke Haven via MCP" surface in one place:
-        // the endpoint master switch, per-capability gates, network exposure,
-        // trust-loopback, copy URL/config, paired clients and standing policies.
-        CollapsibleSettingsSection(stringResource(R.string.settings_section_mcp), settingsExpanded[10], { settingsExpanded[10] = !settingsExpanded[10] }) {
-        // MCP agent endpoint. OFF by default. Read tools run unprompted; write
-        // tools require a per-call (or per-session) bottom-sheet consent.
-        SettingsToggleItem(
-            icon = Icons.Filled.Hub,
-            title = stringResource(R.string.settings_agent_endpoint_title),
-            subtitle = if (mcpAgentEndpointEnabled) {
-                stringResource(R.string.settings_agent_endpoint_subtitle_on)
-            } else {
-                stringResource(R.string.settings_agent_endpoint_subtitle_off)
-            },
-            checked = mcpAgentEndpointEnabled,
-            onCheckedChange = viewModel::setMcpAgentEndpointEnabled,
-        )
-        if (mcpAgentEndpointEnabled) {
-            // Per-capability gate above per-call consent. Enabling the
-            // endpoint isn't enough on its own — raw file reads need
-            // this extra opt-in, because they let an agent exfiltrate
-            // any file in one call where other tools are scoped to
-            // narrower surfaces (terminal scrollback, list-only, etc.).
-            SettingsToggleItem(
-                icon = Icons.Filled.Hub,
-                title = stringResource(R.string.settings_agent_file_read_title),
-                subtitle = if (agentAllowFileRead) {
-                    stringResource(R.string.settings_agent_file_read_subtitle_on)
-                } else {
-                    stringResource(R.string.settings_agent_file_read_subtitle_off)
-                },
-                checked = agentAllowFileRead,
-                onCheckedChange = viewModel::setAgentAllowFileRead,
-            )
-
-            // Power-user gate for `queue_terminal_input` — lets agents
-            // type text + ENTER into any connected SSH session at the
-            // next matching prompt. Off by default; this is real
-            // keystroke injection.
-            val agentAllowTerminalInputQueue by viewModel.agentAllowTerminalInputQueue.collectAsState()
-            SettingsToggleItem(
-                icon = Icons.Filled.Hub,
-                title = stringResource(R.string.settings_agent_terminal_input_title),
-                subtitle = if (agentAllowTerminalInputQueue) {
-                    stringResource(R.string.settings_agent_terminal_input_subtitle_on)
-                } else {
-                    stringResource(R.string.settings_agent_terminal_input_subtitle_off)
-                },
-                checked = agentAllowTerminalInputQueue,
-                onCheckedChange = viewModel::setAgentAllowTerminalInputQueue,
-            )
-
-            // Dedicated reverse-tunnel endpoint. The MCP server only
-            // binds loopback on-device; to reach it from a laptop as the
-            // network roams, Haven brings up a headless, auto-reconnecting
-            // `-R` forward over the chosen SSH profile (decoupled from any
-            // interactive terminal session). Unset = on-device only.
-            val sshProfiles by viewModel.sshProfiles.collectAsState()
-            val mcpTunnelEndpointProfileId by viewModel.mcpTunnelEndpointProfileId.collectAsState()
-            var tunnelEndpointExpanded by remember { mutableStateOf(false) }
-            val selectedEndpointLabel = sshProfiles
-                .firstOrNull { it.id == mcpTunnelEndpointProfileId }?.label
-            Box {
-                SettingsItem(
-                    icon = Icons.Filled.Hub,
-                    title = stringResource(R.string.settings_reverse_tunnel_title),
-                    subtitle = selectedEndpointLabel?.let {
-                        stringResource(R.string.settings_reverse_tunnel_subtitle_set, it)
-                    } ?: stringResource(R.string.settings_reverse_tunnel_subtitle_unset),
-                    onClick = { tunnelEndpointExpanded = true },
-                )
-                DropdownMenu(
-                    expanded = tunnelEndpointExpanded,
-                    onDismissRequest = { tunnelEndpointExpanded = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.settings_reverse_tunnel_none)) },
-                        onClick = {
-                            viewModel.setMcpTunnelEndpointProfileId(null)
-                            tunnelEndpointExpanded = false
-                        },
-                    )
-                    sshProfiles.forEach { option ->
-                        DropdownMenuItem(
-                            text = { Text(option.label) },
-                            onClick = {
-                                viewModel.setMcpTunnelEndpointProfileId(option.id)
-                                tunnelEndpointExpanded = false
-                            },
-                        )
-                    }
-                }
-            }
-
-            // Live status: is MCP actually riding a connected session right
-            // now? The picker above only says what's *configured* — this
-            // says what's actually open, so "why isn't MCP reaching my
-            // laptop" has an answer without checking logs.
-            val nearCarrierStatus by viewModel.mcpNearCarrierStatus.collectAsState()
-            nearCarrierStatus.profileLabel?.let { label ->
-                Text(
-                    text = if (nearCarrierStatus.active) {
-                        stringResource(R.string.settings_reverse_tunnel_status_active, label)
-                    } else {
-                        stringResource(R.string.settings_reverse_tunnel_status_inactive, label)
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (nearCarrierStatus.active) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
-                    modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 8.dp),
-                )
-            }
-
-            // Expose the endpoint on the active WireGuard tunnel too — a
-            // stable netstack address WG peers can reach across roams, no
-            // reverse forward. Off by default (wider surface than loopback).
-            val mcpWireguardEnabled by viewModel.mcpWireguardEnabled.collectAsState()
-            SettingsToggleItem(
-                icon = Icons.Filled.Hub,
-                title = stringResource(R.string.settings_mcp_wireguard_title),
-                subtitle = if (mcpWireguardEnabled) {
-                    stringResource(R.string.settings_mcp_wireguard_subtitle_on)
-                } else {
-                    stringResource(R.string.settings_mcp_wireguard_subtitle_off)
-                },
-                checked = mcpWireguardEnabled,
-                onCheckedChange = viewModel::setMcpWireguardEnabled,
-            )
-
-            // Warn when another app's system VPN holds the same address Haven's
-            // userspace WireGuard netstack binds — the kernel VPN shadows our
-            // listener so the WG endpoint is silently unreachable.
-            val mcpWireguardCollision by viewModel.mcpWireguardCollision.collectAsState()
-            mcpWireguardCollision?.takeIf { mcpWireguardEnabled }?.let { collision ->
-                androidx.compose.foundation.layout.Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 24.dp, end = 24.dp, bottom = 8.dp),
-                    verticalAlignment = Alignment.Top,
-                ) {
-                    Icon(
-                        Icons.Filled.Warning,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier
-                            .padding(end = 12.dp, top = 2.dp)
-                            .size(20.dp),
-                    )
-                    Text(
-                        text = stringResource(
-                            R.string.settings_mcp_wireguard_collision,
-                            collision.vpnInterface,
-                            collision.address,
-                        ),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
-            }
-
-            // Also bind the device's Wi-Fi/LAN address so a same-network
-            // client reaches the endpoint directly (no WireGuard, no reverse
-            // forward). Off by default (wider surface than loopback, though
-            // still gated by client pairing).
-            val mcpLanBindEnabled by viewModel.mcpLanBindEnabled.collectAsState()
-            SettingsToggleItem(
-                icon = Icons.Filled.Wifi,
-                title = stringResource(R.string.settings_mcp_lan_title),
-                subtitle = if (mcpLanBindEnabled) {
-                    stringResource(R.string.settings_mcp_lan_subtitle_on)
-                } else {
-                    stringResource(R.string.settings_mcp_lan_subtitle_off)
-                },
-                checked = mcpLanBindEnabled,
-                onCheckedChange = viewModel::setMcpLanBindEnabled,
-            )
-
-            // Loopback auto-trust: local clients (127.0.0.1 via adb forward
-            // or on-device) skip pairing + per-call consent prompts. On by
-            // default — a local client is already as trusted as the device.
-            // LAN / WireGuard clients always keep the full gate. (#214)
-            val trustLoopbackMcpClients by viewModel.trustLoopbackMcpClients.collectAsState()
-            SettingsToggleItem(
-                icon = Icons.Filled.Devices,
-                title = stringResource(R.string.settings_mcp_trust_loopback_title),
-                subtitle = if (trustLoopbackMcpClients) {
-                    stringResource(R.string.settings_mcp_trust_loopback_subtitle_on)
-                } else {
-                    stringResource(R.string.settings_mcp_trust_loopback_subtitle_off)
-                },
-                checked = trustLoopbackMcpClients,
-                onCheckedChange = viewModel::setTrustLoopbackMcpClients,
-            )
-
-            // Endpoint URL is always the canonical port range start —
-            // the server binds to the first free port in 8730..8739
-            val endpointUrl = "http://127.0.0.1:8730/mcp"
-            val mcpConfigJson = """
-                {
-                  "mcpServers": {
-                    "haven": {
-                      "type": "http",
-                      "url": "$endpointUrl"
-                    }
-                  }
-                }
-            """.trimIndent()
-            SettingsItem(
-                icon = Icons.Filled.ContentCopy,
-                title = stringResource(R.string.settings_mcp_copy_url_title),
-                subtitle = endpointUrl,
-                onClick = {
-                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE)
-                        as? android.content.ClipboardManager
-                    clipboard?.setPrimaryClip(
-                        android.content.ClipData.newPlainText("Haven MCP endpoint", endpointUrl),
-                    )
-                    Toast.makeText(context, mcpUrlCopiedMsg, Toast.LENGTH_SHORT).show()
-                },
-            )
-            SettingsItem(
-                icon = Icons.Filled.ContentCopy,
-                title = stringResource(R.string.settings_mcp_copy_config_title),
-                subtitle = stringResource(R.string.settings_mcp_copy_config_subtitle),
-                onClick = {
-                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE)
-                        as? android.content.ClipboardManager
-                    clipboard?.setPrimaryClip(
-                        android.content.ClipData.newPlainText(
-                            "Haven MCP server config",
-                            mcpConfigJson,
-                        ),
-                    )
-                    Toast.makeText(context, mcpConfigCopiedMsg, Toast.LENGTH_SHORT).show()
-                },
-            )
-            SettingsItem(
-                icon = Icons.Filled.Info,
-                title = stringResource(R.string.settings_mcp_proot_title),
-                subtitle = "~/.config/haven/mcp-servers.json",
-                onClick = {},
-            )
-            SettingsItem(
-                icon = Icons.Filled.History,
-                title = if (unseenAgentActivity)
-                    stringResource(R.string.settings_agent_activity_title) + "  ●"
-                else
-                    stringResource(R.string.settings_agent_activity_title),
-                subtitle = stringResource(R.string.settings_agent_activity_subtitle),
-                onClick = { showAgentActivity = true },
-            )
-            SettingsItem(
-                icon = Icons.Filled.Devices,
-                title = stringResource(R.string.settings_paired_clients_title),
-                subtitle = stringResource(R.string.settings_paired_clients_subtitle),
-                onClick = { showPairedClients = true },
-            )
-            SettingsItem(
-                icon = Icons.Filled.Tune,
-                title = stringResource(R.string.settings_mcp_tools_title),
-                subtitle = stringResource(R.string.settings_mcp_tools_subtitle),
-                onClick = { showMcpTools = true },
-            )
-            SettingsToggleItem(
-                icon = Icons.Filled.Fingerprint,
-                title = stringResource(R.string.settings_agent_confirm_destructive_title),
-                subtitle = stringResource(R.string.settings_agent_confirm_destructive_subtitle),
-                checked = requireAgentConsentForWrites,
-                onCheckedChange = viewModel::setRequireAgentConsentForWrites,
-            )
-            SettingsItem(
-                icon = Icons.Filled.LockReset,
-                title = stringResource(R.string.settings_agent_forget_allows_title),
-                subtitle = stringResource(R.string.settings_agent_forget_allows_subtitle),
-                onClick = {
-                    viewModel.forgetMemoisedAgentAllows()
-                    Toast.makeText(context, agentAllowsClearedMsg, Toast.LENGTH_SHORT).show()
-                },
-            )
-        }
-
-        }
         CollapsibleSettingsSection(stringResource(R.string.settings_section_backup), settingsExpanded[8], { settingsExpanded[8] = !settingsExpanded[8] }) {
         SettingsItem(
             icon = Icons.Filled.CloudUpload,

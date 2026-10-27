@@ -1,6 +1,5 @@
 package sh.haven.app
 
-import android.app.PictureInPictureParams
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Build
@@ -36,10 +35,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import sh.haven.core.data.agent.PresentedMediaKind
-import sh.haven.app.agent.AppWindowConnectionStore
-import sh.haven.app.agent.AppWindowVncController
-import sh.haven.app.agent.PipController
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
@@ -47,8 +42,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import sh.haven.app.agent.ConsentHost
-import sh.haven.core.data.agent.AgentConsentManager
 import sh.haven.app.navigation.HavenNavHost
 import sh.haven.core.data.preferences.UserPreferencesRepository
 import sh.haven.core.data.repository.ConnectionRepository
@@ -72,11 +65,6 @@ class MainActivity : AppCompatActivity() {
     // be enabled during FIDO2 SSH assertions. Without this, Nitrokey /
     // SoloKey / YubiKey-over-NFC flows never saw a Tag (#15).
     @Inject lateinit var fidoAuthenticator: FidoAuthenticator
-    // Tracks foreground state so AgentConsentManager can fail-closed
-    // when there's no activity to render the prompt. The §85 rule
-    // forbids letting destructive agent calls slip through silently.
-    @Inject lateinit var agentConsentManager: AgentConsentManager
-
     @Inject lateinit var prootIdleReaper: ProotIdleReaper
     // Cross-tab navigation verbs: HavenNavHost collects from this so an
     // MCP `navigate_sftp_browser` switches the pager to the right tab.
@@ -84,10 +72,6 @@ class MainActivity : AppCompatActivity() {
     // App-global user-facing messages (e.g. shell-closed connect errors);
     // HavenNavHost shows these in a root snackbar over every screen (#215 follow-up).
     @Inject lateinit var userMessageBus: sh.haven.core.data.message.UserMessageBus
-    // The foreground notification's "Agent log" action lands here as a launch
-    // intent extra; routed via this holder's latched flag so a cold-start tap
-    // (or one behind the biometric lock) isn't dropped (#239).
-    @Inject lateinit var mcpStatusHolder: sh.haven.core.data.agent.McpStatusHolder
     // Cert renewal request bus: notifications fire haven://renew-cert/<id>
     // intents which land here and we re-publish via the existing
     // AgentUiCommandBus so HavenNavHost flips to Keys and KeysViewModel
@@ -104,15 +88,6 @@ class MainActivity : AppCompatActivity() {
     // App-window launcher (singleton) — invoked when a home-screen pinned
     // shortcut routes an app-window def id through onCreate / onNewIntent.
     @Inject lateinit var appWindowLauncher: sh.haven.app.desktop.AppWindowLauncher
-    // Picture-in-Picture for app windows: PipController bridges PiP state to
-    // the composition; the store owns the live VNC connection so it survives
-    // the overlay→PiP→overlay round-trip.
-    @Inject lateinit var pipController: PipController
-    @Inject lateinit var appWindowConnectionStore: AppWindowConnectionStore
-    // Lets the MCP agent endpoint capture and drive Haven's own UI
-    // (self-hosting loop, §1a). Holds a weak ref to the foreground
-    // activity; attach/detach mirror fidoAuthenticator's lifecycle.
-    @Inject lateinit var havenUiBridge: sh.haven.app.agent.HavenUiBridge
 
     @Inject lateinit var taskerOverlayCoordinator: sh.haven.app.tasker.TaskerOverlayCoordinator
 
@@ -148,28 +123,14 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         exitIfDisconnected()
         fidoAuthenticator.setActiveActivity(this)
-        agentConsentManager.setForegroundActive(true)
         biometricGate.setForegroundActive(true)
         prootIdleReaper.onForeground()
-        havenUiBridge.attach(this)
-        // A pairing attempt blocked while backgrounded is re-prompted now that
-        // a foreground activity can render the sheet — this is what the
-        // pairing notification's tap-to-open promises. No-op when nothing is
-        // remembered.
-        lifecycleScope.launch {
-            agentConsentManager.repromptBlockedPairing()?.let { client ->
-                androidx.core.app.NotificationManagerCompat.from(this@MainActivity)
-                    .cancel(HavenApp.consentNotifId(client, sh.haven.core.data.agent.AgentConsentManager.PAIRING_TOOL_NAME))
-            }
-        }
     }
 
     override fun onPause() {
         fidoAuthenticator.clearActiveActivity(this)
-        agentConsentManager.setForegroundActive(false)
         biometricGate.setForegroundActive(false)
         prootIdleReaper.onBackground()
-        havenUiBridge.detach(this)
         super.onPause()
     }
 
@@ -187,7 +148,6 @@ class MainActivity : AppCompatActivity() {
         handleConnectDeepLink(intent)
         handleStandardSchemeDeepLink(intent)
         handleOpenUsbDriveIntent(intent)
-        handleOpenAgentLogExtra(intent)
         handleTaskerRunIntent(intent)
         handleBackupShortcutIntent(intent)
     }
@@ -211,18 +171,6 @@ class MainActivity : AppCompatActivity() {
         pendingTaskerRun.value = profileId to command
     }
 
-    /**
-     * The foreground notification's "Agent log" action (posted while the MCP
-     * endpoint runs) fires the launch intent with this extra. Latch it on
-     * [mcpStatusHolder] — HavenNavHost collects the flag and opens the Agent
-     * Activity overlay. Extra cleared once consumed so a configuration change
-     * doesn't re-open it (#239).
-     */
-    private fun handleOpenAgentLogExtra(intent: Intent?) {
-        if (intent?.getBooleanExtra(SshConnectionService.EXTRA_OPEN_AGENT_LOG, false) != true) return
-        intent.removeExtra(SshConnectionService.EXTRA_OPEN_AGENT_LOG)
-        mcpStatusHolder.requestOpenActivityLog()
-    }
 
     /**
      * If [intent] carries an app-window launch action (home-screen pinned
@@ -259,98 +207,6 @@ class MainActivity : AppCompatActivity() {
         Log.d("MainActivity", "open-usb-drive intent for ${device ?: "(sole drive)"}")
         agentUiCommandBus.emit(sh.haven.core.data.agent.AgentUiCommand.OpenUsbDrive(device))
     }
-
-    // --- Picture-in-Picture (app windows) ---
-
-    override fun onPictureInPictureModeChanged(
-        isInPictureInPictureMode: Boolean,
-        newConfig: Configuration,
-    ) {
-        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
-        pipController.setInPip(isInPictureInPictureMode)
-    }
-
-    /**
-     * API 26–30 auto-enter fallback: those releases lack
-     * `setAutoEnterEnabled`, so enter PiP explicitly when the user leaves
-     * while an app window is open. On API 31+ the armed params auto-enter.
-     * Only an APP_WINDOW auto-enters — an image/web sheet floats only via the
-     * explicit PiP button (auto-PiP'ing a static image on Home is surprising).
-     */
-    override fun onUserLeaveHint() {
-        super.onUserLeaveHint()
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S &&
-            pipController.activePipMedia.value?.kind == PresentedMediaKind.APP_WINDOW
-        ) {
-            runCatching { enterPictureInPictureMode(buildPipParams()) }
-        }
-    }
-
-    /** Explicit PiP from a present_media / present_web / app-window overlay button. */
-    fun enterPipForMedia() {
-        if (pipController.activePipMedia.value == null) return
-        runCatching { enterPictureInPictureMode(buildPipParams()) }
-    }
-
-    private fun buildPipParams(): PictureInPictureParams {
-        val builder = PictureInPictureParams.Builder()
-            .setAspectRatio(currentPipAspect())
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            // Only a live app window auto-enters PiP on Home; image/web are
-            // explicit-tap only.
-            builder.setAutoEnterEnabled(
-                pipController.activePipMedia.value?.kind == PresentedMediaKind.APP_WINDOW,
-            )
-        }
-        return builder.build()
-    }
-
-    /** Aspect ratio for the current PiP item — VNC frame for an app window,
-     *  intrinsic size for an image / PDF, 16:9 for a WebView — clamped to
-     *  Android's allowed PiP range, with a 16:9 fallback. (#225) */
-    private fun currentPipAspect(): Rational {
-        val media = pipController.activePipMedia.value ?: return Rational(16, 9)
-        val dims: Pair<Int, Int>? = when (media.kind) {
-            PresentedMediaKind.APP_WINDOW -> {
-                val sid = media.sessionId
-                val h = media.host
-                val p = media.port
-                if (sid != null && h != null && p != null) {
-                    appWindowConnectionStore.controllerFor(sid, h, p).frame.value
-                        ?.let { it.width to it.height }
-                } else null
-            }
-            PresentedMediaKind.IMAGE -> media.filePath?.let { imageDims(it) }
-            PresentedMediaKind.WEB ->
-                if (media.mimeType == "application/pdf") media.filePath?.let { pdfFirstPageDims(it) }
-                else null // HTML/SVG WebView has no intrinsic size → 16:9
-            else -> null
-        }
-        val (w, h) = dims ?: return Rational(16, 9)
-        if (w <= 0 || h <= 0) return Rational(16, 9)
-        val ratio = w.toFloat() / h.toFloat()
-        // Android rejects aspect ratios outside roughly [1:2.39, 2.39:1].
-        return if (ratio in 0.42f..2.39f) Rational(w, h) else Rational(16, 9)
-    }
-
-    /** Width/height of an image file via a bounds-only decode (no pixels). */
-    private fun imageDims(path: String): Pair<Int, Int>? = runCatching {
-        val opts = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        android.graphics.BitmapFactory.decodeFile(path, opts)
-        if (opts.outWidth > 0 && opts.outHeight > 0) opts.outWidth to opts.outHeight else null
-    }.getOrNull()
-
-    /** Width/height of a PDF's first page. */
-    private fun pdfFirstPageDims(path: String): Pair<Int, Int>? = runCatching {
-        android.os.ParcelFileDescriptor.open(
-            java.io.File(path), android.os.ParcelFileDescriptor.MODE_READ_ONLY,
-        ).use { pfd ->
-            android.graphics.pdf.PdfRenderer(pfd).use { r ->
-                if (r.pageCount <= 0) null
-                else r.openPage(0).use { pg -> pg.width to pg.height }
-            }
-        }
-    }.getOrNull()
 
     /**
      * Parse `haven://renew-cert/<keyId>` deep links posted by
@@ -506,7 +362,6 @@ class MainActivity : AppCompatActivity() {
         handleConnectDeepLink(intent)
         handleStandardSchemeDeepLink(intent)
         handleOpenUsbDriveIntent(intent)
-        handleOpenAgentLogExtra(intent)
         handleTaskerRunIntent(intent)
         handleBackupShortcutIntent(intent)
         setContent {
@@ -569,10 +424,7 @@ class MainActivity : AppCompatActivity() {
                 val lifecycleOwner = LocalLifecycleOwner.current
                 DisposableEffect(lifecycleOwner) {
                     val observer = LifecycleEventObserver { _, event ->
-                        // Don't arm the re-lock when we stop because we entered
-                        // PiP — the app window is still floating, and re-locking
-                        // would slam the lock screen over it on expand.
-                        if (event == Lifecycle.Event.ON_STOP && !pipController.isInPip.value) {
+                        if (event == Lifecycle.Event.ON_STOP) {
                             backgroundedAt = System.currentTimeMillis()
                         }
                         if (event == Lifecycle.Event.ON_START && unlocked && backgroundedAt > 0) {
@@ -587,40 +439,7 @@ class MainActivity : AppCompatActivity() {
                     onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
                 }
 
-                val inPip by pipController.isInPip.collectAsState()
-                val activePipMedia by pipController.activePipMedia.collectAsState()
-                // Keep PiP params current so API 31+ auto-enters PiP when an
-                // app window is open, and disarms when it closes.
-                LaunchedEffect(activePipMedia?.id) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        runCatching { setPictureInPictureParams(buildPipParams()) }
-                    }
-                }
-
-                val pipWin = activePipMedia
-                if (inPip && pipWin != null) {
-                    // In PiP: render just the item, full-bleed on black. PiP is
-                    // view-only on Android — interaction resumes on expand. (#225)
-                    when (pipWin.kind) {
-                        PresentedMediaKind.APP_WINDOW -> {
-                            if (pipWin.sessionId != null && pipWin.host != null && pipWin.port != null) {
-                                PipAppWindow(
-                                    appWindowConnectionStore.controllerFor(
-                                        pipWin.sessionId!!, pipWin.host!!, pipWin.port!!,
-                                    ),
-                                )
-                            }
-                        }
-                        PresentedMediaKind.IMAGE -> pipWin.filePath?.let { PipImage(it) }
-                        PresentedMediaKind.WEB ->
-                            if (pipWin.mimeType == "application/pdf") {
-                                pipWin.filePath?.let { PipPdfFirstPage(it) }
-                            } else {
-                                pipWin.url?.let { PipWebView(it) }
-                            }
-                        else -> {}
-                    }
-                } else if (biometricEnabled && !unlocked) {
+                if (biometricEnabled && !unlocked) {
                     BiometricLockScreen(
                         authenticator = biometricAuthenticator,
                         onUnlocked = { unlocked = true },
@@ -632,23 +451,12 @@ class MainActivity : AppCompatActivity() {
                         sshKeyRepository = sshKeyRepository,
                         agentUiCommandBus = agentUiCommandBus,
                         userMessageBus = userMessageBus,
-                        mcpStatusHolder = mcpStatusHolder,
                     )
-                    // Floats above whatever screen is active so an
-                    // agent's consent prompt is unmissable. No-op when
-                    // there are no pending requests.
-                    ConsentHost()
-                    // Same top-of-tree pattern: an agent-pushed image or
-                    // sound (present_media) floats over the active screen.
-                    sh.haven.app.agent.PresentationHost()
-                    // Backgrounded app windows dock here as draggable edge
-                    // icons; tap restores one to the PresentationHost overlay.
-                    sh.haven.app.agent.EdgeIconDock()
-                    // Same pattern for BIOMETRIC_PROTECTED keystore
+                    // Top-of-tree host for BIOMETRIC_PROTECTED keystore
                     // fetches — the gate publishes; this host renders
                     // BiometricPrompt; the result resumes the
                     // suspending fetch caller.
-                    sh.haven.app.agent.BiometricGateHost()
+                    sh.haven.app.keystore.BiometricGateHost()
                     // VPN sign-in questions (AnyConnect SMS code / unstored
                     // password) — published by TunnelAuthBroker, possibly
                     // from a background re-login, answered here.
@@ -690,104 +498,5 @@ class MainActivity : AppCompatActivity() {
         private var activeInstanceRef: java.lang.ref.WeakReference<MainActivity>? = null
 
         fun getActiveInstance(): MainActivity? = activeInstanceRef?.get()
-    }
-}
-
-/**
- * The minimal Picture-in-Picture view: the app window's live frame,
- * full-bleed on black. PiP content is view-only on Android (taps expand the
- * window), so no input wiring — interaction resumes in the expanded overlay.
- */
-@Composable
-private fun PipAppWindow(controller: AppWindowVncController) {
-    val frame by controller.frame.collectAsState()
-    PipBitmap(frame?.asImageBitmap())
-}
-
-/** Full-bleed bitmap on black — the shared body for the image and PDF PiP views. */
-@Composable
-private fun PipBitmap(bitmap: ImageBitmap?) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black),
-        contentAlignment = Alignment.Center,
-    ) {
-        if (bitmap != null) {
-            Image(
-                bitmap = bitmap,
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Fit,
-            )
-        }
-    }
-}
-
-/** PiP for a present_media image: the decoded file, full-bleed. (#225) */
-@Composable
-private fun PipImage(path: String) {
-    val bitmap by produceState<ImageBitmap?>(initialValue = null, path) {
-        value = withContext(Dispatchers.Default) {
-            runCatching { android.graphics.BitmapFactory.decodeFile(path)?.asImageBitmap() }
-                .getOrNull()
-        }
-    }
-    PipBitmap(bitmap)
-}
-
-/** PiP for a present_web PDF: the first page rasterised, full-bleed. (#225) */
-@Composable
-private fun PipPdfFirstPage(path: String) {
-    val bitmap by produceState<ImageBitmap?>(initialValue = null, path) {
-        value = withContext(Dispatchers.Default) {
-            runCatching {
-                android.os.ParcelFileDescriptor.open(
-                    java.io.File(path), android.os.ParcelFileDescriptor.MODE_READ_ONLY,
-                ).use { pfd ->
-                    android.graphics.pdf.PdfRenderer(pfd).use { r ->
-                        if (r.pageCount <= 0) return@runCatching null
-                        r.openPage(0).use { page ->
-                            val w = 1080
-                            val h = (w.toFloat() * page.height / page.width).toInt().coerceAtLeast(1)
-                            val bmp = android.graphics.Bitmap.createBitmap(
-                                w, h, android.graphics.Bitmap.Config.ARGB_8888,
-                            )
-                            bmp.eraseColor(android.graphics.Color.WHITE)
-                            page.render(
-                                bmp, null, null,
-                                android.graphics.pdf.PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY,
-                            )
-                            bmp.asImageBitmap()
-                        }
-                    }
-                }
-            }.getOrNull()
-        }
-    }
-    PipBitmap(bitmap)
-}
-
-/** PiP for a present_web HTML/SVG page: a live WebView loading the loopback
- *  URL. Renders live; view-only in PiP (no touch until the window expands). (#225) */
-@android.annotation.SuppressLint("SetJavaScriptEnabled") // deliberate; no JS bridge exposed
-@Composable
-private fun PipWebView(url: String) {
-    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-        AndroidView(
-            factory = { ctx ->
-                android.webkit.WebView(ctx).apply {
-                    webViewClient = android.webkit.WebViewClient()
-                    // Match the sheet's WebContent: JS/DOM storage default off
-                    // and blank any scripted page.
-                    settings.javaScriptEnabled = true
-                    settings.domStorageEnabled = true
-                    settings.useWideViewPort = true
-                    settings.loadWithOverviewMode = true
-                    loadUrl(url)
-                }
-            },
-            modifier = Modifier.fillMaxSize(),
-        )
     }
 }

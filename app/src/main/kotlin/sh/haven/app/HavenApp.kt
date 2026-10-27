@@ -9,10 +9,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import sh.haven.app.agent.ConsentActionReceiver
 import sh.haven.core.data.NativeCrashLog
-import sh.haven.core.data.agent.AgentConsentManager
-import sh.haven.core.data.agent.ConsentRequest
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
@@ -35,11 +32,7 @@ import javax.inject.Inject
 @HiltAndroidApp
 class HavenApp : Application(), Configuration.Provider {
 
-    @Inject lateinit var mcpServer: sh.haven.app.agent.McpServer
-    @Inject lateinit var mcpTunnelManager: sh.haven.app.agent.McpTunnelManager
-    @Inject lateinit var mcpNearCarrier: sh.haven.app.agent.McpNearCarrier
     @Inject lateinit var preferencesRepository: UserPreferencesRepository
-    @Inject lateinit var agentConsentManager: sh.haven.core.data.agent.AgentConsentManager
     @Inject lateinit var launcherShortcutManager: sh.haven.app.launcher.LauncherShortcutManager
     @Inject lateinit var workerFactory: HiltWorkerFactory
     @Inject lateinit var prootManager: sh.haven.core.local.ProotManager
@@ -126,145 +119,6 @@ class HavenApp : Application(), Configuration.Provider {
         // "Open <workspace>" entries from the home screen. Self-observing —
         // recomputes on every repo change.
         launcherShortcutManager.start()
-
-        // MCP agent endpoint is OFF by default — it exposes state that
-        // local processes (or an AI agent you've pointed at it) can
-        // query, so it must be an explicit opt-in. When the user toggles
-        // it in Settings we react by starting or stopping the server.
-        //
-        // We also advertise the endpoint to the PRoot rootfs by writing
-        // a ready-to-merge MCP server config JSON to
-        // /root/.config/haven/mcp-servers.json, so any MCP client the
-        // user has installed in PRoot can pick it up with a one-liner.
-        // When the endpoint is disabled the file is removed again.
-        preferencesRepository.mcpAgentEndpointEnabled
-            .distinctUntilChanged()
-            .onEach { enabled ->
-                if (enabled) {
-                    mcpServer.start()
-                    advertiseEndpointToProot()
-                    // Relaunch supervised guest MCP servers (e.g. a KiCad MCP)
-                    // for the active distro before the tunnel comes up, so
-                    // establish() snapshots their ports into the forward set.
-                    guestServiceManager.startAutostart()
-                    // Bring up the dedicated, headless reverse tunnel that
-                    // keeps the loopback endpoint reachable off-device as
-                    // the network roams. No-op when no endpoint profile is
-                    // configured (on-device / adb-forward only). Uses the
-                    // live bound port so an 8731+ fallback follows.
-                    mcpTunnelManager.start(mcpServer.port)
-                    // Watch for the same endpoint profile's *interactive*
-                    // session and ride it for MCP instead of a separate
-                    // authenticated connection — see McpNearCarrier's kdoc.
-                    mcpNearCarrier.start(mcpServer.port, mcpServer.tunneledPort)
-                    // Bind the MCP HTTP listener to the foreground
-                    // service's lifecycle. Without this, the OS reclaims
-                    // the app process within seconds of backgrounding
-                    // and the accept loop dies — agents lose their
-                    // connection and have to re-pair. The MCP endpoint
-                    // is itself a "long-lived user-initiated connection"
-                    // in Android 14+/16 FGS terms, so it belongs to the
-                    // same `specialUse` FGS the SSH/Mosh/VNC/RDP/SFTP
-                    // sessions use. The McpForegroundParticipantModule
-                    // contributes both a session-listing entry (so the
-                    // notification shows "MCP agent endpoint") and a
-                    // ForegroundKeepAlive entry (so an SSH disconnect
-                    // doesn't tear down the FGS while MCP is still on).
-                    startSessionServiceIfPossible()
-                } else {
-                    mcpTunnelManager.stop()
-                    mcpNearCarrier.stop()
-                    mcpServer.stop()
-                    guestServiceManager.stopAll()
-                    removeEndpointFromProot()
-                    // Stop the FGS only if nothing else is keeping it
-                    // alive. hasActiveSessions now includes the MCP
-                    // keep-alive, which is `false` post-stop, so this
-                    // boils down to "any other transport active?".
-                    if (!sessionManagerRegistry.hasActiveSessions()) {
-                        stopService(Intent(this, sh.haven.core.ssh.SshConnectionService::class.java))
-                    }
-                }
-            }
-            .launchIn(appScope)
-
-        // Re-home the MCP reverse tunnel when the user changes the endpoint
-        // profile while the server is already running. drop(1) skips the
-        // initial replayed value — startup is handled by the toggle observer
-        // above, so this only reacts to genuine later changes.
-        preferencesRepository.mcpTunnelEndpointProfileId
-            .drop(1)
-            .distinctUntilChanged()
-            .onEach {
-                if (mcpServer.isRunning) {
-                    mcpTunnelManager.start(mcpServer.port)
-                }
-            }
-            .launchIn(appScope)
-
-        // Bind/unbind the MCP WireGuard listener when the user toggles it
-        // while the server is running. drop(1): start() reads the initial
-        // value itself, so this only reacts to later changes.
-        preferencesRepository.mcpWireguardEnabled
-            .drop(1)
-            .distinctUntilChanged()
-            .onEach { mcpServer.setWireguardEnabled(it) }
-            .launchIn(appScope)
-
-        // Bind/unbind the MCP Wi-Fi/LAN listener when the user toggles it
-        // while the server is running. drop(1): start() reads the initial
-        // value itself, so this only reacts to later changes.
-        preferencesRepository.mcpLanBindEnabled
-            .drop(1)
-            .distinctUntilChanged()
-            .onEach { mcpServer.setLanBindEnabled(it) }
-            .launchIn(appScope)
-
-        // Toggle loopback auto-trust live. drop(1): start() reads the
-        // initial value itself, so this only reacts to later changes. (#214)
-        preferencesRepository.trustLoopbackMcpClients
-            .drop(1)
-            .distinctUntilChanged()
-            .onEach { mcpServer.setTrustLoopbackEnabled(it) }
-            .launchIn(appScope)
-
-        // Re-home the MCP reverse tunnel when the set of RUNNING guest services
-        // changes (e.g. one started/stopped via the MCP tools after the tunnel
-        // was already up), so its loopback port is multiplexed onto -R. drop(1)
-        // skips the initial replay — startup autostart is handled in the enable
-        // branch before the tunnel starts. No-op when the server isn't running.
-        guestServiceManager.services
-            .map { svcs ->
-                svcs.values
-                    .filter { it.state == sh.haven.core.local.GuestServiceManager.ServiceState.RUNNING }
-                    .map { it.spec.port }
-                    .toSortedSet()
-            }
-            .distinctUntilChanged()
-            .drop(1)
-            .onEach { if (mcpServer.isRunning) mcpTunnelManager.refreshForwards() }
-            .launchIn(appScope)
-
-        // Keep the consent manager's persistent auto-approve set in sync
-        // with the user's Settings choice. AgentConsentManager holds no
-        // DataStore dependency by design (same as setForegroundActive),
-        // so the app layer pushes the set in on every change. Replays the
-        // current value on subscribe, so a process restart re-arms any
-        // standing bypass before the first tool call.
-        preferencesRepository.mcpBypassConsentClients
-            .distinctUntilChanged()
-            .onEach { agentConsentManager.setPersistentBypassClients(it) }
-            .launchIn(appScope)
-
-        // Surface a backgrounded consent block as a heads-up notification so
-        // the user can come approve, instead of the request silently failing
-        // closed because no activity was foreground to render the prompt. The
-        // fail-closed DENY still stands — tapping the notification just opens
-        // Haven so the agent's retry can prompt. (AgentConsentManager design
-        // note §85: "notification explaining what was blocked".)
-        agentConsentManager.blockedWhileBackground
-            .onEach { postConsentBlockedNotification(it) }
-            .launchIn(appScope)
 
         // Schedule the daily step-ca cert-renewal check (#133 phase 2b).
         // Idempotent (KEEP policy); cheap when the user has no CAs
@@ -426,144 +280,6 @@ class HavenApp : Application(), Configuration.Provider {
     }
 
     /**
-     * Post (or update) a single heads-up notification telling the user an
-     * agent action was blocked because Haven was backgrounded. Tapping it
-     * brings Haven to the foreground so the agent's retry can render the
-     * consent sheet. One stable id so a burst of blocked calls coalesces
-     * into one notification rather than spamming the shade.
-     */
-    private fun postConsentBlockedNotification(req: ConsentRequest) {
-        val mgr = NotificationManagerCompat.from(this)
-        if (!mgr.areNotificationsEnabled()) return
-
-        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (nm.getNotificationChannel(CONSENT_CHANNEL_ID) == null) {
-            nm.createNotificationChannel(
-                NotificationChannel(
-                    CONSENT_CHANNEL_ID,
-                    "Agent approval requests",
-                    NotificationManager.IMPORTANCE_HIGH,
-                ).apply {
-                    description = "Heads-up when an MCP agent action needs your approval but " +
-                        "Haven is in the background. The action waits for you (denied on " +
-                        "timeout); open Haven to review it, or tap Allow or Deny here " +
-                        "(Allow needs the device unlocked)."
-                },
-            )
-        }
-
-        // Bring the EXISTING MainActivity to the front (REORDER_TO_FRONT)
-        // rather than relaunching it — relaunching recreated the activity and
-        // dropped the Material You dynamic colour scheme (it fell back to the
-        // static palette). Resuming the live instance keeps the user's theme.
-        val launch = Intent(this, MainActivity::class.java).apply {
-            addFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or
-                    Intent.FLAG_ACTIVITY_SINGLE_TOP,
-            )
-        }
-        val contentIntent = PendingIntent.getActivity(
-            this, 0, launch,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-
-        val isPairing = req.toolName == AgentConsentManager.PAIRING_TOOL_NAME
-        // Per-(client,tool) id so distinct blocked actions get distinct
-        // actionable notifications and each Allow/Deny resolves the right one.
-        val notifId = consentNotifId(req.clientHint, req.toolName)
-
-        val title = if (isPairing) "Haven: a client wants to pair" else "Haven: agent needs approval"
-        val line = if (isPairing) {
-            "A client tried to connect while Haven was in the background. Open Haven so it can retry."
-        } else {
-            "‘${req.toolName}’ needs your approval. It's waiting for you — open Haven to " +
-                "review, or use Allow/Deny below. Denied automatically if you don't answer."
-        }
-
-        val builder = NotificationCompat.Builder(this, CONSENT_CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_alert)
-            .setContentTitle(title)
-            .setContentText(line)
-            .setStyle(NotificationCompat.BigTextStyle().bigText("$line\n\n${req.summary}"))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setCategory(NotificationCompat.CATEGORY_RECOMMENDATION)
-            .setAutoCancel(true)
-            .setContentIntent(contentIntent)
-
-        // Allow/Deny actions for tool calls. Since #337 mechanism 3 the
-        // original call HOLDS for foreground (denied on timeout): opening
-        // Haven from the notification renders the sheet and resolves the live
-        // call. Tapping Allow here instead arms a short retry window
-        // (ConsentActionReceiver → armRetryWindow) — that covers the case
-        // where the hold has already timed out and the agent retries. Pairing
-        // has no tool-window to arm, so it keeps the open-Haven-to-retry flow
-        // (no buttons).
-        if (!isPairing) {
-            val allowPi = PendingIntent.getBroadcast(
-                this, notifId * 2,
-                Intent(this, ConsentActionReceiver::class.java).apply {
-                    action = ConsentActionReceiver.ACTION_ALLOW
-                    putExtra(ConsentActionReceiver.EXTRA_CLIENT, req.clientHint)
-                    putExtra(ConsentActionReceiver.EXTRA_TOOL, req.toolName)
-                    putExtra(ConsentActionReceiver.EXTRA_NOTIF_ID, notifId)
-                },
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-            )
-            val denyPi = PendingIntent.getBroadcast(
-                this, notifId * 2 + 1,
-                Intent(this, ConsentActionReceiver::class.java).apply {
-                    action = ConsentActionReceiver.ACTION_DENY
-                    putExtra(ConsentActionReceiver.EXTRA_NOTIF_ID, notifId)
-                },
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-            )
-            // Allow requires the device be unlocked (API 31+) — approving an
-            // agent action from the lock screen would weaken the consent gate.
-            val allowAction = NotificationCompat.Action.Builder(0, "Allow", allowPi)
-                .apply {
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-                        setAuthenticationRequired(true)
-                    }
-                }
-                .build()
-            builder.addAction(allowAction)
-            builder.addAction(NotificationCompat.Action.Builder(0, "Deny", denyPi).build())
-        }
-
-        try {
-            mgr.notify(notifId, builder.build())
-        } catch (_: SecurityException) {
-            // POST_NOTIFICATIONS revoked between the enabled-check and notify; ignore.
-        }
-    }
-
-    /**
-     * Path to the advertised MCP config file inside the extracted
-     * rootfs. The file is visible as `/root/.config/haven/
-     * mcp-servers.json` from inside PRoot.
-     */
-    private val prootMcpConfigFile: File
-        get() = File(
-            prootManager.activeRootfsDir,
-            "root/.config/haven/mcp-servers.json",
-        )
-
-    private fun advertiseEndpointToProot() {
-        val rootfsDir = prootManager.activeRootfsDir
-        if (!rootfsDir.exists()) return
-        val json = mcpServer.mcpServerConfigJson ?: return
-        try {
-            val target = prootMcpConfigFile
-            target.parentFile?.mkdirs()
-            target.writeText(json)
-            android.util.Log.d("HavenApp", "advertised MCP endpoint to ${target.absolutePath}")
-        } catch (e: Exception) {
-            android.util.Log.w("HavenApp", "failed to advertise MCP endpoint to PRoot: ${e.message}")
-        }
-    }
-
-    /**
      * Start [SshConnectionService] from the Application context. The
      * service's onStartCommand calls startForeground within Android's
      * 5-second budget, so this is safe from a non-Activity context
@@ -581,28 +297,7 @@ class HavenApp : Application(), Configuration.Provider {
         }
     }
 
-    private fun removeEndpointFromProot() {
-        try {
-            val target = prootMcpConfigFile
-            if (target.exists()) {
-                target.delete()
-                android.util.Log.d("HavenApp", "removed advertised MCP endpoint from PRoot")
-            }
-        } catch (_: Exception) {
-            // Best-effort cleanup
-        }
-    }
-
     companion object {
-        private const val CONSENT_CHANNEL_ID = "haven-agent-consent"
-
-        /**
-         * Per-(client, tool) id for the blocked-consent notification. Shared
-         * with MainActivity so the pairing re-prompt on foreground can clear
-         * the matching notification once the user has answered the sheet.
-         */
-        fun consentNotifId(clientHint: String?, toolName: String): Int =
-            "${clientHint ?: ""}::$toolName".hashCode()
         private const val USB_DRIVE_CHANNEL_ID = "haven-usb-drive-detected"
         private const val USB_DRIVE_NOTIF_ID = 287_287
         private const val USB_CLASS_MASS_STORAGE = 8

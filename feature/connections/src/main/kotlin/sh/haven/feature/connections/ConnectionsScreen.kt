@@ -163,7 +163,6 @@ fun ConnectionsScreen(
     onNavigateToRclone: (profileId: String) -> Unit = {},
     onNavigateToWayland: () -> Unit = {},
     onNavigateToConnections: () -> Unit = {},
-    onNavigateToAgentActivity: () -> Unit = {},
     /**
      * Slot for the Workspaces section, supplied by the host (HavenNavHost
      * provides it via WorkspaceSection). Rendered as the first item in
@@ -195,8 +194,6 @@ fun ConnectionsScreen(
     }
     // (showDesktopsScreen removed in 3c — Desktops UI moved to top-level Desktop tab.)
     val profileStatuses by viewModel.profileStatuses.collectAsState()
-    val mcpExposure by viewModel.mcpExposure.collectAsState()
-    val agentActiveProfiles by viewModel.agentActiveProfiles.collectAsState()
     val sessions by viewModel.sessions.collectAsState()
 
     // Derive profile colors matching terminal tab colors (by session registration order)
@@ -530,9 +527,8 @@ fun ConnectionsScreen(
                 showAddDialog = false
                 prefillDraft = null
             },
-            onSave = { profile, cfTunnel, mcpTunnel ->
+            onSave = { profile, cfTunnel ->
                 viewModel.saveProfileWithEmbeddedCloudflareTunnel(profile, cfTunnel)
-                viewModel.reconcileMcpReverseTunnel(profile.id, mcpTunnel)
                 showAddDialog = false
                 prefillDraft = null
             },
@@ -669,9 +665,6 @@ fun ConnectionsScreen(
         ) {
             value = viewModel.embeddedCloudflareTunnelFor(profile.id)
         }
-        val mcpReverseTunnel = produceState(initialValue = false, key1 = profile.id) {
-            value = viewModel.hasMcpReverseTunnel(profile.id)
-        }
         // #274: stored credential fields are pre-filled with the decrypted
         // secret, so gate the eye-reveal behind a biometric prompt.
         val revealTitle = stringResource(R.string.connections_reveal_password_title)
@@ -690,7 +683,6 @@ fun ConnectionsScreen(
             availableDistros = availableLocalDistros,
             usbDevices = availableUsbDevices,
             embeddedCloudflareTunnel = embeddedCf.value,
-            mcpReverseTunnelEnabled = mcpReverseTunnel.value,
             onManageTunnels = { preselect ->
                 pendingTunnelAddType = preselect
                 showTunnelsScreen = true
@@ -710,9 +702,8 @@ fun ConnectionsScreen(
                 viewModel.testSpa(host, config)
             },
             onDismiss = { editingProfileId = null },
-            onSave = { updated, cfTunnel, mcpTunnel ->
+            onSave = { updated, cfTunnel ->
                 viewModel.saveProfileWithEmbeddedCloudflareTunnel(updated, cfTunnel)
-                viewModel.reconcileMcpReverseTunnel(updated.id, mcpTunnel)
                 editingProfileId = null
             },
         )
@@ -1009,12 +1000,6 @@ fun ConnectionsScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.connections_title)) },
                 actions = {
-                    // Lit when the MCP transport has been called in the
-                    // last 30s; absent entirely until the audit table
-                    // has its first row. Tapping jumps to the audit
-                    // log. Driven off the same Room table the
-                    // AgentActivityScreen reads from.
-                    AgentActiveChip(onClick = onNavigateToAgentActivity)
                     // (Local Shell quick-launch icon removed in 3c — local
                     // shells are now a normal Connection +, no special
                     // topbar entrypoint needed.)
@@ -1368,9 +1353,6 @@ fun ConnectionsScreen(
                                     indent = 0,
                                     isLastChild = false,
                                     profileStatuses = profileStatuses,
-                                    mcpExposure = mcpExposure,
-                                    agentActiveProfiles = agentActiveProfiles,
-                                    onToggleMcp = { enabled -> viewModel.toggleMcpEnabled(profile.id, enabled) },
                                     profileColors = profileColors,
                                     isConnecting = connectingProfileId == profile.id ||
                                         groupLaunchState?.connectingIds?.contains(profile.id) == true,
@@ -1489,9 +1471,6 @@ fun ConnectionsScreen(
                                         indent = depIndent,
                                         isLastChild = isLastAtLevel,
                                         profileStatuses = profileStatuses,
-                                        mcpExposure = mcpExposure,
-                                        agentActiveProfiles = agentActiveProfiles,
-                                        onToggleMcp = { enabled -> viewModel.toggleMcpEnabled(dep.id, enabled) },
                                         profileColors = profileColors,
                                         isConnecting = connectingProfileId == dep.id ||
                                             groupLaunchState?.connectingIds?.contains(dep.id) == true,
@@ -1661,9 +1640,6 @@ private fun ConnectionTreeItem(
     indent: Int,
     isLastChild: Boolean,
     profileStatuses: Map<String, ProfileStatus>,
-    mcpExposure: Map<String, McpExposureKind>,
-    agentActiveProfiles: Map<String, Long>,
-    onToggleMcp: (Boolean) -> Unit,
     profileColors: Map<String, Color>,
     isConnecting: Boolean,
     hasKeys: Boolean,
@@ -1878,18 +1854,6 @@ private fun ConnectionTreeItem(
                         }
                         Text("${profile.username}@${profile.host}:${profile.port}$via")
                     }
-                },
-                trailingContent = {
-                    // The single per-connection MCP element (the old "carries the MCP
-                    // endpoint" badge was dropped in favour of robot-only): a tri-state
-                    // robot — hidden when the agent has never used this connection, a
-                    // slashed grey robot when MCP is disabled for it, and red-eyed while
-                    // the agent is operating on it. Tap toggles MCP access.
-                    ConnectionMcpIndicator(
-                        lastActiveAt = agentActiveProfiles[profile.id],
-                        mcpEnabled = profile.mcpEnabled,
-                        onToggle = { onToggleMcp(!profile.mcpEnabled) },
-                    )
                 },
                 modifier = Modifier
                     .weight(1f)

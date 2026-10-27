@@ -20,9 +20,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import sh.haven.core.data.agent.AgentConsentManager
 import sh.haven.core.data.backup.BackupService
-import sh.haven.core.data.db.AgentAuditEventDao
 import sh.haven.core.data.font.TerminalFontInstaller
 import sh.haven.core.data.preferences.DesktopKeyPlacement
 import sh.haven.core.data.preferences.EditModeControlsPlacement
@@ -45,16 +43,12 @@ class SettingsViewModel @Inject constructor(
     private val authenticator: BiometricAuthenticator,
     private val backupService: BackupService,
     private val backupSyncManager: sh.haven.core.data.backup.BackupSyncManager,
-    private val agentAuditEventDao: AgentAuditEventDao,
-    private val agentConsentManager: AgentConsentManager,
     private val terminalFontInstaller: TerminalFontInstaller,
     private val connectionRepository: ConnectionRepository,
     private val sshKeyRepository: SshKeyRepository,
-    private val mcpStatusHolder: sh.haven.core.data.agent.McpStatusHolder,
     private val biometricGate: sh.haven.core.data.keystore.BiometricGate,
     private val agentUiCommandBus: sh.haven.core.data.agent.AgentUiCommandBus,
     private val updateChecker: UpdateChecker,
-    private val mcpToolCatalog: sh.haven.core.data.agent.McpToolCatalog,
 ) : ViewModel() {
     // --- Credential storage health + recovery (#579) ---
 
@@ -205,24 +199,6 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Non-null when the WireGuard-exposed MCP endpoint is shadowed by another
-     * app's system VPN holding the same address (so it's unreachable). Shown as
-     * a warning in the MCP section. Published by the MCP server via
-     * [sh.haven.core.data.agent.McpStatusHolder].
-     */
-    val mcpWireguardCollision: StateFlow<sh.haven.core.data.agent.WgCollisionInfo?> =
-        mcpStatusHolder.wireguardCollision
-
-    /**
-     * Live state of the "near" (SSH) MCP carrier — whether it's actually
-     * riding a connected interactive session right now, for the configured
-     * `mcpTunnelEndpointProfileId`. Published by [sh.haven.app.agent.McpNearCarrier]
-     * via [sh.haven.core.data.agent.McpStatusHolder].
-     */
-    val mcpNearCarrierStatus: StateFlow<sh.haven.core.data.agent.NearCarrierStatus> =
-        mcpStatusHolder.nearCarrier
-
     val terminalFontPath: StateFlow<String?> = preferencesRepository.terminalFontPath
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
@@ -254,65 +230,6 @@ class SettingsViewModel @Inject constructor(
     /** Reset to the bundled Hack Regular by clearing the saved path. */
     fun clearCustomTerminalFont() {
         viewModelScope.launch { terminalFontInstaller.reset() }
-    }
-
-    /**
-     * Drop every memoised ONCE_PER_SESSION consent so the next call to
-     * each tool re-prompts. DENY decisions are never memoised, so this
-     * only ever loosens the cache; nothing the user gave a one-time
-     * blanket allow to gets stuck in a stricter state by clearing.
-     * Also wipes the *persistent* per-client auto-approve set so "Forget
-     * remembered allows" fully resets agent trust, not just the session
-     * caches.
-     */
-    fun forgetMemoisedAgentAllows() {
-        viewModelScope.launch {
-            agentConsentManager.clearMemoised()
-            preferencesRepository.clearMcpBypassConsentClients()
-        }
-    }
-
-    /** Paired MCP clients (clientInfo.name), sorted for stable display. */
-    val mcpAllowedClients: StateFlow<List<String>> = preferencesRepository.mcpAllowedClients
-        .map { it.sorted() }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    /** Subset of paired clients the user has opted into auto-approval for. */
-    val mcpBypassConsentClients: StateFlow<Set<String>> =
-        preferencesRepository.mcpBypassConsentClients
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
-
-    /**
-     * Toggle persistent auto-approval (skip per-call consent prompts) for
-     * a paired client. Off by default; opting a client in means its tool
-     * calls — including destructive ones — run without a prompt until the
-     * user toggles it back off or un-pairs the client.
-     */
-    fun setMcpClientConsentBypass(name: String, enabled: Boolean) {
-        viewModelScope.launch { preferencesRepository.setMcpClientConsentBypass(name, enabled) }
-    }
-
-    /** Remove a client from the allowlist; it must re-pair to reconnect. */
-    fun unpairMcpClient(name: String) {
-        viewModelScope.launch { preferencesRepository.removeMcpAllowedClient(name) }
-    }
-
-    // --- Per-tool MCP switches (#755) ---
-
-    /** The live tool registry as published by the MCP server (empty until it starts). */
-    val mcpTools: StateFlow<List<sh.haven.core.data.agent.McpToolInfo>> = mcpToolCatalog.tools
-
-    /** Tool names the user switched off; those leave tools/list and calls fail. */
-    val mcpDisabledTools: StateFlow<Set<String>> = mcpToolCatalog.disabledTools
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
-
-    fun setMcpToolEnabled(name: String, enabled: Boolean) {
-        viewModelScope.launch { mcpToolCatalog.setToolEnabled(name, enabled) }
-    }
-
-    /** Category master switch (#755 follow-up): flip every tool in a group at once. */
-    fun setMcpToolsEnabled(names: Collection<String>, enabled: Boolean) {
-        viewModelScope.launch { mcpToolCatalog.setToolsEnabled(names, enabled) }
     }
 
     val biometricAvailable: Boolean =
@@ -576,79 +493,6 @@ class SettingsViewModel @Inject constructor(
 
     val verboseLoggingEnabled: StateFlow<Boolean> = preferencesRepository.verboseLoggingEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
-    val mcpAgentEndpointEnabled: StateFlow<Boolean> = preferencesRepository.mcpAgentEndpointEnabled
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
-    /** SSH profiles eligible to host the dedicated MCP reverse tunnel. */
-    val sshProfiles: StateFlow<List<McpTunnelEndpointOption>> =
-        connectionRepository.observeAll()
-            .map { profiles ->
-                profiles.filter { it.isSsh }
-                    .map { McpTunnelEndpointOption(it.id, it.label) }
-            }
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    /** Currently-selected MCP reverse-tunnel endpoint profile id, or null. */
-    val mcpTunnelEndpointProfileId: StateFlow<String?> =
-        preferencesRepository.mcpTunnelEndpointProfileId
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
-
-    /** Whether the MCP server also binds on the active WireGuard tunnel. */
-    val mcpWireguardEnabled: StateFlow<Boolean> = preferencesRepository.mcpWireguardEnabled
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
-    fun setMcpWireguardEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            preferencesRepository.setMcpWireguardEnabled(enabled)
-        }
-    }
-
-    /** Whether the MCP server also binds the device's Wi-Fi/LAN address. */
-    val mcpLanBindEnabled: StateFlow<Boolean> = preferencesRepository.mcpLanBindEnabled
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
-    fun setMcpLanBindEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            preferencesRepository.setMcpLanBindEnabled(enabled)
-        }
-    }
-
-    /** Whether loopback (local) MCP clients skip pairing + consent prompts. */
-    val trustLoopbackMcpClients: StateFlow<Boolean> = preferencesRepository.trustLoopbackMcpClients
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
-    fun setTrustLoopbackMcpClients(enabled: Boolean) {
-        viewModelScope.launch {
-            preferencesRepository.setTrustLoopbackMcpClients(enabled)
-        }
-    }
-
-    val agentAllowFileRead: StateFlow<Boolean> = preferencesRepository.agentAllowFileRead
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
-    val agentAllowTerminalInputQueue: StateFlow<Boolean> =
-        preferencesRepository.agentAllowTerminalInputQueue
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
-    /**
-     * True when there is at least one agent audit event the user
-     * hasn't visited the activity screen since. Drives the unseen
-     * dot on the "View agent activity" row in Settings.
-     */
-    val requireAgentConsentForWrites: StateFlow<Boolean> = preferencesRepository.requireAgentConsentForWrites
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
-
-    fun setRequireAgentConsentForWrites(enabled: Boolean) {
-        viewModelScope.launch { preferencesRepository.setRequireAgentConsentForWrites(enabled) }
-    }
-
-    val unseenAgentActivity: StateFlow<Boolean> = combine(
-        agentAuditEventDao.observeLatestTimestamp(),
-        preferencesRepository.lastViewedAgentAuditTimestamp,
-    ) { latest, lastViewed ->
-        latest != null && latest > lastViewed
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     val desktopInputMode: StateFlow<String> = preferencesRepository.desktopInputMode
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "DIRECT")
@@ -1032,30 +876,6 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun setMcpAgentEndpointEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            preferencesRepository.setMcpAgentEndpointEnabled(enabled)
-        }
-    }
-
-    fun setMcpTunnelEndpointProfileId(profileId: String?) {
-        viewModelScope.launch {
-            preferencesRepository.setMcpTunnelEndpointProfileId(profileId)
-        }
-    }
-
-    fun setAgentAllowFileRead(enabled: Boolean) {
-        viewModelScope.launch {
-            preferencesRepository.setAgentAllowFileRead(enabled)
-        }
-    }
-
-    fun setAgentAllowTerminalInputQueue(enabled: Boolean) {
-        viewModelScope.launch {
-            preferencesRepository.setAgentAllowTerminalInputQueue(enabled)
-        }
-    }
-
     fun setMouseInputEnabled(enabled: Boolean) {
         viewModelScope.launch {
             preferencesRepository.setMouseInputEnabled(enabled)
@@ -1389,6 +1209,3 @@ class SettingsViewModel @Inject constructor(
         private val BACKUP_SYNC_TYPES = setOf("SSH", "SMB", "RCLONE")
     }
 }
-
-/** A selectable SSH profile for the MCP reverse-tunnel endpoint picker. */
-data class McpTunnelEndpointOption(val id: String, val label: String)

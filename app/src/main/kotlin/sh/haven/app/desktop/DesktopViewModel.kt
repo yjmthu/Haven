@@ -80,7 +80,6 @@ class DesktopViewModel @Inject constructor(
     private val agentUiCommandBus: sh.haven.core.data.agent.AgentUiCommandBus,
     private val localSessionManager: LocalSessionManager,
     private val desktopSessionRegistry: sh.haven.core.data.desktop.DesktopSessionRegistry,
-    private val presentationManager: sh.haven.core.data.agent.AgentPresentationManager,
     private val appWindowLauncher: AppWindowLauncher,
     private val appWindowShortcutManager: AppWindowShortcutManager,
     private val usbDriveVmManager: sh.haven.app.usb.UsbDriveVmManager,
@@ -829,15 +828,6 @@ class DesktopViewModel @Inject constructor(
                 app.exec, appWindowDefaultResolution.value, appWindowDefaultScale.value,
             )
             if (session.state == DesktopManager.DesktopState.RUNNING) {
-                presentationManager.presentAppWindow(
-                    host = "127.0.0.1",
-                    port = session.vncPort,
-                    sessionId = session.sessionId,
-                    caption = app.name,
-                    fullscreen = fullscreen,
-                    scale = appWindowDefaultScale.value,
-                    resolution = appWindowDefaultResolution.value,
-                )
                 preferencesRepository.upsertAppWindowDef(app.name, app.exec, AppWindowOrigin.USER, fullscreen)
             } else {
                 _userMessages.emit("Couldn't launch ${app.name}: ${session.errorMessage ?: "failed to start"}")

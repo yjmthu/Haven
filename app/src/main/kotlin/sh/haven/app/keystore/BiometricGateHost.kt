@@ -1,4 +1,4 @@
-package sh.haven.app.agent
+package sh.haven.app.keystore
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect

@@ -150,13 +150,6 @@ fun ConnectionEditDialog(
      */
     embeddedCloudflareTunnel: sh.haven.core.data.db.entities.TunnelConfig? = null,
     /**
-     * Whether [existing] currently carries the MCP reverse-tunnel
-     * port-forward rule (`-R 8730:127.0.0.1:8730`). Drives the initial
-     * state of the SSH "Expose MCP server" toggle; the resolved value is
-     * handed back through [onSave]'s third argument.
-     */
-    mcpReverseTunnelEnabled: Boolean = false,
-    /**
      * Opens the Tunnels screen. When the preselect is non-null, the
      * destination should auto-open its Add dialog with that type
      * pre-selected. Used by the Route-through dropdown's quick-add
@@ -187,17 +180,15 @@ fun ConnectionEditDialog(
      * upsert a hidden tunnel row owned by it", null means "save the
      * profile and drop any embedded tunnel previously owned by it".
      * Wired via [ConnectionsViewModel.saveProfileWithEmbeddedCloudflareTunnel].
-     * The third argument is the MCP reverse-tunnel toggle state, reconciled
-     * into a port-forward rule by the screen.
      */
-    onSave: (ConnectionProfile, EmbeddedCloudflareTunnelInput?, Boolean) -> Unit,
+    onSave: (ConnectionProfile, EmbeddedCloudflareTunnelInput?) -> Unit,
     /**
      * "Connect without saving" (#751): when non-null, a new-connection dialog
      * gains a second action that dials the form's profile as a one-off
      * ([ConnectionProfile.ephemeral]) instead of writing it. The screen wires
      * this only for the add/prefill call site — editing an existing profile
-     * keeps its Save semantics. The Cloudflare-tunnel and MCP-reverse-tunnel
-     * options are save-only and are not carried by a quick connect.
+     * keeps its Save semantics. The Cloudflare-tunnel option is save-only
+     * and is not carried by a quick connect.
      */
     onQuickConnect: ((ConnectionProfile) -> Unit)? = null,
 ) {
@@ -383,18 +374,6 @@ fun ConnectionEditDialog(
     // null = follow the active distro (the default). Set to a distro id to
     // pin this LOCAL profile to a specific OS. (#per-distro-local)
     var prootDistroId by rememberSaveable { mutableStateOf(existing?.prootDistroId) }
-    // Backed by a port-forward rule, not a profile field — see onSave's
-    // third argument and ConnectionsViewModel.reconcileMcpReverseTunnel.
-    // The caller queries hasMcpReverseTunnel asynchronously and the value
-    // arrives after the first composition, so a plain rememberSaveable on
-    // the initial parameter would lock in the pre-query default (false)
-    // and the dialog would render OFF for a profile that actually has the
-    // rule — saving then deletes it. Sync from mcpReverseTunnelEnabled
-    // whenever it changes so the first non-default value seeds the state.
-    var mcpReverseTunnel by rememberSaveable { mutableStateOf(mcpReverseTunnelEnabled) }
-    LaunchedEffect(mcpReverseTunnelEnabled) {
-        mcpReverseTunnel = mcpReverseTunnelEnabled
-    }
     var forwardAgent by rememberSaveable { mutableStateOf(existing?.forwardAgent ?: false) }
     var addressFamily by rememberSaveable { mutableStateOf(existing?.addressFamily ?: "AUTO") }
     var bindAddress by rememberSaveable { mutableStateOf(existing?.bindAddress ?: "") }
@@ -433,7 +412,6 @@ fun ConnectionEditDialog(
         mutableStateOf(existing?.reconnectOnNetworkChange ?: true)
     }
     var tunnelOnly by rememberSaveable { mutableStateOf(existing?.tunnelOnly ?: false) }
-    var mcpEnabled by rememberSaveable { mutableStateOf(existing?.mcpEnabled ?: true) }
     // Port knocking — see core/knock module. Stored on ConnectionProfile,
     // applied per-protocol at the transport layer (ConnectionsViewModel
     // and DesktopViewModel). Honoured only on the direct-dial path.
@@ -2803,39 +2781,7 @@ fun ConnectionEditDialog(
                     spaBody()
                     }
 
-                    CollapsibleSection("Reliability & MCP", secReliabilityExpanded, { secReliabilityExpanded = !secReliabilityExpanded }) {
-                        // ── AI agent (MCP) ── both directions grouped together.
-                        Text(
-                            stringResource(R.string.connections_section_mcp),
-                            style = MaterialTheme.typography.titleSmall,
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        // Inbound: can the agent read / drive this connection. Off =
-                        // agent tools that target it are refused (its row robot shows a
-                        // slash). Lets you pre-disable a connection the agent never touched.
-                        BooleanToggleRow(
-                            label = stringResource(R.string.connections_toggle_mcp_enabled),
-                            checked = mcpEnabled,
-                            // Turning inbound MCP off also drops the reverse exposure —
-                            // exposing Haven to a host you won't let the agent drive
-                            // makes no sense, so toggle 2 is gated on this one.
-                            onCheckedChange = { mcpEnabled = it; if (!it) mcpReverseTunnel = false },
-                            description = stringResource(R.string.connections_helper_mcp_enabled),
-                        )
-                        // Outbound exposure: reverse-tunnel Haven's own MCP back to the
-                        // remote host. SSH only (mosh/ET can't carry an SSH -R forward);
-                        // disabled while inbound MCP is off.
-                        if (selectedTransport == "SSH") {
-                            Spacer(Modifier.height(8.dp))
-                            BooleanToggleRow(
-                                label = stringResource(R.string.connections_toggle_mcp_tunnel),
-                                checked = mcpReverseTunnel,
-                                onCheckedChange = { mcpReverseTunnel = it },
-                                description = stringResource(R.string.connections_helper_mcp_tunnel),
-                                enabled = mcpEnabled,
-                            )
-                        }
-                        Spacer(Modifier.height(12.dp))
+                    CollapsibleSection("Reliability", secReliabilityExpanded, { secReliabilityExpanded = !secReliabilityExpanded }) {
                         // ── Reliability ──
                         // Tunnel-only mode (#150): bring up the SSH transport +
                         // port forwards without opening a terminal. Pair with
@@ -3290,7 +3236,7 @@ fun ConnectionEditDialog(
                                 reconnectMaxAttempts = reconnectMaxAttempts.toIntOrNull()?.coerceAtLeast(0) ?: 5,
                                 reconnectOnNetworkChange = reconnectOnNetworkChange,
                                 tunnelOnly = tunnelOnly,
-                                mcpEnabled = mcpEnabled,
+                                mcpEnabled = existing?.mcpEnabled ?: true,
                                 sessionManager = selectedSessionManager,
                                 useMosh = selectedTransport == "MOSH",
                                 useEternalTerminal = selectedTransport == "ET",
@@ -3351,12 +3297,7 @@ fun ConnectionEditDialog(
                                 jumpDestination = cfJumpDestination,
                             )
                         } else null
-                        // MCP reverse tunnel only applies to plain SSH, and only
-                        // when inbound MCP is allowed for this connection (the
-                        // toggle is gated on mcpEnabled). For other transports or
-                        // when MCP is off, report false so the screen tears down
-                        // any stale rule.
-                        onSave(profile, cfInput, mcpReverseTunnel && mcpEnabled && selectedTransport == "SSH")
+                        onSave(profile, cfInput)
                     },
                     enabled = canSave,
                 ) {

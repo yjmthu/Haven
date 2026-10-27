@@ -229,7 +229,6 @@ class SftpViewModel @Inject constructor(
     private val pasteQueueDao: sh.haven.core.data.db.PasteQueueDao,
     private val agentUiCommandBus: sh.haven.core.data.agent.AgentUiCommandBus,
     private val attachCoordinator: sh.haven.feature.sftp.attach.TerminalAttachCoordinator,
-    private val servedFileTracker: sh.haven.core.data.agent.ServedFileTracker,
     @ApplicationContext private val appContext: Context,
 ) : ViewModel() {
 
@@ -386,23 +385,6 @@ class SftpViewModel @Inject constructor(
     private val _activeProfileId = MutableStateFlow<String?>(null)
     val activeProfileId: StateFlow<String?> = _activeProfileId.asStateFlow()
 
-    /**
-     * Paths on the currently active profile that have been published via
-     * the MCP `serve_file` tool and are still considered live (per the
-     * tracker's TTL). The SFTP screen surfaces this as a chip on each
-     * matching row so the user can see at a glance which files the
-     * agent has fetched — or could fetch — through Haven.
-     */
-    val agentServedPaths: StateFlow<Set<String>> = combine(
-        servedFileTracker.active,
-        _activeProfileId,
-    ) { entries, profileId ->
-        if (profileId == null) emptySet()
-        else entries.asSequence()
-            .filter { it.profileId == profileId }
-            .map { it.path }
-            .toSet()
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
 
     private val _currentPath = MutableStateFlow("/")
     val currentPath: StateFlow<String> = _currentPath.asStateFlow()
