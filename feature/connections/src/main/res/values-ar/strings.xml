@@ -81,19 +81,6 @@
     <string name="process_exit_cause_anr">التطبيق لا يستجيب</string>
     <string name="process_exit_cause_system">سياسة النظام</string>
 
-    <!-- Mosh setup guide dialog -->
-    <string name="connections_mosh_not_found_title">لم يتم العثور على Mosh على الخادم</string>
-    <string name="connections_mosh_not_found_message">الخادم البعيد لا يحتوي على mosh-server. يحافظ Mosh (Mobile Shell) على جلستك نشطة عبر تغييرات الشبكة والاتصالات عالية التأخير.</string>
-    <string name="connections_mosh_install_prompt">ثبّته على الخادم:</string>
-    <string name="connections_mosh_install_commands">\u0020 Ubuntu/Debian:  sudo apt install mosh\n\u0020 Fedora/RHEL:    sudo dnf install mosh\n\u0020 Arch:           sudo pacman -S mosh\n\u0020 macOS:          brew install mosh</string>
-    <string name="connections_mosh_firewall_note">يجب فتح منفذ UDP 60001 في جدار حماية الخادم.</string>
-    <string name="connections_mosh_github">Mosh على GitHub</string>
-
-    <!-- Mosh client missing dialog -->
-    <string name="connections_mosh_client_missing_title">عميل Mosh غير مبني</string>
-    <string name="connections_mosh_client_missing_message">ملف mosh-client الثنائي غير مضمّن في هذا البناء. يحتاج إلى تجميع تبادلي لـ Android باستخدام NDK.</string>
-    <string name="connections_mosh_client_build_instructions">شغّل tools/build-mosh.sh مع Android NDK r27+ لبناء ملف mosh-client الثنائي، ثم أعد بناء التطبيق.</string>
-
     <!-- Session picker dialog -->
     <string name="connections_sessions_title">جلسات %1$s</string>
     <string name="connections_restore_previous_sessions">استعادة %1$d جلسات سابقة</string>
@@ -333,9 +320,6 @@
     <string name="connections_field_proxy_username">اسم مستخدم الوكيل</string>
     <string name="connections_field_proxy_password">كلمة مرور الوكيل</string>
     <string name="connections_helper_proxy_socks4_userid">يرسل SOCKS4 معرّف مستخدم فقط (بدون كلمة مرور).</string>
-    <string name="connections_field_et_port">منفذ ET</string>
-    <string name="connections_field_mosh_server_command">أمر mosh-server</string>
-    <string name="connections_helper_mosh_server">اتركه فارغًا للقيمة الافتراضية. استخدم authbind للمنافذ الأقل من 1024.</string>
     <string name="connections_username_placeholder_ask">اتركه فارغًا ليُسأل عند الاتصال</string>
     <string name="connections_file_transport_auto_desc">يحاول SFTP، ويعود إلى SCP إذا كان نظام sftp-server الفرعي غير متاح.</string>
     <string name="connections_file_transport_sftp_label">SFTP فقط</string>
@@ -384,8 +368,6 @@
     <string name="connections_helper_ai_route">وجّه نقطة النهاية عبر ناقل: يفتح SSH تحويلاً محلياً من خلال جلسة الناقل، ويجسر Reticulum عبر الشبكة. يجب أن يكون الناقل متصلاً لمسارات Reticulum.</string>
     <string name="connections_helper_add_reticulum_first">أضف وصلة Reticulum أولاً</string>
     <string name="connections_toggle_rdp_nla">مصادقة على مستوى الشبكة (NLA)</string>
-    <string name="connections_helper_mosh_required">يتطلب mosh-server على المضيف البعيد</string>
-    <string name="connections_helper_et_required">يتطلب etserver على المضيف البعيد (المنفذ %1$s)</string>
     <string name="connections_helper_run_before_session_manager">يُشغَّل قبل بدء مدير الجلسات.</string>
     <string name="connections_toggle_tunnel_only">نفق فقط (بدون طرفية)</string>
     <string name="connections_helper_tunnel_only">يُنشئ SSH لإعادة توجيه المنافذ فقط — لا تُفتح أي جلسة طرفية.</string>

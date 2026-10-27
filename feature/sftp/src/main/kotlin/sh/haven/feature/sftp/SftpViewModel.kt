@@ -30,18 +30,12 @@ import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import sh.haven.core.data.db.entities.ConnectionProfile
 import sh.haven.core.data.preferences.UserPreferencesRepository
 import sh.haven.core.data.repository.ConnectionRepository
-import sh.haven.core.et.EtSessionManager
-import sh.haven.core.mosh.MoshSessionManager
 import sh.haven.core.security.posixShellQuote
-import sh.haven.core.ssh.SshClient
 import sh.haven.core.ssh.SshSessionManager
 import sh.haven.core.ssh.SshSessionManager.SessionState
 import sh.haven.feature.sftp.transport.FileBackend
@@ -183,8 +177,6 @@ data class TransferProgress(
 @HiltViewModel
 class SftpViewModel @Inject constructor(
     private val sessionManager: SshSessionManager,
-    private val moshSessionManager: MoshSessionManager,
-    private val etSessionManager: EtSessionManager,
     private val repository: ConnectionRepository,
     private val ageIdentityRepository: sh.haven.core.data.repository.AgeIdentityRepository,
     private val preferencesRepository: UserPreferencesRepository,
@@ -530,38 +522,7 @@ class SftpViewModel @Inject constructor(
                 .map { it.profileId }
                 .toSet()
 
-            // Collect profile IDs from mosh sessions whose bootstrap SSH client is
-            // still ALIVE — mosh's own UDP transport can't carry SFTP, so file
-            // browsing rides the SSH client kept alive from bootstrap. Some servers
-            // close that SSH once mosh-server takes over; JSch's session.isConnected
-            // keeps reporting true until an RST lands (no round-trip), so a stale
-            // isConnected check surfaced a Files tab that shows but never lists (#413,
-            // reported by dkoppenh). Probe the transport for real (isAlive opens a
-            // bounded exec channel and waits for the server's confirmation) — in
-            // parallel, so a dead session's timeout doesn't serialise with the rest.
-            val moshProfileIds = coroutineScope {
-                moshSessionManager.sessions.value.values
-                    .filter { it.status == MoshSessionManager.SessionState.Status.CONNECTED }
-                    .map { s ->
-                        async {
-                            if ((s.sshClient as? SshClient)?.isAlive(3_000L) == true) s.profileId else null
-                        }
-                    }
-                    .awaitAll()
-                    .filterNotNull()
-                    .toSet()
-            }
-
-            // Collect profile IDs from ET sessions that have a live SSH client
-            val etProfileIds = etSessionManager.sessions.value.values
-                .filter {
-                    it.status == EtSessionManager.SessionState.Status.CONNECTED &&
-                        it.sshClient != null
-                }
-                .map { it.profileId }
-                .toSet()
-
-            val connectedProfileIds = sshProfileIds + moshProfileIds + etProfileIds
+            val connectedProfileIds = sshProfileIds
 
             val profiles = withContext(Dispatchers.IO) { repository.getAll() }
             val remoteProfiles = profiles.filter { it.id in connectedProfileIds }
@@ -1527,7 +1488,7 @@ class SftpViewModel @Inject constructor(
     /**
      * Resolve a [FileBackend] for a paste destination described by queue-row
      * coordinates: LOCAL needs no session, SFTP reuses/opens the cached
-     * session (with mosh/ET fallback).
+     * session.
      */
     private suspend fun destFileBackend(
         destType: BackendType,
@@ -2332,33 +2293,15 @@ class SftpViewModel @Inject constructor(
                 // "Empty directory". Probe first so this is transparent.
                 sessionManager.probeAndReconnectStale(profileId = profileId)
 
-                // A profile whose SSH/Mosh/ET session just opened for the
-                // first time can still be CONNECTING when this runs (e.g.
+                // A profile whose SSH session just opened for the first
+                // time can still be CONNECTING when this runs (e.g.
                 // right after tapping the connection card) — wait briefly
-                // for the handshake to resolve on whichever transport the
-                // profile actually uses, instead of racing it and landing
-                // on an empty/home fallback.
-                val profile = repository.getById(profileId)
+                // for the handshake to resolve instead of racing it and
+                // landing on an empty/home fallback.
                 withTimeoutOrNull(5_000) {
-                    when {
-                        profile?.isMosh == true -> {
-                            moshSessionManager.sessions.first { sessions ->
-                                sessions.values.filter { it.profileId == profileId }
-                                    .let { forProfile -> forProfile.isEmpty() || forProfile.any { it.status != MoshSessionManager.SessionState.Status.CONNECTING } }
-                            }
-                        }
-                        profile?.isEternalTerminal == true -> {
-                            etSessionManager.sessions.first { sessions ->
-                                sessions.values.filter { it.profileId == profileId }
-                                    .let { forProfile -> forProfile.isEmpty() || forProfile.any { it.status != EtSessionManager.SessionState.Status.CONNECTING } }
-                            }
-                        }
-                        else -> {
-                            sessionManager.sessions.first { sessions ->
-                                sessions.values.filter { it.profileId == profileId }
-                                    .let { forProfile -> forProfile.isEmpty() || forProfile.any { it.status != SessionState.Status.CONNECTING } }
-                            }
-                        }
+                    sessionManager.sessions.first { sessions ->
+                        sessions.values.filter { it.profileId == profileId }
+                            .let { forProfile -> forProfile.isEmpty() || forProfile.any { it.status != SessionState.Status.CONNECTING } }
                     }
                 }
 
@@ -2371,7 +2314,6 @@ class SftpViewModel @Inject constructor(
                 // Fall back to "/" as a last resort.
                 val home: String = withContext(Dispatchers.IO) {
                     val sftpSessionForHome = sessionManager.openSftpSession(profileId)
-                        ?: openMoshSftpSession(profileId)
                     if (sftpSessionForHome != null) {
                         sftpSession = sftpSessionForHome
                         sftpSessionForHome.home()
@@ -2530,35 +2472,9 @@ class SftpViewModel @Inject constructor(
 
     private fun getOrOpenSession(profileId: String): SftpSession? {
         sftpSession?.let { if (it.isConnected) return it }
-        // Try SSH session first, then mosh/ET bootstrap SSH client
-        val session = sessionManager.openSftpSession(profileId)
-            ?: openMoshSftpSession(profileId)
-            ?: openEtSftpSession(profileId)
-            ?: return null
+        val session = sessionManager.openSftpSession(profileId) ?: return null
         sftpSession = session
         return session
-    }
-
-    private fun openMoshSftpSession(profileId: String): SftpSession? {
-        val client = moshSessionManager.getSshClientForProfile(profileId) as? SshClient
-            ?: return null
-        return try {
-            client.openSftpSession()
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to open SFTP session via mosh SSH client", e)
-            null
-        }
-    }
-
-    private fun openEtSftpSession(profileId: String): SftpSession? {
-        val client = etSessionManager.getSshClientForProfile(profileId) as? SshClient
-            ?: return null
-        return try {
-            client.openSftpSession()
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to open SFTP session via ET SSH client", e)
-            null
-        }
     }
 
     private fun sortEntries(entries: List<SftpEntry>, mode: SortMode): List<SftpEntry> {

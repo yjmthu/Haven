@@ -83,8 +83,7 @@ class HeadlessSshExec @Inject constructor(
             try {
                 return Outcome(live.execCommand(command, timeoutMs), reusedLiveConnection = true)
             } catch (e: IllegalStateException) {
-                // "Not connected": the session status raced the transport
-                // (e.g. a mosh session whose bootstrap SSH client is gone).
+                // "Not connected": the session status raced the transport.
                 // Fall through to a fresh headless connect.
                 Log.i(TAG, "Live client for '${LogRedact.of(stored.label)}' not usable (${e.message}) — trying headless connect")
             }

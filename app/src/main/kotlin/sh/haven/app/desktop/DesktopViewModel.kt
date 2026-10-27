@@ -29,10 +29,7 @@ import sh.haven.core.data.desktop.DesktopStatus
 import sh.haven.core.data.preferences.UserPreferencesRepository
 import sh.haven.core.data.repository.ConnectionLogRepository
 import sh.haven.core.data.repository.ConnectionRepository
-import sh.haven.core.et.EtSessionManager
-import sh.haven.core.mosh.MoshSessionManager
 import sh.haven.core.rdp.RdpSession
-import sh.haven.core.ssh.SshClient
 import sh.haven.core.ssh.SshConnection
 import sh.haven.core.ssh.SshSessionManager
 import sh.haven.core.ui.CursorOverlay
@@ -60,8 +57,6 @@ private sealed class DesktopStartOutcome {
 @HiltViewModel
 class DesktopViewModel @Inject constructor(
     private val sshSessionManager: SshSessionManager,
-    private val moshSessionManager: MoshSessionManager,
-    private val etSessionManager: EtSessionManager,
     private val connectionLogRepository: ConnectionLogRepository,
     private val preferencesRepository: UserPreferencesRepository,
     private val connectionRepository: ConnectionRepository,
@@ -1010,12 +1005,8 @@ class DesktopViewModel @Inject constructor(
         }
     }
 
-    private fun findSshClient(sessionId: String): SshConnection? {
-        sshSessionManager.getSession(sessionId)?.let { return it.client }
-        moshSessionManager.sessions.value[sessionId]?.sshClient?.let { return it as? SshClient }
-        etSessionManager.sessions.value[sessionId]?.sshClient?.let { return it as? SshClient }
-        return null
-    }
+    private fun findSshClient(sessionId: String): SshConnection? =
+        sshSessionManager.getSession(sessionId)?.client
 
     // --- Lifecycle ---
 

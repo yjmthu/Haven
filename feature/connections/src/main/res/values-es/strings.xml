@@ -81,19 +81,6 @@
     <string name="process_exit_cause_anr">aplicación sin respuesta</string>
     <string name="process_exit_cause_system">política del sistema</string>
 
-    <!-- Mosh setup guide dialog -->
-    <string name="connections_mosh_not_found_title">Mosh no encontrado en el servidor</string>
-    <string name="connections_mosh_not_found_message">El host remoto no tiene mosh-server instalado. Mosh (Mobile Shell) mantiene tu sesión activa durante cambios de red y conexiones de alta latencia.</string>
-    <string name="connections_mosh_install_prompt">Instálalo en el servidor:</string>
-    <string name="connections_mosh_install_commands">\u0020 Ubuntu/Debian:  sudo apt install mosh\n\u0020 Fedora/RHEL:    sudo dnf install mosh\n\u0020 Arch:           sudo pacman -S mosh\n\u0020 macOS:          brew install mosh</string>
-    <string name="connections_mosh_firewall_note">El puerto UDP 60001 debe estar abierto en el firewall del servidor.</string>
-    <string name="connections_mosh_github">Mosh en GitHub</string>
-
-    <!-- Mosh client missing dialog -->
-    <string name="connections_mosh_client_missing_title">Cliente Mosh no compilado</string>
-    <string name="connections_mosh_client_missing_message">El binario mosh-client no está incluido en esta compilación. Necesita ser compilado para Android usando el NDK.</string>
-    <string name="connections_mosh_client_build_instructions">Ejecuta tools/build-mosh.sh con Android NDK r27+ para compilar el binario mosh-client, luego recompila la app.</string>
-
     <!-- Session picker dialog -->
     <string name="connections_sessions_title">Sesiones de %1$s</string>
     <string name="connections_restore_previous_sessions">Restaurar %1$d sesiones anteriores</string>
@@ -333,9 +320,6 @@
     <string name="connections_field_proxy_username">Usuario del proxy</string>
     <string name="connections_field_proxy_password">Contraseña del proxy</string>
     <string name="connections_helper_proxy_socks4_userid">SOCKS4 solo envía un ID de usuario (sin contraseña).</string>
-    <string name="connections_field_et_port">Puerto ET</string>
-    <string name="connections_field_mosh_server_command">Comando de mosh-server</string>
-    <string name="connections_helper_mosh_server">Déjalo en blanco para el valor predeterminado. Usa authbind para puertos por debajo de 1024.</string>
     <string name="connections_username_placeholder_ask">Déjalo vacío para preguntar al conectar</string>
     <string name="connections_file_transport_auto_desc">Intenta SFTP y recurre a SCP si el subsistema sftp-server no está disponible.</string>
     <string name="connections_file_transport_sftp_label">Solo SFTP</string>
@@ -384,8 +368,6 @@
     <string name="connections_helper_ai_route">Enruta el punto final a través de un portador: SSH abre un reenvío local mediante la sesión del portador, Reticulum tiende un puente sobre la malla. El portador debe estar conectado para las rutas Reticulum.</string>
     <string name="connections_helper_add_reticulum_first">Añade primero una conexión Reticulum</string>
     <string name="connections_toggle_rdp_nla">Autenticación a nivel de red (NLA)</string>
-    <string name="connections_helper_mosh_required">Requiere mosh-server en el host remoto</string>
-    <string name="connections_helper_et_required">Requiere etserver en el host remoto (puerto %1$s)</string>
     <string name="connections_helper_run_before_session_manager">Se ejecuta antes de que arranque el gestor de sesiones.</string>
     <string name="connections_toggle_tunnel_only">Solo túnel (sin terminal)</string>
     <string name="connections_helper_tunnel_only">Levanta SSH solo para reenvíos de puertos: no se abre ninguna sesión de terminal.</string>

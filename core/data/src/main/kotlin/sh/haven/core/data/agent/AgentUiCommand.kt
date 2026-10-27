@@ -47,8 +47,8 @@ sealed class AgentUiCommand {
 
     /**
      * Open a new terminal tab for [profileId]. The transport (SSH /
-     * Mosh / ET / Reticulum / Local) derives from the profile's
-     * `connectionType` and flags — this verb is profile-shaped, not
+     * Reticulum / Local) derives from the profile's
+     * `connectionType` — this verb is profile-shaped, not
      * transport-shaped, mirroring how the user opens a terminal by
      * tapping the profile row.
      *
@@ -80,7 +80,7 @@ sealed class AgentUiCommand {
     /**
      * Initiate a connection for a saved profile. Picked up by
      * [ConnectionsViewModel], which dispatches to the right transport
-     * (SSH / Mosh / ET / VNC / RDP / SMB / rclone / Reticulum / local)
+     * (SSH / VNC / RDP / SMB / rclone / Reticulum / local)
      * using the same code path a UI tap would, so route-through,
      * stored passwords, and key auth all apply identically.
      *
@@ -115,7 +115,7 @@ sealed class AgentUiCommand {
     data class ConnectFromDeepLink(
         val profileId: String,
         val sessionName: String? = null,
-        /** Optional remote command (e.g. tmux attach) — mosh path uses mosh-server `-- COMMAND`. */
+        /** Optional remote command (e.g. tmux attach) run over the SSH exec request. */
         val startupCommand: String? = null,
     ) : AgentUiCommand()
 
@@ -125,7 +125,7 @@ sealed class AgentUiCommand {
      * credentials, so rather than silently create a half-configured (or
      * attacker-named) profile, the editor is surfaced seeded with these
      * fields for the user to review, add auth, and save. [transport] is one
-     * of `ssh` / `mosh` / `et`.
+     * of `ssh` / `rdp` / `vnc`.
      */
     data class PrefillNewConnection(
         val host: String,

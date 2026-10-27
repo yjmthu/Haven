@@ -16,8 +16,6 @@ class ConnectDeepLinkTest {
         username: String = "me",
         port: Int = 22,
         type: String = "SSH",
-        mosh: Boolean = false,
-        et: Boolean = false,
         remoteCommand: String? = null,
     ) = ConnectionProfile(
         id = id,
@@ -26,8 +24,6 @@ class ConnectDeepLinkTest {
         username = username,
         port = port,
         connectionType = type,
-        useMosh = mosh,
-        useEternalTerminal = et,
         remoteCommand = remoteCommand,
     )
 
@@ -56,14 +52,14 @@ class ConnectDeepLinkTest {
                 "host" to "Example.com",
                 "user" to "  me ",
                 "port" to "2022",
-                "transport" to "  MOSH ",
+                "transport" to "  SSH ",
                 "session" to " work ",
             ),
         )!!
         assertEquals("Example.com", p.host)
         assertEquals("me", p.username)
         assertEquals(2022, p.port)
-        assertEquals("mosh", p.transport)
+        assertEquals("ssh", p.transport)
         assertEquals("work", p.session)
     }
 
@@ -85,17 +81,12 @@ class ConnectDeepLinkTest {
     // --- matchesTransport ---
 
     @Test
-    fun `matchesTransport distinguishes mosh, et and plain ssh`() {
-        val mosh = profile(mosh = true)
-        val et = profile(et = true)
+    fun `matchesTransport matches ssh by profile type`() {
         val ssh = profile()
-        assertTrue(ConnectDeepLink.matchesTransport(mosh, "mosh"))
-        assertTrue(!ConnectDeepLink.matchesTransport(ssh, "mosh"))
-        assertTrue(ConnectDeepLink.matchesTransport(et, "et"))
-        assertTrue(!ConnectDeepLink.matchesTransport(mosh, "et"))
-        // plain "ssh" matches any SSH-family profile, incl. mosh/ET-enabled.
-        assertTrue(ConnectDeepLink.matchesTransport(mosh, "ssh"))
+        val rdp = profile(type = "RDP")
         assertTrue(ConnectDeepLink.matchesTransport(ssh, "ssh"))
+        assertTrue(!ConnectDeepLink.matchesTransport(rdp, "ssh"))
+        assertTrue(!ConnectDeepLink.matchesTransport(ssh, "rdp"))
     }
 
     // --- matches ---
@@ -340,7 +331,7 @@ class ConnectDeepLinkTest {
 
     @Test
     fun `ephemeralProfile carries a haven connect link's session and transport`() {
-        val p = ConnectDeepLink.parse(query("host" to "box", "user" to "u", "port" to "2022", "transport" to "et"))!!
+        val p = ConnectDeepLink.parse(query("host" to "box", "user" to "u", "port" to "2022", "transport" to "ssh"))!!
         val prof = ConnectDeepLink.ephemeralProfile(p)
         assertEquals("SSH", prof.connectionType)
         assertEquals(2022, prof.port)

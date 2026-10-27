@@ -92,7 +92,7 @@ class TunnelResolver @Inject constructor(
      * lifecycle contract as [dial].
      *
      * One-shot use. For callers that need to mint a fresh tunneled
-     * socket on every Mosh roaming-rebind, see [udpSocketSupplier].
+     * socket per rebind, see [udpSocketSupplier].
      */
     suspend fun dialUdp(profile: ConnectionProfile): TunneledDatagramSocket? {
         val tunnel = tunnelFor(profile) ?: return null
@@ -102,19 +102,16 @@ class TunnelResolver @Inject constructor(
     /**
      * Pre-acquire the tunnel and return a non-suspend factory that
      * mints a fresh [TunneledDatagramSocket] each call. Mirrors
-     * [socketDialer] for UDP. Mosh's rebind path calls the factory
-     * each time the upstream socket goes stale; the underlying tunnel
-     * handle is reused across rebinds.
+     * [socketDialer] for UDP; the underlying tunnel handle is reused
+     * across rebinds.
      *
      * Returns null when the profile has no tunnel or the tunnel can't
      * carry UDP — caller falls through to a raw
-     * [java.net.DatagramSocket] (same behaviour as today's Mosh).
+     * [java.net.DatagramSocket].
      *
      * The factory throws [java.io.IOException] if the tunnel was torn
      * down between acquisition and a rebind attempt (e.g. user toggled
-     * the tunnel off mid-session). [MoshConnection.rebindSocket] swallows
-     * that failure and keeps the current socket, so the send loop survives
-     * and the next stall cycle retries once the tunnel is back (#421).
+     * the tunnel off mid-session).
      */
     suspend fun udpSocketSupplier(
         profile: ConnectionProfile,

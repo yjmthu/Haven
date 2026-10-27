@@ -177,12 +177,10 @@ fun ConnectionEditDialog(
     // connection, an optional deep-link [prefill] (#305). [existing] alone
     // drives edit-mode (title, save semantics); [seed] only drives initials.
     val seed = existing ?: prefill
-    // Transport dropdown maps to: connectionType + useMosh + useEternalTerminal
+    // Transport dropdown maps to: connectionType
     val initialTransport = when {
         seed?.isVnc == true -> "VNC"
         seed?.isRdp == true -> "RDP"
-        seed?.isEternalTerminal == true -> "ET"
-        seed?.isMosh == true -> "MOSH"
         else -> "SSH"
     }
     var selectedTransport by rememberSaveable { mutableStateOf(initialTransport) }
@@ -306,7 +304,6 @@ fun ConnectionEditDialog(
             blob.jumpDestination.isNotBlank()
     }
     var sshOptions by rememberSaveable { mutableStateOf(existing?.sshOptions ?: "") }
-    var moshServerCommand by rememberSaveable { mutableStateOf(existing?.moshServerCommand ?: "") }
     var postLoginCommand by rememberSaveable { mutableStateOf(existing?.postLoginCommand ?: "") }
     var postLoginBeforeSessionManager by rememberSaveable { mutableStateOf(existing?.postLoginBeforeSessionManager ?: true) }
     var remoteCommand by rememberSaveable { mutableStateOf(existing?.remoteCommand ?: "") }
@@ -317,7 +314,6 @@ fun ConnectionEditDialog(
     var addressFamily by rememberSaveable { mutableStateOf(existing?.addressFamily ?: "AUTO") }
     var bindAddress by rememberSaveable { mutableStateOf(existing?.bindAddress ?: "") }
     var selectedSessionManager by rememberSaveable { mutableStateOf(seed?.sessionManager) }
-    var etPort by rememberSaveable { mutableStateOf(existing?.etPort?.toString() ?: "2022") }
     var fileTransport by rememberSaveable { mutableStateOf(existing?.fileTransport ?: "AUTO") }
     // Per-profile terminal colour-scheme override (#144). null = inherit
     // the global preference; otherwise one of the
@@ -698,8 +694,6 @@ fun ConnectionEditDialog(
                 // editable result again. (#114)
                 val allTransportOptions = listOf(
                     "SSH" to "SSH",
-                    "MOSH" to "Mosh",
-                    "ET" to "Eternal Terminal",
                     "VNC" to "VNC (Desktop)",
                     "RDP" to "RDP (Desktop)",
                 )
@@ -754,10 +748,9 @@ fun ConnectionEditDialog(
                                     val defaultPort = when (value) {
                                         "VNC" -> "5900"
                                         "RDP" -> "3389"
-                                        "ET" -> "22"
                                         else -> "22"
                                     }
-                                    if (port == "22" || port == "5900" || port == "3389" || port == "2022" || port == "443") {
+                                    if (port == "22" || port == "5900" || port == "3389" || port == "443") {
                                         port = defaultPort
                                     }
                                 },
@@ -1446,52 +1439,6 @@ fun ConnectionEditDialog(
                         }
                     }
 
-                    // ET port (shown only for Eternal Terminal)
-                    if (selectedTransport == "ET") {
-                        Spacer(Modifier.height(4.dp))
-                        OutlinedTextField(
-                            value = etPort,
-                            onValueChange = { etPort = it.filter { c -> c.isDigit() } },
-                            label = { Text(stringResource(R.string.connections_field_et_port)) },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.width(120.dp),
-                        )
-                    }
-
-                    // Transport helper text
-                    if (selectedTransport == "MOSH") {
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            stringResource(R.string.connections_helper_mosh_required),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        OutlinedTextField(
-                            value = moshServerCommand,
-                            onValueChange = { moshServerCommand = it },
-                            label = { Text(stringResource(R.string.connections_field_mosh_server_command)) },
-                            placeholder = { Text("mosh-server new -s -c 256 -l LANG=en_US.UTF-8") },
-                            supportingText = { Text(stringResource(R.string.connections_helper_mosh_server)) },
-                            singleLine = false,
-                            minLines = 1,
-                            maxLines = 3,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                    if (selectedTransport == "ET") {
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            stringResource(
-                                R.string.connections_helper_et_required,
-                                etPort.ifBlank { "2022" },
-                            ),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-
                     // SSH options
                     Spacer(Modifier.height(4.dp))
                     OutlinedTextField(
@@ -1535,9 +1482,7 @@ fun ConnectionEditDialog(
                     }
 
                     // Remote command runs as an SSH exec request, before any
-                    // interactive shell startup file can take control. Mosh
-                    // forwards it to mosh-server with `--`; ET has no matching
-                    // bootstrap contract, so it intentionally does not expose it.
+                    // interactive shell startup file can take control.
                     if (selectedTransport != "ET") {
                         Spacer(Modifier.height(4.dp))
                         OutlinedTextField(
@@ -2072,7 +2017,6 @@ fun ConnectionEditDialog(
             // and "Connect without saving" (#751) so both dial/save exactly
             // what the form shows.
             fun buildProfile(): ConnectionProfile {
-                        val etPortInt = etPort.toIntOrNull() ?: 2022
                                                 val profile = if (connectionType == "VNC") {
                             val vncPortInt = port.toIntOrNull() ?: 5900
                             (existing ?: ConnectionProfile(
@@ -2179,7 +2123,6 @@ fun ConnectionEditDialog(
                                 // (shared standalone tunnel) is persisted as-is.
                                 tunnelConfigId = if (useCloudflareTunnel) null else tunnelConfigId,
                                 sshOptions = sshOptions.ifBlank { null },
-                                moshServerCommand = moshServerCommand.ifBlank { null },
                                 postLoginCommand = postLoginCommand.ifBlank { null },
                                 postLoginBeforeSessionManager = postLoginBeforeSessionManager,
                                 remoteCommand = remoteCommand.ifBlank { null },
@@ -2197,9 +2140,10 @@ fun ConnectionEditDialog(
                                 tunnelOnly = tunnelOnly,
                                 mcpEnabled = existing?.mcpEnabled ?: true,
                                 sessionManager = selectedSessionManager,
-                                useMosh = selectedTransport == "MOSH",
-                                useEternalTerminal = selectedTransport == "ET",
-                                etPort = etPortInt,
+                                // Legacy Mosh / ET columns are no longer offered; save
+                                // plain SSH so an edited old profile stops claiming them.
+                                useMosh = false,
+                                useEternalTerminal = false,
                                 fileTransport = fileTransport,
                                 vncPort = vncPortInt,
                                 vncUsername = if (vncSettingsStored) vncUsername.ifBlank { null } else null,

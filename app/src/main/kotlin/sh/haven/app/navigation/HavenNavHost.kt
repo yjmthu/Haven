@@ -967,8 +967,8 @@ internal fun visibleScreens(
                     // SFTP file browser is useful even with no remote storage
                     // (local file paths work).
                     Screen.Sftp -> true
-                    // Terminal hides until there's any SSH/Mosh/ET/Reticulum
-                    // profile (ConnectionProfile.isTerminal covers them all).
+                    // Terminal hides until there's any SSH/Reticulum profile
+                    // (ConnectionProfile.isTerminal covers them all).
                     Screen.Terminal -> hasTerminalProfiles
                     // Keys/identity management is always shown — useful before
                     // any connection exists (#360).

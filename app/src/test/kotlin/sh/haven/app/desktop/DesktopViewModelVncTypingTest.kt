@@ -42,8 +42,6 @@ class DesktopViewModelVncTypingTest {
         Dispatchers.setMain(testDispatcher)
         vm = DesktopViewModel(
             sshSessionManager = mockk(relaxed = true),
-            moshSessionManager = mockk(relaxed = true),
-            etSessionManager = mockk(relaxed = true),
             connectionLogRepository = mockk(relaxed = true),
             preferencesRepository = mockk(relaxed = true),
             connectionRepository = mockk(relaxed = true),

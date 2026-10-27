@@ -33,4 +33,4 @@ interface Session {
 
 enum class SessionStatus { CONNECTING, CONNECTED, RECONNECTING, DISCONNECTED, ERROR }
 
-enum class Transport { SSH, MOSH, ET, RDP }
+enum class Transport { SSH, RDP }

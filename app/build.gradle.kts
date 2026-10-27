@@ -246,8 +246,6 @@ dependencies {
     implementation(project(":core:security"))
     implementation(project(":core:data"))
 
-    implementation(project(":core:mosh"))
-    implementation(project(":core:et"))
     implementation(project(":core:vnc"))
     implementation(project(":core:rdp"))
     implementation(project(":core:fido"))

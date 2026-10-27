@@ -29,8 +29,6 @@ class TransportBindingsTest {
     private val nonDesktop: List<TransportSessionManager> = with(TransportSessionManagerModule) {
         listOf(
             ssh(manager()),
-            mosh(manager()),
-            et(manager()),
         )
     }
 
@@ -71,9 +69,7 @@ class TransportBindingsTest {
         val writable = (nonDesktop + desktop).filter { it.inputName != null }.map { it.transport }.toSet()
 
         assertEquals(
-            setOf(
-                Transport.SSH, Transport.MOSH, Transport.ET,
-            ),
+            setOf(Transport.SSH),
             writable,
         )
     }

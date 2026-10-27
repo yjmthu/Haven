@@ -25,10 +25,6 @@ com.sun.mail.smtp.SMTPSSLTransport
 # (verified: Transport -> w4.q when the -keep rule is absent)
 network.reticulum.transport.Transport
 
-# Eternal Terminal (et-kotlin) — transport reflected
-# (verified: EtTransport -> h5.b when the -keep rule is absent)
-sh.haven.et.transport.EtTransport
-
 # Reflected by HavenUiBridge.dumpUi (dump_haven_ui) — see app/proguard-rules.pro (#355).
 androidx.compose.ui.platform.AndroidComposeView
 androidx.compose.ui.semantics.SemanticsOwner

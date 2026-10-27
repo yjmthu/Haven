@@ -81,19 +81,6 @@
     <string name="process_exit_cause_anr">приложение не отвечает</string>
     <string name="process_exit_cause_system">политика системы</string>
 
-    <!-- Mosh setup guide dialog -->
-    <string name="connections_mosh_not_found_title">Mosh не найден на сервере</string>
-    <string name="connections_mosh_not_found_message">На удалённом хосте не установлен mosh-server. Mosh (Mobile Shell) сохраняет сессию при смене сети и высокой задержке.</string>
-    <string name="connections_mosh_install_prompt">Установите на сервере:</string>
-    <string name="connections_mosh_install_commands">\u0020 Ubuntu/Debian:  sudo apt install mosh\n\u0020 Fedora/RHEL:    sudo dnf install mosh\n\u0020 Arch:           sudo pacman -S mosh\n\u0020 macOS:          brew install mosh</string>
-    <string name="connections_mosh_firewall_note">UDP-порт 60001 должен быть открыт в файрволе сервера.</string>
-    <string name="connections_mosh_github">Mosh на GitHub</string>
-
-    <!-- Mosh client missing dialog -->
-    <string name="connections_mosh_client_missing_title">Клиент Mosh не собран</string>
-    <string name="connections_mosh_client_missing_message">Бинарный файл mosh-client не включён в эту сборку. Его нужно кросс-компилировать для Android с помощью NDK.</string>
-    <string name="connections_mosh_client_build_instructions">Запустите tools/build-mosh.sh с Android NDK r27+ для сборки mosh-client, затем пересоберите приложение.</string>
-
     <!-- Session picker dialog -->
     <string name="connections_sessions_title">Сессии %1$s</string>
     <string name="connections_restore_previous_sessions">Восстановить %1$d предыдущих сессий</string>
@@ -333,9 +320,6 @@
     <string name="connections_field_proxy_username">Имя пользователя прокси</string>
     <string name="connections_field_proxy_password">Пароль прокси</string>
     <string name="connections_helper_proxy_socks4_userid">SOCKS4 передаёт только идентификатор пользователя (без пароля).</string>
-    <string name="connections_field_et_port">Порт ET</string>
-    <string name="connections_field_mosh_server_command">Команда mosh-server</string>
-    <string name="connections_helper_mosh_server">Оставьте пустым для значения по умолчанию. Используйте authbind для портов ниже 1024.</string>
     <string name="connections_username_placeholder_ask">Оставьте пустым, чтобы спросить при подключении</string>
     <string name="connections_file_transport_auto_desc">Пробует SFTP, переходит на SCP, если подсистема sftp-server недоступна.</string>
     <string name="connections_file_transport_sftp_label">Только SFTP</string>
@@ -384,8 +368,6 @@
     <string name="connections_helper_ai_route">Маршрутизирует конечную точку через носитель: SSH открывает локальную переадресацию через сеанс носителя, Reticulum наводит мост по ячеистой сети. Для маршрутов Reticulum носитель должен быть подключён.</string>
     <string name="connections_helper_add_reticulum_first">Сначала добавьте соединение Reticulum</string>
     <string name="connections_toggle_rdp_nla">Аутентификация на уровне сети (NLA)</string>
-    <string name="connections_helper_mosh_required">Требуется mosh-server на удалённом хосте</string>
-    <string name="connections_helper_et_required">Требуется etserver на удалённом хосте (порт %1$s)</string>
     <string name="connections_helper_run_before_session_manager">Выполняется до запуска менеджера сессий.</string>
     <string name="connections_toggle_tunnel_only">Только туннель (без терминала)</string>
     <string name="connections_helper_tunnel_only">Поднимает SSH только для перенаправления портов — сеанс терминала не открывается.</string>

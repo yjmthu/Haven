@@ -36,9 +36,7 @@ import sh.haven.core.data.repository.KeyMaterial
 import sh.haven.core.data.repository.KeyUnlockDeclinedException
 import sh.haven.core.data.repository.SshKeyRepository
 import sh.haven.core.ssh.ConnectionConfig
-import sh.haven.core.et.EtSessionManager
 import sh.haven.core.fido.FidoAuthenticator
-import sh.haven.core.mosh.MoshSessionManager
 import sh.haven.core.rdp.RdpSessionManager
 import sh.haven.core.ssh.HostKeyVerifier
 import sh.haven.core.ssh.SessionManagerRegistry
@@ -71,8 +69,6 @@ class ConnectionsViewModelSessionTest {
     private lateinit var repository: ConnectionRepository
     private lateinit var portForwardRepository: PortForwardRepository
     private lateinit var sshSessionManager: SshSessionManager
-    private lateinit var moshSessionManager: MoshSessionManager
-    private lateinit var etSessionManager: EtSessionManager
     private lateinit var rdpSessionManager: RdpSessionManager
     private lateinit var sessionManagerRegistry: SessionManagerRegistry
     private lateinit var sshKeyRepository: SshKeyRepository
@@ -93,14 +89,6 @@ class ConnectionsViewModelSessionTest {
             every { sessions } returns MutableStateFlow(emptyMap())
             every { hasActiveSessions } returns false
         }
-        moshSessionManager = mockk(relaxed = true) {
-            every { sessions } returns MutableStateFlow(emptyMap())
-            every { activeSessions } returns emptyList()
-        }
-        etSessionManager = mockk(relaxed = true) {
-            every { sessions } returns MutableStateFlow(emptyMap())
-            every { activeSessions } returns emptyList()
-        }
         rdpSessionManager = mockk(relaxed = true) {
             every { sessions } returns MutableStateFlow(emptyMap())
             every { activeSessions } returns emptyList()
@@ -113,8 +101,6 @@ class ConnectionsViewModelSessionTest {
         sessionManagerRegistry = SessionManagerRegistry(
             transports = setOf(
                 disconnectable(Transport.SSH) { sshSessionManager.removeAllSessionsForProfile(it) },
-                disconnectable(Transport.MOSH) { moshSessionManager.removeAllSessionsForProfile(it) },
-                disconnectable(Transport.ET) { etSessionManager.removeAllSessionsForProfile(it) },
                 disconnectable(Transport.RDP) { rdpSessionManager.removeAllSessionsForProfile(it) },
             ),
             keepAlives = emptySet(),
@@ -144,8 +130,6 @@ class ConnectionsViewModelSessionTest {
             // ordinary session behaviour.
             backgroundDisconnectDetector = mockk(relaxed = true),
             sshSessionAttacher = mockk(relaxed = true),
-            moshSessionManager = moshSessionManager,
-            etSessionManager = etSessionManager,
             fidoAuthenticator = mockk(relaxed = true),
             keystoreSshKeySigner = mockk(relaxed = true),
             sessionManagerRegistry = sessionManagerRegistry,
@@ -195,8 +179,6 @@ class ConnectionsViewModelSessionTest {
         viewModel.disconnect("profile1")
 
         verify { sshSessionManager.removeAllSessionsForProfile("profile1") }
-        verify { moshSessionManager.removeAllSessionsForProfile("profile1") }
-        verify { etSessionManager.removeAllSessionsForProfile("profile1") }
         verify { rdpSessionManager.removeAllSessionsForProfile("profile1") }
     }
 
@@ -206,8 +188,6 @@ class ConnectionsViewModelSessionTest {
         testDispatcher.scheduler.advanceUntilIdle()
 
         verify { sshSessionManager.removeAllSessionsForProfile("profile1") }
-        verify { moshSessionManager.removeAllSessionsForProfile("profile1") }
-        verify { etSessionManager.removeAllSessionsForProfile("profile1") }
         verify { rdpSessionManager.removeAllSessionsForProfile("profile1") }
     }
 
@@ -628,11 +608,10 @@ class ConnectionsViewModelSessionTest {
         assertNull(viewModel.passwordFallback.value)
     }
 
-    // The same property for the sibling connect paths. connectSsh got the
-    // declined branch first; Mosh, Eternal Terminal and the jump-host
-    // failure handler each have their own copy of the "authentication"
-    // classifier, and each of these fails with the password prompt raised
-    // if its declined branch is removed.
+    // The same property holds for the other connect paths. connectSsh got the
+    // declined branch first; the jump-host failure handler has its own copy
+    // of the "authentication" classifier, and it fails with the password
+    // prompt raised if its declined branch is removed.
 
     /** Pump until the connect's failure lands or the deadline passes. */
     private fun awaitError() {
@@ -641,46 +620,6 @@ class ConnectionsViewModelSessionTest {
             testDispatcher.scheduler.advanceUntilIdle()
             Thread.sleep(20)
         }
-    }
-
-    @Test
-    fun `a declined key unlock on the Mosh path does NOT offer the password fallback`() = runTest {
-        coEvery { sshKeyRepository.getById("k-bio") } returns pinnedSoftwareKey("k-bio")
-        coEvery { sshKeyRepository.fetchKeyMaterial("k-bio") } returns
-            KeyMaterial.Declined("Authentication was declined for key \"work laptop\".")
-
-        viewModel.connectMosh(
-            keyProfile("k-bio").copy(useMosh = true),
-            password = "",
-            keyOnly = true,
-        )
-        awaitError()
-
-        assertTrue(
-            "error was: ${viewModel.error.value}",
-            viewModel.error.value.orEmpty().contains("declined"),
-        )
-        assertNull(viewModel.passwordFallback.value)
-    }
-
-    @Test
-    fun `a declined key unlock on the Eternal Terminal path does NOT offer the password fallback`() = runTest {
-        coEvery { sshKeyRepository.getById("k-bio") } returns pinnedSoftwareKey("k-bio")
-        coEvery { sshKeyRepository.fetchKeyMaterial("k-bio") } returns
-            KeyMaterial.Declined("Authentication was declined for key \"work laptop\".")
-
-        viewModel.connectEternalTerminal(
-            keyProfile("k-bio").copy(useEternalTerminal = true),
-            password = "",
-            keyOnly = true,
-        )
-        awaitError()
-
-        assertTrue(
-            "error was: ${viewModel.error.value}",
-            viewModel.error.value.orEmpty().contains("declined"),
-        )
-        assertNull(viewModel.passwordFallback.value)
     }
 
     @Test

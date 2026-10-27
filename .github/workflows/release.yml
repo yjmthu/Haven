@@ -81,8 +81,6 @@ jobs:
         with:
           paths: |
             termlib
-            mosh-kotlin
-            et-kotlin
             spice-kotlin
             reticulum-kt
             rnsh-kt

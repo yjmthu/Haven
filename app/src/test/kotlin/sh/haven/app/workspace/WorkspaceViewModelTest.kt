@@ -160,7 +160,6 @@ class WorkspaceViewModelTest {
     fun captureMapsTransportsToKindsAndFiltersUnconnected() = runTest(testDispatcher) {
         every { registry.allSessions } returns listOf(
             session("ssh-id", "p-ssh", Transport.SSH, SessionStatus.CONNECTED),
-            session("mosh-id", "p-mosh", Transport.MOSH, SessionStatus.CONNECTED),
             session("rdp-id", "p-rdp", Transport.RDP, SessionStatus.CONNECTED),
             // Filtered: not connected.
             session("dropped-id", "p-dropped", Transport.SSH, SessionStatus.DISCONNECTED),
@@ -168,22 +167,21 @@ class WorkspaceViewModelTest {
         )
 
         val drafts = vm.captureFromSingletons("ws-new")
-        // Exactly the 3 connected session items.
-        assertEquals(3, drafts.size)
+        // Exactly the 2 connected session items.
+        assertEquals(2, drafts.size)
         assertEquals(
-            listOf("p-ssh", "p-mosh", "p-rdp"),
+            listOf("p-ssh", "p-rdp"),
             drafts.map { it.item.connectionProfileId },
         )
         assertEquals(
             listOf(
                 WorkspaceItem.Kind.TERMINAL,    // SSH
-                WorkspaceItem.Kind.TERMINAL,    // MOSH
                 WorkspaceItem.Kind.DESKTOP,      // RDP
             ),
             drafts.map { it.item.kind },
         )
         assertTrue(drafts.all { it.item.workspaceId == "ws-new" })
-        assertEquals(listOf(0, 1, 2), drafts.map { it.item.sortOrder })
+        assertEquals(listOf(0, 1), drafts.map { it.item.sortOrder })
     }
 
     @Test
@@ -205,9 +203,9 @@ class WorkspaceViewModelTest {
     }
 
     @Test
-    fun captureSkipsEtWhenDisconnected() = runTest(testDispatcher) {
+    fun captureSkipsDisconnectedSessions() = runTest(testDispatcher) {
         every { registry.allSessions } returns listOf(
-            session("et-id", "p-et", Transport.ET, SessionStatus.ERROR),
+            session("ssh-err", "p-err", Transport.SSH, SessionStatus.ERROR),
             session("ssh-id", "p-ssh", Transport.SSH, SessionStatus.CONNECTED),
         )
 

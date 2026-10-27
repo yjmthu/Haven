@@ -88,7 +88,7 @@
             android:taskAffinity=""
             android:theme="@android:style/Theme.Translucent.NoTitleBar">
             <!-- haven://connect deep-link: launch a connection from URI params,
-                 e.g. haven://connect?host=h&user=u&port=p&transport=mosh&session=s
+                 e.g. haven://connect?host=h&user=u&port=p&transport=ssh&session=s
                  A matched saved profile connects (after a confirm); an unmatched
                  host opens the New-Connection editor pre-filled. (#305) -->
             <intent-filter>
@@ -173,7 +173,7 @@
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Long-lived SSH/Mosh/VNC/RDP/SFTP sessions and the MCP reverse tunnel they carry; user-initiated and kept alive while the connection notification is showing. dataSync was killed by Android 16 within ~10s." />
+                android:value="Long-lived SSH/VNC/RDP/SFTP sessions and the MCP reverse tunnel they carry; user-initiated and kept alive while the connection notification is showing. dataSync was killed by Android 16 within ~10s." />
         </service>
 
         <!-- GPS broker foreground service: keeps GNSS updates flowing for

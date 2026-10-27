@@ -81,19 +81,6 @@
     <string name="process_exit_cause_anr">アプリが応答しない</string>
     <string name="process_exit_cause_system">システムポリシー</string>
 
-    <!-- Mosh setup guide dialog -->
-    <string name="connections_mosh_not_found_title">サーバーにMoshが見つかりません</string>
-    <string name="connections_mosh_not_found_message">リモートホストにmosh-serverがインストールされていません。Mosh（Mobile Shell）はネットワーク変更や高遅延でもセッションを維持します。</string>
-    <string name="connections_mosh_install_prompt">サーバーにインストール:</string>
-    <string name="connections_mosh_install_commands">\u0020 Ubuntu/Debian:  sudo apt install mosh\n\u0020 Fedora/RHEL:    sudo dnf install mosh\n\u0020 Arch:           sudo pacman -S mosh\n\u0020 macOS:          brew install mosh</string>
-    <string name="connections_mosh_firewall_note">サーバーのファイアウォールでUDPポート60001を開放する必要があります。</string>
-    <string name="connections_mosh_github">GitHubのMosh</string>
-
-    <!-- Mosh client missing dialog -->
-    <string name="connections_mosh_client_missing_title">Moshクライアント未ビルド</string>
-    <string name="connections_mosh_client_missing_message">このビルドにmosh-clientバイナリは含まれていません。Android NDKでクロスコンパイルが必要です。</string>
-    <string name="connections_mosh_client_build_instructions">Android NDK r27以上でtools/build-mosh.shを実行してmosh-clientをビルドし、アプリを再ビルドしてください。</string>
-
     <!-- Session picker dialog -->
     <string name="connections_sessions_title">%1$s セッション</string>
     <string name="connections_restore_previous_sessions">%1$d件の以前のセッションを復元</string>
@@ -333,9 +320,6 @@
     <string name="connections_field_proxy_username">プロキシのユーザー名</string>
     <string name="connections_field_proxy_password">プロキシのパスワード</string>
     <string name="connections_helper_proxy_socks4_userid">SOCKS4 はユーザー ID のみを送信します（パスワードなし）。</string>
-    <string name="connections_field_et_port">ETポート</string>
-    <string name="connections_field_mosh_server_command">mosh-serverコマンド</string>
-    <string name="connections_helper_mosh_server">既定値の場合は空欄のまま。1024未満のポートにはauthbindを使用してください。</string>
     <string name="connections_username_placeholder_ask">接続時に尋ねるには空欄のままにします</string>
     <string name="connections_file_transport_auto_desc">SFTPを試し、sftp-serverサブシステムが利用できない場合はSCPにフォールバックします。</string>
     <string name="connections_file_transport_sftp_label">SFTPのみ</string>
@@ -384,8 +368,6 @@
     <string name="connections_helper_ai_route">中継接続を経由してエンドポイントへ接続します: SSH は中継セッション経由でローカル転送を開き、Reticulum はメッシュ越しにブリッジします。Reticulum ルートには中継接続先が接続中である必要があります。</string>
     <string name="connections_helper_add_reticulum_first">先に Reticulum 接続を追加してください</string>
     <string name="connections_toggle_rdp_nla">ネットワークレベル認証 (NLA)</string>
-    <string name="connections_helper_mosh_required">リモートホストにmosh-serverが必要です</string>
-    <string name="connections_helper_et_required">リモートホストにetserverが必要です（ポート %1$s）</string>
     <string name="connections_helper_run_before_session_manager">セッションマネージャーの起動前に実行されます。</string>
     <string name="connections_toggle_tunnel_only">トンネルのみ（ターミナルなし）</string>
     <string name="connections_helper_tunnel_only">ポート転送のためだけにSSHを確立します — ターミナルセッションは開かれません。</string>

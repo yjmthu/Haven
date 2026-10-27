@@ -81,19 +81,6 @@
     <string name="process_exit_cause_anr">application ne répond pas</string>
     <string name="process_exit_cause_system">politique du système</string>
 
-    <!-- Mosh setup guide dialog -->
-    <string name="connections_mosh_not_found_title">Mosh introuvable sur le serveur</string>
-    <string name="connections_mosh_not_found_message">L\'hôte distant n\'a pas mosh-server installé. Mosh (Mobile Shell) maintient votre session lors des changements de réseau et des connexions à latence élevée.</string>
-    <string name="connections_mosh_install_prompt">Installez-le sur le serveur :</string>
-    <string name="connections_mosh_install_commands">\u0020 Ubuntu/Debian:  sudo apt install mosh\n\u0020 Fedora/RHEL:    sudo dnf install mosh\n\u0020 Arch:           sudo pacman -S mosh\n\u0020 macOS:          brew install mosh</string>
-    <string name="connections_mosh_firewall_note">Le port UDP 60001 doit être ouvert sur le pare-feu du serveur.</string>
-    <string name="connections_mosh_github">Mosh sur GitHub</string>
-
-    <!-- Mosh client missing dialog -->
-    <string name="connections_mosh_client_missing_title">Client Mosh non compilé</string>
-    <string name="connections_mosh_client_missing_message">Le binaire mosh-client n\'est pas inclus dans cette version. Il doit être compilé pour Android avec le NDK.</string>
-    <string name="connections_mosh_client_build_instructions">Exécutez tools/build-mosh.sh avec Android NDK r27+ pour compiler mosh-client, puis recompilez l\'application.</string>
-
     <!-- Session picker dialog -->
     <string name="connections_sessions_title">Sessions %1$s</string>
     <string name="connections_restore_previous_sessions">Restaurer %1$d sessions précédentes</string>
@@ -333,9 +320,6 @@
     <string name="connections_field_proxy_username">Nom d\'utilisateur du proxy</string>
     <string name="connections_field_proxy_password">Mot de passe du proxy</string>
     <string name="connections_helper_proxy_socks4_userid">SOCKS4 n\'envoie qu\'un identifiant (pas de mot de passe).</string>
-    <string name="connections_field_et_port">Port ET</string>
-    <string name="connections_field_mosh_server_command">Commande mosh-server</string>
-    <string name="connections_helper_mosh_server">Laissez vide pour la valeur par défaut. Utilisez authbind pour les ports inférieurs à 1024.</string>
     <string name="connections_username_placeholder_ask">Laissez vide pour demander au moment de la connexion</string>
     <string name="connections_file_transport_auto_desc">Essaie SFTP, revient à SCP si le sous-système sftp-server est indisponible.</string>
     <string name="connections_file_transport_sftp_label">SFTP uniquement</string>
@@ -384,8 +368,6 @@
     <string name="connections_helper_ai_route">Achemine le point de terminaison via un porteur : SSH ouvre un transfert local par la session du porteur, Reticulum établit un pont sur le maillage. Le porteur doit être connecté pour les routes Reticulum.</string>
     <string name="connections_helper_add_reticulum_first">Ajoutez d\'abord une connexion Reticulum</string>
     <string name="connections_toggle_rdp_nla">Authentification au niveau réseau (NLA)</string>
-    <string name="connections_helper_mosh_required">Nécessite mosh-server sur l\'hôte distant</string>
-    <string name="connections_helper_et_required">Nécessite etserver sur l\'hôte distant (port %1$s)</string>
     <string name="connections_helper_run_before_session_manager">S\'exécute avant le démarrage du gestionnaire de sessions.</string>
     <string name="connections_toggle_tunnel_only">Tunnel uniquement (sans terminal)</string>
     <string name="connections_helper_tunnel_only">Établit SSH uniquement pour les redirections de ports — aucune session de terminal n\'est ouverte.</string>

@@ -23,8 +23,6 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
-import sh.haven.core.et.EtSessionManager
-import sh.haven.core.mosh.MoshSessionManager
 import sh.haven.core.ssh.SshClient
 import sh.haven.core.ssh.SshSessionManager
 
@@ -38,8 +36,6 @@ class TerminalViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
 
     private lateinit var sessionManager: SshSessionManager
-    private lateinit var moshSessionManager: MoshSessionManager
-    private lateinit var etSessionManager: EtSessionManager
     private lateinit var sshEmulatorOwner: SshTerminalEmulatorOwner
     private lateinit var connectionRepository: sh.haven.core.data.repository.ConnectionRepository
     private lateinit var attachCoordinator: sh.haven.feature.sftp.attach.TerminalAttachCoordinator
@@ -49,12 +45,6 @@ class TerminalViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         sessionManager = SshSessionManager(mockk(relaxed = true), mockk(relaxed = true))
-        moshSessionManager = mockk<MoshSessionManager>(relaxed = true) {
-            every { sessions } returns MutableStateFlow(emptyMap())
-        }
-        etSessionManager = mockk<EtSessionManager>(relaxed = true) {
-            every { sessions } returns MutableStateFlow(emptyMap())
-        }
         // No connect-time bundle in unit tests (the real emulator needs JNI),
         // so the SSH adopt branch skips — matching the old isReadyForTerminal skip.
         sshEmulatorOwner = mockk(relaxed = true) {
@@ -69,8 +59,6 @@ class TerminalViewModelTest {
         mockk(relaxed = true),
         sessionManager,
         mockk(relaxed = true), // SshSessionAttacher
-        moshSessionManager,
-        etSessionManager,
         mockk(relaxed = true), // HostKeyVerifier
         mockk(relaxed = true), // FidoAuthenticator
         mockk(relaxed = true), // KeystoreSshKeySigner

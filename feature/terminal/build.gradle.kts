@@ -38,8 +38,6 @@ dependencies {
     // Security-key (FIDO2/SK) authenticator, wired onto new-tab SshClients.
     implementation(project(":core:fido"))
     implementation(project(":core:tunnel"))
-    implementation(project(":core:mosh"))
-    implementation(project(":core:et"))
     implementation(project(":core:security"))
     // QR / OCR for the paperclip → camera/photo attach flow.
     // The terminal's paperclip / attach feature reuses the SFTP feature's

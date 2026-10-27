@@ -34,7 +34,7 @@ object SaveConnectionFromSession {
 
     /**
      * Remote-command pin for cold connect. Kept short and shell-simple so it
-     * works over SSH exec and as `mosh-server -- <cmd>` (see #436).
+     * works over an SSH exec request (see #436).
      */
     fun pinRemoteCommand(manager: SessionManager, sessionName: String): String? {
         val name = SessionManager.sanitizeSessionName(sessionName)
@@ -117,7 +117,7 @@ object SaveConnectionFromSession {
         val profile = base.copy(
             id = id,
             label = label,
-            // Keep endpoint/auth from the live source (fresh host/key/mosh).
+            // Keep endpoint/auth from the live source (fresh host/key).
             host = source.host,
             port = source.port,
             username = source.username,

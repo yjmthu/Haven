@@ -31,8 +31,8 @@ interface Tunnel {
      * opt out by inheriting the default and the caller falls through to
      * a raw [java.net.DatagramSocket].
      *
-     * Used by Mosh (#164) so packets traverse the tunnel rather than
-     * the device's default route.
+     * Used by UDP-carrying sessions (#164) so packets traverse the tunnel
+     * rather than the device's default route.
      */
     fun listenUdp(): TunneledDatagramSocket? = null
 
@@ -112,7 +112,7 @@ interface TunneledConnection {
      * The literal IP this connection was actually established to — the
      * tunnel-resolved form of whatever name was dialled (Tailscale MagicDNS
      * included), or null when the backend can't say. Callers that must
-     * satisfy an IP-literal contract (#539: the mosh UDP destination) use
+     * satisfy an IP-literal contract (#539) use
      * this instead of re-resolving the profile host in the wrong namespace.
      */
     val remoteAddress: String? get() = null

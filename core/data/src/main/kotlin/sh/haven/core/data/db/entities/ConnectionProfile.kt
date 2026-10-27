@@ -73,6 +73,9 @@ data class ConnectionProfile(
      */
     val vncColorDepth: String = "BPP_24_TRUE",
     val sessionManager: String? = null,
+    // Legacy Mosh / Eternal Terminal columns: the transports were removed from
+    // this fork, but the columns stay so existing databases and backups still
+    // round-trip. New profiles always keep the defaults.
     val useMosh: Boolean = false,
     val useEternalTerminal: Boolean = false,
     val etPort: Int = 2022,
@@ -237,7 +240,7 @@ data class ConnectionProfile(
      * different OSes side by side.
      */
     val prootDistroId: String? = null,
-    /** Custom mosh-server command (overrides the default `mosh-server new -s -c 256 -l LANG=en_US.UTF-8`). */
+    /** Legacy Mosh column: the transport is gone from this fork, but the column stays for schema/backup compatibility. */
     val moshServerCommand: String? = null,
     /** Enable SSH agent forwarding (OpenSSH `ForwardAgent`) — exposes non-encrypted stored SSH keys to the remote session. */
     val forwardAgent: Boolean = false,
@@ -378,8 +381,8 @@ data class ConnectionProfile(
      * `"7000 8000 9000"` (all TCP) or `"7000/tcp 8000/udp 9000/tcp"`.
      * Empty / null = knocking disabled. Legacy column: Haven no longer
      * sends knocks, but the value is preserved for backups.
-     * Only meaningful for protocols with a remote TCP host (SSH, Mosh,
-     * ET, VNC, RDP, SMB) — ignored for LOCAL/RCLONE/RETICULUM.
+     * Only meaningful for protocols with a remote TCP host (SSH,
+     * VNC, RDP, SMB) — ignored for LOCAL/RCLONE/RETICULUM.
      */
     val portKnockSequence: String? = null,
     /**
@@ -550,8 +553,6 @@ data class ConnectionProfile(
 
     val isSsh: Boolean get() = connectionType == "SSH"
     val isReticulum: Boolean get() = connectionType == "RETICULUM"
-    val isMosh: Boolean get() = isSsh && useMosh
-    val isEternalTerminal: Boolean get() = isSsh && useEternalTerminal
     val isVnc: Boolean get() = connectionType == "VNC"
     val isRdp: Boolean get() = connectionType == "RDP"
     val isSpice: Boolean get() = connectionType == "SPICE"

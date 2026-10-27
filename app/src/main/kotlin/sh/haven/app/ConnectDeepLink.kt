@@ -21,7 +21,7 @@ object ConnectDeepLink {
         val host: String,
         val username: String?,
         val port: Int?,
-        /** `ssh` / `mosh` / `et`, or null when the link didn't specify one. */
+        /** `ssh` / `rdp` / `vnc`, or null when the link didn't specify one. */
         val transport: String?,
         val session: String?,
         /** Optional remote command (Tin attach / clean tmux). `command` or `startupCommand` query. */
@@ -52,10 +52,8 @@ object ConnectDeepLink {
     /** Whether [profile] is the transport named by [transport]. */
     fun matchesTransport(profile: ConnectionProfile, transport: String): Boolean =
         when (transport) {
-            "mosh" -> profile.connectionType == "SSH" && profile.useMosh
-            "et", "eternal", "eternalterminal" -> profile.connectionType == "SSH" && profile.useEternalTerminal
-            // Plain "ssh" matches any SSH-family profile for the host (incl.
-            // mosh/ET-enabled ones) rather than excluding them on a technicality.
+            // Plain "ssh" matches any SSH profile for the host rather than
+            // excluding one on a technicality.
             "ssh" -> profile.connectionType == "SSH"
             // Standard-scheme links (#751) carry their own transport; match the
             // profile type exactly so an ssh:// link never dials an RDP profile

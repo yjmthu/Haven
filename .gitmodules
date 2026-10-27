@@ -2,9 +2,3 @@
 	path = termlib
 	url = https://github.com/GlassOnTin/termlib.git
 	branch = main
-[submodule "mosh-kotlin"]
-	path = mosh-kotlin
-	url = https://github.com/GlassOnTin/ssp-transport.git
-[submodule "et-kotlin"]
-	path = et-kotlin
-	url = https://github.com/GlassOnTin/et-kotlin.git

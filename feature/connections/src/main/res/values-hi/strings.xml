@@ -81,19 +81,6 @@
     <string name="process_exit_cause_anr">ऐप प्रतिक्रिया नहीं दे रहा</string>
     <string name="process_exit_cause_system">सिस्टम नीति</string>
 
-    <!-- Mosh setup guide dialog -->
-    <string name="connections_mosh_not_found_title">सर्वर पर Mosh नहीं मिला</string>
-    <string name="connections_mosh_not_found_message">रिमोट होस्ट पर mosh-server इंस्टॉल नहीं है। Mosh (Mobile Shell) नेटवर्क बदलने और उच्च विलंबता कनेक्शन पर आपका सत्र सक्रिय रखता है।</string>
-    <string name="connections_mosh_install_prompt">सर्वर पर इंस्टॉल करें:</string>
-    <string name="connections_mosh_install_commands">\u0020 Ubuntu/Debian:  sudo apt install mosh\n\u0020 Fedora/RHEL:    sudo dnf install mosh\n\u0020 Arch:           sudo pacman -S mosh\n\u0020 macOS:          brew install mosh</string>
-    <string name="connections_mosh_firewall_note">सर्वर फ़ायरवॉल पर UDP पोर्ट 60001 खुला होना चाहिए।</string>
-    <string name="connections_mosh_github">GitHub पर Mosh</string>
-
-    <!-- Mosh client missing dialog -->
-    <string name="connections_mosh_client_missing_title">Mosh क्लाइंट बिल्ड नहीं हुआ</string>
-    <string name="connections_mosh_client_missing_message">इस बिल्ड में mosh-client बाइनरी शामिल नहीं है। इसे NDK का उपयोग करके Android के लिए क्रॉस-कंपाइल करना होगा।</string>
-    <string name="connections_mosh_client_build_instructions">mosh-client बाइनरी बनाने के लिए Android NDK r27+ के साथ tools/build-mosh.sh चलाएँ, फिर ऐप को दोबारा बिल्ड करें।</string>
-
     <!-- Session picker dialog -->
     <string name="connections_sessions_title">%1$s सत्र</string>
     <string name="connections_restore_previous_sessions">%1$d पिछले सत्र पुनर्स्थापित करें</string>
@@ -333,9 +320,6 @@
     <string name="connections_field_proxy_username">प्रॉक्सी उपयोगकर्ता नाम</string>
     <string name="connections_field_proxy_password">प्रॉक्सी पासवर्ड</string>
     <string name="connections_helper_proxy_socks4_userid">SOCKS4 केवल एक यूज़र-आईडी भेजता है (कोई पासवर्ड नहीं)।</string>
-    <string name="connections_field_et_port">ET पोर्ट</string>
-    <string name="connections_field_mosh_server_command">mosh-server कमांड</string>
-    <string name="connections_helper_mosh_server">डिफ़ॉल्ट के लिए खाली छोड़ें। 1024 से नीचे के पोर्ट के लिए authbind का उपयोग करें।</string>
     <string name="connections_username_placeholder_ask">कनेक्ट करते समय पूछने के लिए खाली छोड़ें</string>
     <string name="connections_file_transport_auto_desc">SFTP आज़माएँ, यदि sftp-server सबसिस्टम अनुपलब्ध हो तो SCP पर वापस जाएँ।</string>
     <string name="connections_file_transport_sftp_label">केवल SFTP</string>
@@ -384,8 +368,6 @@
     <string name="connections_helper_ai_route">एंडपॉइंट को कैरियर के ज़रिए रूट करें: SSH कैरियर सेशन के ज़रिए लोकल फ़ॉरवर्ड खोलता है, Reticulum मेश पर सेतु बनाता है। Reticulum रूट के लिए कैरियर का कनेक्टेड होना ज़रूरी है।</string>
     <string name="connections_helper_add_reticulum_first">पहले एक Reticulum कनेक्शन जोड़ें</string>
     <string name="connections_toggle_rdp_nla">नेटवर्क स्तर प्रमाणीकरण (NLA)</string>
-    <string name="connections_helper_mosh_required">रिमोट होस्ट पर mosh-server आवश्यक है</string>
-    <string name="connections_helper_et_required">रिमोट होस्ट पर etserver आवश्यक है (पोर्ट %1$s)</string>
     <string name="connections_helper_run_before_session_manager">सत्र प्रबंधक के शुरू होने से पहले चलता है।</string>
     <string name="connections_toggle_tunnel_only">केवल टनल (कोई टर्मिनल नहीं)</string>
     <string name="connections_helper_tunnel_only">केवल पोर्ट फ़ॉरवर्ड के लिए SSH लाता है — कोई टर्मिनल सत्र नहीं खुलता।</string>

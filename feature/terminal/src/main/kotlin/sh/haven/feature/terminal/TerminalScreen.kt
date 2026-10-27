@@ -1999,10 +1999,10 @@ fun TerminalScreen(
                             )
                         }
 
-                        // Top-center banner stack: the stall countdown (Mosh)
-                        // and the session-manager attach notice (#731, SSH).
-                        // Mutually exclusive in practice (different transports)
-                        // but stacked in a Column so they never overlap.
+                        // Top-center banner stack: the stall countdown and
+                        // the session-manager attach notice (#731, SSH).
+                        // Mutually exclusive in practice but stacked in a
+                        // Column so they never overlap.
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier.align(Alignment.TopCenter),
@@ -2691,8 +2691,8 @@ private fun VncSettingsDialog(
  * Top-aligned banner shown over the terminal when the transport has gone
  * silent: displays how long the server has been unreachable while the
  * transport keeps retrying (it recovers by itself when the network
- * returns). Hidden when the flow is null. Currently driven by Mosh; other
- * transports always emit null.
+ * returns). Hidden when the flow is null. No current transport emits a
+ * value, so it stays hidden.
  */
 @Composable
 private fun StallBanner(

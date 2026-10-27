@@ -40,8 +40,8 @@ class SessionManagerRegistry @Inject constructor(
      * "has no active terminal") is the informative one; a manager that has
      * never heard of the id says "No <transport> session". Covers every
      * transport with a PTY-like input; #366 was the forgotten-transport bug
-     * again — agent input tried SSH+local only, so mosh/ET/Reticulum
-     * sessions answered "No local session" while snapshot reads worked.
+     * again — agent input tried SSH+local only, so a session owned by another
+     * transport answered "No local session" while snapshot reads worked.
      *
      * Returns the [TransportSessionManager.inputName] of the transport that
      * accepted the write. Callers surface it so a delivery ack says WHERE the

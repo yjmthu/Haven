@@ -46,7 +46,7 @@
     <string name="settings_view_connection_log_title">Прикажи дневник повезивања</string>
     <string name="settings_view_connection_log_subtitle">Историја повезивања и догађаји</string>
     <string name="settings_verbose_logging_title">Детаљно вођење дневника повезивања</string>
-    <string name="settings_verbose_logging_subtitle">Хвата детаље протокола за SSH, Mosh, ET, RDP, и SPICE везе — укључујући и времена RDP кадрова и SPICE улазних догађаја, што је потребно за споре удаљене десктопе или оне које се споро одазивају. Укључите пре повезивања. Може да садржи имена хостова и корисничка имена</string>
+    <string name="settings_verbose_logging_subtitle">Хвата детаље протокола за SSH, RDP, и SPICE везе — укључујући и времена RDP кадрова и SPICE улазних догађаја, што је потребно за споре удаљене десктопе или оне које се споро одазивају. Укључите пре повезивања. Може да садржи имена хостова и корисничка имена</string>
     <string name="settings_rdp_progressive_upgrade_title">RDP: декодирај плочице са прогресивним пречишћавањем</string>
     <string name="settings_rdp_progressive_upgrade_subtitle">Подразумевано је укључено. Windows најпре шаље сваки део слике грубо, па затим врши изоштравање; без овога, те области остају грубе, што изгледа као аура око текста. Искључите само да упоредите (#496)</string>
     <string name="settings_rdp_avc_title">RDP: H.264/AVC420 декодирање</string>

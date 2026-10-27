@@ -23,8 +23,6 @@ description: |
   can pass `paths` to limit the init to a subset — typical safe set:
     paths: |
       termlib
-      mosh-kotlin
-      et-kotlin
       reticulum-kt
       rnsh-kt
       build-proot/proot-termux

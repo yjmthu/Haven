@@ -13,7 +13,6 @@ class TransportAvailabilityTest {
 
     private val all = listOf(
         "SSH" to "SSH",
-        "MOSH" to "Mosh",
         "VNC" to "VNC (Desktop)",
         "RDP" to "RDP (Desktop)",
     )
@@ -44,7 +43,7 @@ class TransportAvailabilityTest {
         val offered = values(rdp = false)
 
         assertEquals(
-            listOf("SSH", "MOSH", "VNC"),
+            listOf("SSH", "VNC"),
             offered,
         )
         assertTrue("VNC must survive", "VNC" in offered)
@@ -54,7 +53,7 @@ class TransportAvailabilityTest {
     @Test
     fun `order is preserved`() {
         assertEquals(
-            listOf("SSH", "MOSH", "VNC", "RDP"),
+            listOf("SSH", "VNC", "RDP"),
             values(rdp = true),
         )
     }

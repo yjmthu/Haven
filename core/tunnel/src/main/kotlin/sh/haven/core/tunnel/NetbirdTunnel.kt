@@ -158,7 +158,7 @@ private class NetbirdConnection(
  * Wraps a native [NativeUDPConn] as [TunneledDatagramSocket]. Same
  * timeout-translation contract as the other wrappers: Go's "i/o timeout"
  * / "deadline exceeded" becomes a null [TunneledDatagramSocket.receive]
- * return, which the Mosh receive loop requires.
+ * return, which the UDP receive loop requires.
  */
 private class NetbirdDatagramSocket(
     private val udp: NativeUDPConn,

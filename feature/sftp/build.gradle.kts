@@ -30,8 +30,6 @@ android {
 dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:ssh"))
-    implementation(project(":core:mosh"))
-    implementation(project(":core:et"))
     implementation(project(":core:data"))
     implementation(project(":core:security"))
 

@@ -81,19 +81,6 @@
     <string name="process_exit_cause_anr">应用无响应</string>
     <string name="process_exit_cause_system">系统策略</string>
 
-    <!-- Mosh setup guide dialog -->
-    <string name="connections_mosh_not_found_title">服务器上未找到 Mosh</string>
-    <string name="connections_mosh_not_found_message">远程主机未安装 mosh-server。Mosh（移动 Shell）可在网络切换和高延迟连接时保持会话。</string>
-    <string name="connections_mosh_install_prompt">在服务器上安装：</string>
-    <string name="connections_mosh_install_commands">\u0020 Ubuntu/Debian:  sudo apt install mosh\n\u0020 Fedora/RHEL:    sudo dnf install mosh\n\u0020 Arch:           sudo pacman -S mosh\n\u0020 macOS:          brew install mosh</string>
-    <string name="connections_mosh_firewall_note">服务器防火墙须开放 UDP 端口 60001。</string>
-    <string name="connections_mosh_github">GitHub 上的 Mosh</string>
-
-    <!-- Mosh client missing dialog -->
-    <string name="connections_mosh_client_missing_title">Mosh 客户端未构建</string>
-    <string name="connections_mosh_client_missing_message">此版本未包含 mosh-client 二进制文件。需要使用 NDK 为 Android 交叉编译。</string>
-    <string name="connections_mosh_client_build_instructions">使用 Android NDK r27+ 运行 tools/build-mosh.sh 构建 mosh-client 二进制文件，然后重新构建应用。</string>
-
     <!-- Session picker dialog -->
     <string name="connections_sessions_title">%1$s 会话</string>
     <string name="connections_restore_previous_sessions">恢复 %1$d 个之前的会话</string>
@@ -195,9 +182,6 @@
     <string name="connections_field_proxy_username">代理用户名</string>
     <string name="connections_field_proxy_password">代理密码</string>
     <string name="connections_helper_proxy_socks4_userid">SOCKS4 仅发送用户 ID（无密码）。</string>
-    <string name="connections_field_et_port">ET 端口</string>
-    <string name="connections_field_mosh_server_command">mosh-server 命令</string>
-    <string name="connections_helper_mosh_server">留空使用默认值。低于 1024 的端口请使用 authbind。</string>
     <string name="connections_username_placeholder_ask">留空以在连接时询问</string>
     <string name="connections_file_transport_auto_desc">尝试 SFTP，若服务器禁用了 sftp-server 子系统则回退到 SCP。</string>
     <string name="connections_file_transport_sftp_label">仅 SFTP</string>
@@ -382,8 +366,6 @@
     <string name="connections_helper_ai_route">通过载体路由端点：SSH 经载体会话打开本地转发，Reticulum 经网格搭建桥梁。Reticulum 路由要求载体已连接。</string>
     <string name="connections_helper_add_reticulum_first">请先添加一个 Reticulum 连接</string>
     <string name="connections_toggle_rdp_nla">网络级身份验证 (NLA)</string>
-    <string name="connections_helper_mosh_required">需要远程主机上的 mosh-server</string>
-    <string name="connections_helper_et_required">需要远程主机上的 etserver（端口 %1$s）</string>
     <string name="connections_helper_run_before_session_manager">在会话管理器启动前运行。</string>
     <string name="connections_toggle_tunnel_only">仅隧道（无终端）</string>
     <string name="connections_helper_tunnel_only">仅为端口转发建立 SSH — 不会打开终端会话。</string>

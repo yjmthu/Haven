@@ -16,7 +16,7 @@ private const val TAG = "RdpSessionManager"
 
 /**
  * Manages active RDP sessions across the app.
- * Same pattern as EtSessionManager / MoshSessionManager.
+ * Same pattern as the SSH session manager.
  */
 @Singleton
 class RdpSessionManager @Inject constructor(

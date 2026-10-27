@@ -78,9 +78,9 @@ class SshClient : SshConnection {
      * The tunnel-resolved peer IP of the proxy dial that carried the last
      * successful [connect], when the chain can report one (Tailscale /
      * WireGuard tunnels — see [TunnelPeerAware]). Null for direct
-     * connections, plain proxies, and jump hosts. #539: this is the literal
-     * IP a tunneled mosh session must use as its UDP destination — the
-     * profile's host may be a MagicDNS name only the tunnel can resolve.
+     * connections, plain proxies, and jump hosts. The literal IP the
+     * tunnel dial actually used, as opposed to the
+     * profile's host, which may be a MagicDNS name only the tunnel can resolve.
      */
     @Volatile
     var tunnelPeerAddress: String? = null

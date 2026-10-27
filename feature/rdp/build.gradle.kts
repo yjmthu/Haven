@@ -27,8 +27,6 @@ dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:rdp"))
     implementation(project(":core:ssh"))
-    implementation(project(":core:mosh"))
-    implementation(project(":core:et"))
     implementation(project(":core:data"))
 
     implementation(libs.activity.compose)

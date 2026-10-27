@@ -54,7 +54,7 @@ data class WorkspaceItem(
 ) {
     /**
      * The launchable surfaces a workspace can compose. The
-     * underlying transport (SSH vs. Mosh vs. ET, SFTP vs. SMB vs.
+     * underlying transport (SSH, SFTP vs. SMB vs.
      * Rclone, VNC vs. RDP) derives from the referenced
      * [ConnectionProfile.connectionType], so adding a new transport in
      * an existing kind doesn't expand this enum.

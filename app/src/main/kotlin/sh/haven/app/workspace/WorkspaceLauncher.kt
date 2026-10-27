@@ -48,7 +48,7 @@ private const val TAG = "WorkspaceLauncher"
  *    A dial that doesn't come up fails that plan's remaining items
  *    with a message; relaunching the workspace retries just those.
  *
- * Mosh/ET/Reticulum/Local terminals keep the bus path
+ * Reticulum/Local terminals keep the bus path
  * ([AgentUiCommand.OpenTerminalSession]) — single-session transports
  * with their own managers.
  *
@@ -238,7 +238,7 @@ class WorkspaceLauncher @Inject constructor(
             }
             return null
         }
-        val isPlainSsh = profile.isSsh && !profile.isMosh && !profile.isEternalTerminal
+        val isPlainSsh = profile.isSsh
 
         var dialed = false
         var liveSessionId: String? = null
@@ -264,7 +264,7 @@ class WorkspaceLauncher @Inject constructor(
                 remoteNames?.let { SessionManager.sanitizeSessionName(name) !in it } == true
 
             if (!isPlainSsh) {
-                // Mosh/ET/Reticulum/Local: single-session transports, tab-only
+                // Reticulum/Local: single-session transports, tab-only
                 // path through their own session managers.
                 val ok = emitWithRetry(AgentUiCommand.OpenTerminalSession(profile.id, sessionName = name))
                 progress.update(

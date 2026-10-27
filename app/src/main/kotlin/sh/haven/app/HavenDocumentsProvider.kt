@@ -20,9 +20,6 @@ import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import sh.haven.core.data.db.entities.ConnectionProfile
 import sh.haven.core.data.repository.ConnectionRepository
-import sh.haven.core.et.EtSessionManager
-import sh.haven.core.mosh.MoshSessionManager
-import sh.haven.core.ssh.SshClient
 import sh.haven.core.ssh.SshSessionManager
 import java.io.File
 import java.io.FileOutputStream
@@ -40,8 +37,6 @@ class HavenDocumentsProvider : DocumentsProvider() {
     @InstallIn(SingletonComponent::class)
     interface ProviderEntryPoint {
         fun sshSessionManager(): SshSessionManager
-        fun moshSessionManager(): MoshSessionManager
-        fun etSessionManager(): EtSessionManager
         fun connectionRepository(): ConnectionRepository
     }
 
@@ -93,36 +88,18 @@ class HavenDocumentsProvider : DocumentsProvider() {
         val cursor = MatrixCursor(cols)
 
         val ssh = entryPoint.sshSessionManager()
-        val mosh = entryPoint.moshSessionManager()
-        val et = entryPoint.etSessionManager()
 
         // Collect connected profile IDs that can serve files
         val sftpProfileIds = mutableSetOf<String>()
         ssh.sessions.value.values
             .filter { it.status == SshSessionManager.SessionState.Status.CONNECTED }
             .forEach { sftpProfileIds.add(it.profileId) }
-        mosh.sessions.value.values
-            .filter {
-                it.status == MoshSessionManager.SessionState.Status.CONNECTED &&
-                    it.sshClient != null
-            }
-            .forEach { sftpProfileIds.add(it.profileId) }
-        et.sessions.value.values
-            .filter {
-                it.status == EtSessionManager.SessionState.Status.CONNECTED &&
-                    it.sshClient != null
-            }
-            .forEach { sftpProfileIds.add(it.profileId) }
 
         // Build labels from session state (avoid blocking DB query in queryRoots)
         val sshLabels = ssh.sessions.value.values.associate { it.profileId to it.label }
-        val moshLabels = mosh.sessions.value.values.associate { it.profileId to it.label }
-        val etLabels = et.sessions.value.values.associate { it.profileId to it.label }
 
         for (profileId in sftpProfileIds) {
             val label = sshLabels[profileId]
-                ?: moshLabels[profileId]
-                ?: etLabels[profileId]
                 ?: profileId
             cursor.newRow().apply {
                 add(Root.COLUMN_ROOT_ID, profileId)
@@ -334,24 +311,14 @@ class HavenDocumentsProvider : DocumentsProvider() {
 
     private fun getRootLabel(profileId: String): String {
         val ssh = entryPoint.sshSessionManager()
-        val mosh = entryPoint.moshSessionManager()
-        val et = entryPoint.etSessionManager()
         return ssh.sessions.value.values.firstOrNull { it.profileId == profileId }?.label
-            ?: mosh.sessions.value.values.firstOrNull { it.profileId == profileId }?.label
-            ?: et.sessions.value.values.firstOrNull { it.profileId == profileId }?.label
             ?: profileId
     }
 
     private fun getSftpSession(profileId: String): SftpSession? {
         val ssh = entryPoint.sshSessionManager()
-        val mosh = entryPoint.moshSessionManager()
-        val et = entryPoint.etSessionManager()
 
         return ssh.openSftpSession(profileId)
-            ?: (mosh.getSshClientForProfile(profileId) as? SshClient)
-                ?.openSftpSession()
-            ?: (et.getSshClientForProfile(profileId) as? SshClient)
-                ?.openSftpSession()
     }
 
     private fun openWritableSftpFile(

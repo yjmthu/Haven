@@ -35,8 +35,6 @@ dependencies {
     implementation(project(":core:security"))
     implementation(project(":core:tunnel"))
     implementation(project(":feature:tunnel"))
-    implementation(project(":core:mosh"))
-    implementation(project(":core:et"))
     implementation(project(":core:data"))
     implementation(project(":core:fido"))
 

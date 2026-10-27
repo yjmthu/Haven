@@ -6,9 +6,9 @@ import org.junit.Assert.fail
 import org.junit.Test
 
 /**
- * #366 — send_terminal_input only tried SSH + local, so input to a mosh/ET/
- * Reticulum session failed "No local session" while snapshot reads resolved
- * the same id. Pins the registry dispatcher: input reaches whichever
+ * #366 — send_terminal_input only tried SSH + local, so input to a session
+ * owned by another transport failed "No local session" while snapshot reads
+ * resolved the same id. Pins the registry dispatcher: input reaches whichever
  * transport owns the session, and the no-owner error names all transports.
  *
  * Uses fake [TransportSessionManager]s rather than the real managers. Since
@@ -52,8 +52,6 @@ class SessionManagerRegistryInputTest {
 
     private val names = mapOf(
         Transport.SSH to "SSH",
-        Transport.MOSH to "mosh",
-        Transport.ET to "ET",
     )
 
     private fun registry(vararg overrides: TransportSessionManager): SessionManagerRegistry {
@@ -63,21 +61,12 @@ class SessionManagerRegistryInputTest {
     }
 
     @Test
-    fun `input reaches a mosh-owned session`() {
-        val mosh = Owning(Transport.MOSH, "mosh")
+    fun `input reaches the owning session`() {
+        val ssh = Owning(Transport.SSH, "SSH")
 
-        registry(mosh).sendTerminalInput("s1", "ls\r")
+        registry(ssh).sendTerminalInput("s1", "ls\r")
 
-        assertEquals("s1" to "ls\r", mosh.received)
-    }
-
-    @Test
-    fun `input reaches an ET-owned session`() {
-        val et = Owning(Transport.ET, "ET")
-
-        registry(et).sendTerminalInput("s1", "x")
-
-        assertEquals("s1" to "x", et.received)
+        assertEquals("s1" to "ls\r", ssh.received)
     }
 
     @Test
@@ -120,26 +109,12 @@ class SessionManagerRegistryInputTest {
      */
     @Test
     fun `names the transport that accepted the write`() {
-        val ssh = Disowning(Transport.SSH, "SSH")
-        val et = Owning(Transport.ET, "ET")
-
-        val accepted = registry(ssh, et).sendTerminalInput("s1", "ls\n")
-
-        assertEquals("ET", accepted)
-        assertEquals("s1" to "ls\n", et.received)
-    }
-
-    /** The first accepting transport wins, and is the one reported. */
-    @Test
-    fun `reports the first acceptor, not the last`() {
         val ssh = Owning(Transport.SSH, "SSH")
-        val et = Owning(Transport.ET, "ET")
 
-        val accepted = registry(et, ssh).sendTerminalInput("s1", "x")
+        val accepted = registry(ssh).sendTerminalInput("s1", "ls\n")
 
-        // Transports are tried in declaration order, so SSH answers first.
         assertEquals("SSH", accepted)
-        assertEquals(null, et.received)
+        assertEquals("s1" to "ls\n", ssh.received)
     }
 
     /**

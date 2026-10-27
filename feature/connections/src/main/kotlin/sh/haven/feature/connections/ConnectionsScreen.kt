@@ -222,8 +222,6 @@ fun ConnectionsScreen(
     val subnetScanning by viewModel.subnetScanning.collectAsState()
     val jumpScanning by viewModel.jumpScanning.collectAsState()
     val jumpScanError by viewModel.jumpScanError.collectAsState()
-    val showMoshSetupGuide by viewModel.showMoshSetupGuide.collectAsState()
-    val showMoshClientMissing by viewModel.showMoshClientMissing.collectAsState()
     val groupLaunchState by viewModel.groupLaunchState.collectAsState()
 
     LaunchedEffect(navigateToTerminal) {
@@ -287,8 +285,6 @@ fun ConnectionsScreen(
             username = p.username ?: "",
             port = p.port ?: defaultPort,
             connectionType = connectionType,
-            useMosh = transport == "mosh",
-            useEternalTerminal = transport == "et",
             sessionManager = if (p.session != null) "TMUX" else null,
         )
         showAddDialog = true
@@ -744,55 +740,6 @@ fun ConnectionsScreen(
             cancelLabel = stringResource(R.string.common_cancel),
             renameDialog = { currentLabel, onDismiss, onRenameTo ->
                 RenameDialog(currentLabel = currentLabel, onDismiss = onDismiss, onRename = onRenameTo)
-            },
-        )
-    }
-
-    if (showMoshSetupGuide) {
-        val uriHandler = LocalUriHandler.current
-        AlertDialog(
-            onDismissRequest = { viewModel.dismissMoshSetupGuide() },
-            title = { Text(stringResource(R.string.connections_mosh_not_found_title)) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(stringResource(R.string.connections_mosh_not_found_message))
-                    Text(stringResource(R.string.connections_mosh_install_prompt))
-                    Text(
-                        stringResource(R.string.connections_mosh_install_commands),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    Text(stringResource(R.string.connections_mosh_firewall_note))
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    uriHandler.openUri("https://github.com/mobile-shell/mosh")
-                }) { Text(stringResource(R.string.connections_mosh_github)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { viewModel.dismissMoshSetupGuide() }) { Text(stringResource(R.string.common_ok)) }
-            },
-        )
-    }
-
-    if (showMoshClientMissing) {
-        val uriHandler = LocalUriHandler.current
-        AlertDialog(
-            onDismissRequest = { viewModel.dismissMoshClientMissing() },
-            title = { Text(stringResource(R.string.connections_mosh_client_missing_title)) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(stringResource(R.string.connections_mosh_client_missing_message))
-                    Text(stringResource(R.string.connections_mosh_client_build_instructions))
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    uriHandler.openUri("https://github.com/mobile-shell/mosh")
-                }) { Text(stringResource(R.string.connections_mosh_github)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { viewModel.dismissMoshClientMissing() }) { Text(stringResource(R.string.common_ok)) }
             },
         )
     }

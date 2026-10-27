@@ -14,9 +14,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import sh.haven.core.et.EtSessionManager
-import sh.haven.core.mosh.MoshSessionManager
-import sh.haven.core.ssh.SshClient
 import sh.haven.core.ssh.SshConnection
 import sh.haven.core.ssh.SshSessionManager
 import sh.haven.core.ui.CursorOverlay
@@ -37,8 +34,6 @@ private const val TAG = "VncViewModel"
 @HiltViewModel
 class VncViewModel @Inject constructor(
     private val sshSessionManager: SshSessionManager,
-    private val moshSessionManager: MoshSessionManager,
-    private val etSessionManager: EtSessionManager,
     private val tlsCertVerifier: sh.haven.core.data.agent.TlsCertVerifier,
     private val preferencesRepository: sh.haven.core.data.preferences.UserPreferencesRepository,
     @ApplicationContext private val appContext: Context,
@@ -222,12 +217,8 @@ class VncViewModel @Inject constructor(
     }
 
     /** Find the SSH client for a session across all session managers. */
-    private fun findSshClient(sessionId: String): SshConnection? {
-        sshSessionManager.getSession(sessionId)?.let { return it.client }
-        moshSessionManager.sessions.value[sessionId]?.sshClient?.let { return it as? SshClient }
-        etSessionManager.sessions.value[sessionId]?.sshClient?.let { return it as? SshClient }
-        return null
-    }
+    private fun findSshClient(sessionId: String): SshConnection? =
+        sshSessionManager.getSession(sessionId)?.client
 
     /** Dismisses the non-fatal unauthenticated-connection banner. */
     fun dismissSecurityWarning() {

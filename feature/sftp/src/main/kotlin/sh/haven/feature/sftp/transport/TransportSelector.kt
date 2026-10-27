@@ -5,11 +5,7 @@ import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import sh.haven.core.data.db.entities.ConnectionProfile
 import sh.haven.core.data.repository.ConnectionRepository
-import sh.haven.core.et.EtSessionManager
-import sh.haven.core.mosh.MoshSessionManager
-import sh.haven.core.ssh.SshClient
 import sh.haven.core.ssh.SshSessionManager
-import sh.haven.core.ssh.sftp.SftpSession
 import kotlinx.coroutines.flow.collect
 import java.io.File
 import javax.inject.Inject
@@ -38,8 +34,6 @@ private const val TAG = "TransportSelector"
 @Singleton
 class TransportSelector @Inject constructor(
     private val sessionManager: SshSessionManager,
-    private val moshSessionManager: MoshSessionManager,
-    private val etSessionManager: EtSessionManager,
     private val connectionRepository: ConnectionRepository,
     @ApplicationContext private val appContext: Context,
 ) {
@@ -69,14 +63,6 @@ class TransportSelector @Inject constructor(
 
 
     fun resolve(profile: ConnectionProfile): Resolution? {
-        // Mosh/ET Files tabs ride the bootstrap SSH client kept alive after the
-        // UDP/relay transport takes over. That client lives in the mosh/ET session
-        // manager, NOT SshSessionManager, so the SFTP/SCP resolvers below can't see
-        // it — resolve() returned null and the tab listed blank even though the tab
-        // itself appeared (#413, reported by dkoppenh). Route it straight to SFTP
-        // over that client. Regular SSH profiles have no mosh/ET client, so this is
-        // a no-op for them.
-        resolveMoshEtSftp(profile.id)?.let { return Resolution(it) }
         return when (profile.fileTransportEnum) {
             ConnectionProfile.FileTransport.SFTP -> resolveSftp(profile)?.let { Resolution(it) }
             ConnectionProfile.FileTransport.SCP -> resolveScp(profile)?.let { Resolution(it) }
@@ -90,23 +76,6 @@ class TransportSelector @Inject constructor(
                 Resolution(scp, announceFallback = announce)
             }
         }
-    }
-
-    /**
-     * Cached SFTP session per mosh/ET profile. [SshClient.openSftpSession] opens a
-     * fresh channel every call (unlike [SshSessionManager.openSftpSession], which
-     * reuses one), and resolve() runs before every op — so without this cache each
-     * navigation would leak an SFTP channel on the bootstrap SSH. Reused while the
-     * channel is live; a dead one (server closed SSH, reconnect) reopens.
-     */
-    private val moshEtSftpSessions = java.util.concurrent.ConcurrentHashMap<String, SftpSession>()
-
-    private fun resolveMoshEtSftp(profileId: String): RemoteFileTransport? {
-        val ssh = (moshSessionManager.getSshClientForProfile(profileId)
-            ?: etSessionManager.getSshClientForProfile(profileId)) as? SshClient ?: return null
-        val session = moshEtSftpSessions[profileId]?.takeIf { it.isConnected }
-            ?: ssh.openSftpSession().also { moshEtSftpSessions[profileId] = it }
-        return SftpTransport({ session }, ssh)
     }
 
     private fun resolveSftp(profile: ConnectionProfile): RemoteFileTransport? {

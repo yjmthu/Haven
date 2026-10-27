@@ -70,11 +70,6 @@ class DebugReceiver : BroadcastReceiver() {
             // gnome-remote-desktop's CredSSP interop needs NLA off; the ADB
             // E2E can turn it off without walking the edit dialog.
             rdpUseNla = intent.getBooleanExtra("rdpUseNla", true),
-            // Transport toggles. Needed so ADB-driven tests can reproduce
-            // issues that only manifest over mosh or Eternal Terminal,
-            // rather than being limited to plain SSH. Added for Haven#73.
-            useMosh = intent.getBooleanExtra("useMosh", false),
-            useEternalTerminal = intent.getBooleanExtra("useEternalTerminal", false),
             // Session manager for the terminal (tmux/zellij/screen/null).
             // Null means "run a plain shell" which is what we want for
             // terminal-state regression tests that care about the exact

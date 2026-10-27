@@ -67,15 +67,6 @@
     <string name="process_exit_cause_memory">мало слободне меморије</string>
     <string name="process_exit_cause_anr">апликација се не одазива</string>
     <string name="process_exit_cause_system">системска полиса</string>
-    <string name="connections_mosh_not_found_title">На серверу није пронађен Mosh</string>
-    <string name="connections_mosh_not_found_message">На удаљеном хосту није инсталиран mosh-server. Mosh (Mobile Shell) одржава вашу сесију активном приликом промена мрежа и веза са великим кашњењем.</string>
-    <string name="connections_mosh_install_prompt">Инсталирај га на сервер:</string>
-    <string name="connections_mosh_install_commands">\u0020 Убунту/Дебијан: sudo apt install mosh \u0020 Федора/РХЕЛ: sudo dnf install mosh \u0020 Арк: sudo pacman -S mosh \u0020 мекОС: brew install mosh</string>
-    <string name="connections_mosh_firewall_note">"UDP порт 60001 мора бити отворен на мрежној баријери сервера. "</string>
-    <string name="connections_mosh_github">Mosh на GitHub</string>
-    <string name="connections_mosh_client_missing_title">Није изграђен Mosh клијент</string>
-    <string name="connections_mosh_client_missing_message">У овој изградњи се не налази mosh-client бинарни фајл. Мора да се унакрсно компајлира за Андроид помоћу NDK.</string>
-    <string name="connections_mosh_client_build_instructions">Покрените tools/build-mosh.sh са Андроид NDK r27+ да изградите mosh-client бинарни фајл, then rebuild the app.па затим поново изградите апликацију.</string>
     <string name="connections_sessions_title">%1$s сесије</string>
     <string name="connections_restore_previous_sessions">Врати %1$d претходних сесија</string>
     <string name="connections_rename_session">Преименуј сесију</string>
@@ -171,9 +162,6 @@
     <string name="connections_field_proxy_username">Корисничко име за посредника</string>
     <string name="connections_field_proxy_password">Лозинка за посредника</string>
     <string name="connections_helper_proxy_socks4_userid">SOCKS4 шаље само userid (без лозинке).</string>
-    <string name="connections_field_et_port">ET порт</string>
-    <string name="connections_field_mosh_server_command">mosh-server команда</string>
-    <string name="connections_helper_mosh_server">Оставите празно за подразумевану вредност. За портове испод 1024 се користи authbind.</string>
     <string name="connections_username_placeholder_ask">Оставите празно да се пита у време повезивања</string>
     <string name="connections_file_transport_auto_desc">Покушава SFTP, ако sftp-server подсистем није доступан, користи се SCP.</string>
     <string name="connections_file_transport_sftp_label">Само SFTP</string>
@@ -454,8 +442,6 @@
     <string name="connections_helper_ai_route">Руторира крајњу тачку преко носиоца: SSH отвара локално прослеђивање кроз сесију носиоца, Reticulum прави мост преко мреже. Носилац мора бити повезан за Reticulum руте.</string>
     <string name="connections_helper_add_reticulum_first">Прво додајте Reticulum везу</string>
     <string name="connections_toggle_rdp_nla">Network Level Authentication (NLA)</string>
-    <string name="connections_helper_mosh_required">На удаљеном хосту је потребан mosh-server</string>
-    <string name="connections_helper_et_required">На удаљеном хосту је потребан etserver (порт %1$s)</string>
     <string name="connections_helper_run_before_session_manager">Извршава се пре него што се покрене менаџер сесије.</string>
     <string name="connections_toggle_tunnel_only">Само-тунел (без терминала)</string>
     <string name="connections_helper_tunnel_only">SSH се подиже само за прослеђивања портова — не отвара се ниједна сесија терминала.</string>

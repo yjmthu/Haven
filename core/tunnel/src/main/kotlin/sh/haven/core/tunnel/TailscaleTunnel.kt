@@ -151,7 +151,7 @@ private class TailscaleConnection(
  * Wraps a native [NativeUDPConn] as [TunneledDatagramSocket]. Mirrors
  * the WireGuard wrapper — same gomobile copy-out-of-fresh-slice pattern,
  * same heuristic for translating Go's "i/o timeout" exception into a
- * null return so the Mosh receive loop's contract holds for both
+ * null return so the UDP receive loop's contract holds for both
  * backends.
  */
 private class TailscaleDatagramSocket(

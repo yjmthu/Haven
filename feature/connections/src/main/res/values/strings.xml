@@ -89,19 +89,6 @@
     <string name="process_exit_cause_anr">app not responding</string>
     <string name="process_exit_cause_system">system policy</string>
 
-    <!-- Mosh setup guide dialog -->
-    <string name="connections_mosh_not_found_title">Mosh not found on server</string>
-    <string name="connections_mosh_not_found_message">The remote host doesn\'t have mosh-server installed. Mosh (Mobile Shell) keeps your session alive across network changes and high-latency connections.</string>
-    <string name="connections_mosh_install_prompt">Install it on the server:</string>
-    <string name="connections_mosh_install_commands">\u0020 Ubuntu/Debian:  sudo apt install mosh\n\u0020 Fedora/RHEL:    sudo dnf install mosh\n\u0020 Arch:           sudo pacman -S mosh\n\u0020 macOS:          brew install mosh</string>
-    <string name="connections_mosh_firewall_note">UDP port 60001 must be open on the server firewall.</string>
-    <string name="connections_mosh_github">Mosh on GitHub</string>
-
-    <!-- Mosh client missing dialog -->
-    <string name="connections_mosh_client_missing_title">Mosh client not built</string>
-    <string name="connections_mosh_client_missing_message">The mosh-client binary is not included in this build. It needs to be cross-compiled for Android using the NDK.</string>
-    <string name="connections_mosh_client_build_instructions">Run tools/build-mosh.sh with Android NDK r27+ to build the mosh-client binary, then rebuild the app.</string>
-
     <!-- Session picker dialog -->
     <string name="connections_sessions_title">%1$s sessions</string>
     <string name="connections_restore_previous_sessions">Restore %1$d previous sessions</string>
@@ -216,9 +203,6 @@
     <string name="connections_field_proxy_username">Proxy Username</string>
     <string name="connections_field_proxy_password">Proxy Password</string>
     <string name="connections_helper_proxy_socks4_userid">SOCKS4 sends only a userid (no password).</string>
-    <string name="connections_field_et_port">ET Port</string>
-    <string name="connections_field_mosh_server_command">mosh-server command</string>
-    <string name="connections_helper_mosh_server">Leave blank for default. Use authbind for ports below 1024.</string>
     <string name="connections_username_placeholder_ask">Leave empty to ask at connect time</string>
     <string name="connections_file_transport_auto_desc">Try SFTP, fall back to SCP if the sftp-server subsystem is unavailable.</string>
     <string name="connections_file_transport_sftp_label">SFTP only</string>
@@ -540,8 +524,6 @@
     <string name="connections_helper_ai_route">Route the endpoint through a carrier: SSH opens a local forward through the carrier session, Reticulum bridges over the mesh. The carrier must be connected for Reticulum routes.</string>
     <string name="connections_helper_add_reticulum_first">Add a Reticulum connection first</string>
     <string name="connections_toggle_rdp_nla">Network Level Authentication (NLA)</string>
-    <string name="connections_helper_mosh_required">Requires mosh-server on remote host</string>
-    <string name="connections_helper_et_required">Requires etserver on remote host (port %1$s)</string>
     <string name="connections_helper_run_before_session_manager">Runs before session manager starts.</string>
     <string name="connections_toggle_tunnel_only">Tunnel-only (no terminal)</string>
     <string name="connections_helper_tunnel_only">Bring up SSH for port forwards only — no terminal session is opened.</string>
