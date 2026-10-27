@@ -38,9 +38,7 @@ class TransportBindingsTest {
             local(manager()),
             guest(manager()),
             smb(manager()),
-            mail(manager()),
             rclone(manager()),
-            openai(manager()),
         )
     }
 

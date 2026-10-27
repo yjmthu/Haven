@@ -225,8 +225,6 @@ fun ConnectionEditDialog(
         seed?.isGlkvm == true -> "GLKVM"
         seed?.isSmb == true -> "SMB"
         seed?.isRclone == true -> "RCLONE"
-        seed?.isEmail == true -> "EMAIL"
-        seed?.isOpenai == true -> "OPENAI"
         seed?.isEternalTerminal == true -> "ET"
         seed?.isMosh == true -> "MOSH"
         seed?.isReticulum == true -> "RETICULUM"
@@ -247,8 +245,6 @@ fun ConnectionEditDialog(
         "GLKVM" -> "GLKVM"
         "SMB" -> "SMB"
         "RCLONE" -> "RCLONE"
-        "EMAIL" -> "EMAIL"
-        "OPENAI" -> "OPENAI"
         else -> "SSH"
     }
     var label by rememberSaveable { mutableStateOf(existing?.label ?: "") }
@@ -451,41 +447,6 @@ fun ConnectionEditDialog(
     // Existing rclone profiles are already configured; a new one isn't until
     // Configure succeeds, and editing a credential field invalidates it.
     var rcloneConfigured by rememberSaveable { mutableStateOf(existing?.connectionType == "RCLONE") }
-    // EMAIL engines: "imap" (JVM, password/app-password — the common case, listed
-    // first) or "proton" (Go bridge, SRP). Gmail/Outlook (OAuth) land in stage 2b
-    // on the same IMAP engine.
-    var emailProvider by rememberSaveable { mutableStateOf(existing?.emailProvider ?: "imap") }
-    var emailUsername by rememberSaveable { mutableStateOf(existing?.emailUsername ?: "") }
-    var emailPassword by rememberSaveable { mutableStateOf(existing?.emailPassword ?: "") }
-    var emailMailboxPassword by rememberSaveable { mutableStateOf(existing?.emailMailboxPassword ?: "") }
-    var emailServer by rememberSaveable { mutableStateOf(existing?.emailServer ?: "") }
-    var emailSmtpServer by rememberSaveable { mutableStateOf(existing?.emailSmtpServer ?: "") }
-    var emailPort by rememberSaveable { mutableStateOf(existing?.emailPort?.toString() ?: "993") }
-    var emailSmtpPort by rememberSaveable { mutableStateOf(existing?.emailSmtpPort?.toString() ?: "465") }
-    var emailTls by rememberSaveable { mutableStateOf(existing?.emailTls ?: true) }
-    // OPENAI endpoint fields: host/port carry the base URL (a full
-    // http:// URL is allowed and wins over host+port), the rest are
-    // type-prefixed columns on the profile.
-    var openaiApiKey by rememberSaveable { mutableStateOf(existing?.openaiApiKey ?: "") }
-    var openaiPathPrefix by rememberSaveable { mutableStateOf(existing?.openaiPathPrefix ?: "") }
-    var openaiProtocol by rememberSaveable {
-        mutableStateOf(existing?.aiProtocol?.takeIf { it.isNotBlank() } ?: "OPENAI")
-    }
-    var openaiProtocolExpanded by rememberSaveable { mutableStateOf(false) }
-    // AI route carrier: the OPENAI counterpart of the desktops' flag+carrier
-    // rows. Editor mode ("NONE"/"SSH"/"RETICULUM") + the carrier profile id;
-    // a stale stored pair reads Direct via [aiRouteInitialMode]'s guard.
-    var aiRouteMode by rememberSaveable {
-        mutableStateOf(aiRouteInitialMode(existing?.aiRouteType, existing?.aiRouteProfileId))
-    }
-    var aiRouteCarrierId by rememberSaveable {
-        mutableStateOf(existing?.aiRouteProfileId ?: "")
-    }
-    // IMAP provider preset (UI-only prefill; not persisted). Re-derived from the
-    // stored IMAP host so re-opening a Gmail profile re-selects "Gmail".
-    var emailPreset by rememberSaveable {
-        mutableStateOf(EmailProviderPreset.fromServer(existing?.emailServer).name)
-    }
     var rnsPort by rememberSaveable { mutableStateOf(existing?.reticulumPort?.toString() ?: "4242") }
     var rnsNetworkName by rememberSaveable { mutableStateOf(existing?.reticulumNetworkName ?: "") }
     var rnsPassphrase by rememberSaveable { mutableStateOf(existing?.reticulumPassphrase ?: "") }
@@ -593,7 +554,6 @@ fun ConnectionEditDialog(
                                     proxyHost = ""
                                     tunnelConfigId = null
                                     useCloudflareTunnel = false
-                                    aiRouteMode = "NONE"
                                     proxyExpanded = false
                                 },
                             )
@@ -621,10 +581,6 @@ fun ConnectionEditDialog(
                                         proxyType = kind
                                         tunnelConfigId = null
                                         useCloudflareTunnel = false
-                                        // The Route-through proxy and the AI
-                                        // route carrier are mutually
-                                        // exclusive transports.
-                                        aiRouteMode = "NONE"
                                         if (kind == "HTTP" && proxyPort == "1080") {
                                             proxyPort = "8080"
                                         } else if (kind != "HTTP" && proxyPort == "8080") {
@@ -657,9 +613,6 @@ fun ConnectionEditDialog(
                                             proxyType = null
                                             proxyHost = ""
                                             useCloudflareTunnel = false
-                                            // Same exclusivity for the
-                                            // WireGuard / Tailscale tunnels.
-                                            aiRouteMode = "NONE"
                                             proxyExpanded = false
                                         },
                                     )
@@ -1140,8 +1093,6 @@ fun ConnectionEditDialog(
                     "GLKVM" to "GLKVM (Desktop)",
                     "SMB" to "SMB (File Share)",
                     "RCLONE" to "Cloud Storage (rclone)",
-                    "EMAIL" to "Email (IMAP / Proton)",
-                    "OPENAI" to "AI Endpoint (OpenAI-compatible)",
                     "RETICULUM" to "Reticulum",
                 )
                 // #510: the terminal build ships no RDP or SPICE client, so
@@ -1207,7 +1158,6 @@ fun ConnectionEditDialog(
                                         "RDP" -> "3389"
                                         "SPICE" -> "5900"
                                         "SMB" -> "445"
-                                        "OPENAI" -> "80"
                                         "ET" -> "22"
                                         else -> "22"
                                     }
@@ -1236,8 +1186,6 @@ fun ConnectionEditDialog(
                                 "GLKVM" -> "My KVM"
                                 "SMB" -> "My File Share"
                                 "RCLONE" -> "My Google Drive"
-                                "EMAIL" -> "My Mail"
-                                "OPENAI" -> "My AI Endpoint"
                                 "RETICULUM" -> "My Node"
                                 else -> "My Server"
                             }
@@ -1617,312 +1565,6 @@ fun ConnectionEditDialog(
                             )
                         }
                     }
-                } else if (connectionType == "EMAIL") {
-                    ConnectionSection(stringResource(R.string.connections_section_email))
-                    // Engine picker — one compact segmented row (portrait-friendly).
-                    val emailProviderOptions = listOf(
-                        "imap" to stringResource(R.string.connections_email_provider_imap_short),
-                        "proton" to stringResource(R.string.connections_email_provider_proton_short),
-                    )
-                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                        emailProviderOptions.forEachIndexed { index, (key, label) ->
-                            SegmentedButton(
-                                selected = emailProvider == key,
-                                onClick = { emailProvider = key },
-                                shape = SegmentedButtonDefaults.itemShape(
-                                    index = index,
-                                    count = emailProviderOptions.size,
-                                ),
-                            ) { Text(label) }
-                        }
-                    }
-                    val isImapProvider = emailProvider.equals("imap", ignoreCase = true)
-                    if (!isImapProvider) {
-                        Text(
-                            stringResource(R.string.connections_email_proton_unofficial_warning),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
-                        )
-                    }
-                    Spacer(Modifier.height(4.dp))
-                    OutlinedTextField(
-                        value = emailUsername,
-                        onValueChange = { emailUsername = it },
-                        label = { Text(stringResource(R.string.connections_field_email_address)) },
-                        placeholder = { Text(if (isImapProvider) "you@example.com" else "you@proton.me") },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    sh.haven.core.ui.PasswordField(
-                        value = emailPassword,
-                        onValueChange = { emailPassword = it },
-                        label = stringResource(R.string.connections_field_email_password),
-                        modifier = Modifier.fillMaxWidth(),
-                        onRevealRequest = onRevealSavedSecret,
-                    )
-                    if (isImapProvider) {
-                        // Generic IMAP/SMTP fields — gated, so they never bloat the
-                        // dialog for Proton (the common case).
-                        val preset = EmailProviderPreset.valueOf(emailPreset)
-                        Spacer(Modifier.height(4.dp))
-                        // Provider preset: prefills server/ports/TLS for the major
-                        // providers; "Custom" leaves the fields manual. UI-only —
-                        // not persisted; re-derived from the saved IMAP host.
-                        var presetExpanded by remember { mutableStateOf(false) }
-                        ExposedDropdownMenuBox(
-                            expanded = presetExpanded,
-                            onExpandedChange = { presetExpanded = it },
-                        ) {
-                            OutlinedTextField(
-                                value = preset.displayName,
-                                onValueChange = {},
-                                readOnly = true,
-                                label = { Text(stringResource(R.string.connections_email_preset_label)) },
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(presetExpanded) },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .menuAnchor(MenuAnchorType.PrimaryNotEditable),
-                            )
-                            ExposedDropdownMenu(
-                                expanded = presetExpanded,
-                                onDismissRequest = { presetExpanded = false },
-                            ) {
-                                EmailProviderPreset.entries.forEach { option ->
-                                    DropdownMenuItem(
-                                        text = { Text(option.displayName) },
-                                        onClick = {
-                                            emailPreset = option.name
-                                            presetExpanded = false
-                                            if (option != EmailProviderPreset.GENERIC) {
-                                                option.imapServer?.let { emailServer = it }
-                                                option.smtpServer?.let { emailSmtpServer = it }
-                                                emailPort = option.imapPort.toString()
-                                                emailSmtpPort = option.smtpPort.toString()
-                                                emailTls = option.tls
-                                            }
-                                        },
-                                    )
-                                }
-                            }
-                        }
-                        preset.appPasswordUrl?.let { url ->
-                            val uriHandler = LocalUriHandler.current
-                            TextButton(onClick = { uriHandler.openUri(url) }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp),
-                                )
-                                Spacer(Modifier.width(6.dp))
-                                Text(
-                                    stringResource(
-                                        R.string.connections_email_app_password_link,
-                                        preset.displayName,
-                                    ),
-                                )
-                            }
-                        }
-                        Text(
-                            stringResource(R.string.connections_email_app_password_hint),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 2.dp),
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        OutlinedTextField(
-                            value = emailServer,
-                            onValueChange = { emailServer = it },
-                            label = { Text(stringResource(R.string.connections_field_imap_server)) },
-                            placeholder = { Text("imap.example.com") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        OutlinedTextField(
-                            value = emailSmtpServer,
-                            onValueChange = { emailSmtpServer = it },
-                            label = { Text(stringResource(R.string.connections_field_smtp_server)) },
-                            placeholder = { Text("smtp.example.com") },
-                            supportingText = {
-                                Text(stringResource(R.string.connections_field_smtp_server_help))
-                            },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Row(modifier = Modifier.fillMaxWidth()) {
-                            OutlinedTextField(
-                                value = emailPort,
-                                onValueChange = { emailPort = it.filter(Char::isDigit) },
-                                label = { Text(stringResource(R.string.connections_field_imap_port)) },
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                modifier = Modifier.weight(1f),
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            OutlinedTextField(
-                                value = emailSmtpPort,
-                                onValueChange = { emailSmtpPort = it.filter(Char::isDigit) },
-                                label = { Text(stringResource(R.string.connections_field_smtp_port)) },
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                        Spacer(Modifier.height(4.dp))
-                        BooleanToggleRow(
-                            label = stringResource(R.string.connections_toggle_imap_tls),
-                            checked = emailTls,
-                            onCheckedChange = { emailTls = it },
-                        )
-                    } else {
-                        Spacer(Modifier.height(4.dp))
-                        sh.haven.core.ui.PasswordField(
-                            value = emailMailboxPassword,
-                            onValueChange = { emailMailboxPassword = it },
-                            label = stringResource(R.string.connections_field_email_mailbox_password),
-                            modifier = Modifier.fillMaxWidth(),
-                            onRevealRequest = onRevealSavedSecret,
-                        )
-                        Text(
-                            stringResource(R.string.connections_email_mailbox_password_hint),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 2.dp),
-                        )
-                        Text(
-                            stringResource(R.string.connections_email_2fa_hint),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 4.dp),
-                        )
-                    }
-                } else if (connectionType == "OPENAI") {
-                    ConnectionSection(stringResource(R.string.connections_section_openai))
-                    // Base URL = host (+ optional full http:// URL, which wins
-                    // over host+port) + optional path prefix before /v1 —
-                    // mirrors ConnectionProfile.openaiBaseUrl.
-                    OutlinedTextField(
-                        value = host,
-                        onValueChange = { host = it },
-                        label = { Text(stringResource(R.string.connections_field_openai_host)) },
-                        placeholder = { Text("192.168.1.20") },
-                        singleLine = true,
-                        supportingText = {
-                            Text(stringResource(R.string.connections_field_openai_host_hint))
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    OutlinedTextField(
-                        value = port,
-                        onValueChange = { port = it.filter { c -> c.isDigit() } },
-                        label = { Text(stringResource(R.string.connections_field_port)) },
-                        placeholder = { Text("8090") },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.width(120.dp),
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    sh.haven.core.ui.PasswordField(
-                        value = openaiApiKey,
-                        onValueChange = { openaiApiKey = it },
-                        label = stringResource(R.string.connections_field_openai_api_key),
-                        modifier = Modifier.fillMaxWidth(),
-                        onRevealRequest = onRevealSavedSecret,
-                    )
-                    Text(
-                        stringResource(R.string.connections_field_openai_api_key_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 2.dp),
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    OutlinedTextField(
-                        value = openaiPathPrefix,
-                        onValueChange = { openaiPathPrefix = it },
-                        label = { Text(stringResource(R.string.connections_field_openai_path_prefix)) },
-                        placeholder = { Text("/api") },
-                        singleLine = true,
-                        supportingText = {
-                            Text(stringResource(R.string.connections_field_openai_path_prefix_hint))
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    // Wire protocol: OpenAI-compatible by default; Ollama,
-                    // Anthropic and Gemini change paths, auth headers and
-                    // payload/stream shapes in the client.
-                    ExposedDropdownMenuBox(
-                        expanded = openaiProtocolExpanded,
-                        onExpandedChange = { openaiProtocolExpanded = it },
-                    ) {
-                        OutlinedTextField(
-                            value = openaiProtocol,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text(stringResource(R.string.connections_field_openai_protocol)) },
-                            supportingText = {
-                                Text(stringResource(R.string.connections_field_openai_protocol_hint))
-                            },
-                            trailingIcon = {
-                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = openaiProtocolExpanded)
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
-                        )
-                        ExposedDropdownMenu(
-                            expanded = openaiProtocolExpanded,
-                            onDismissRequest = { openaiProtocolExpanded = false },
-                        ) {
-                            listOf("OPENAI", "OLLAMA", "ANTHROPIC", "GEMINI").forEach { p ->
-                                DropdownMenuItem(
-                                    text = { Text(p) },
-                                    onClick = {
-                                        openaiProtocol = p
-                                        openaiProtocolExpanded = false
-                                    },
-                                )
-                            }
-                        }
-                    }
-                    val openaiPreview = run {
-                        val base = if (host.contains("://")) host.trimEnd('/')
-                        else "http://$host:${if ((port.toIntOrNull() ?: 0) > 0) port else "80"}".trimEnd('/')
-                        val prefix = openaiPathPrefix.trim()
-                        if (prefix.isEmpty()) base
-                        else base + (if (prefix.startsWith("/")) prefix else "/$prefix")
-                    }
-                    Text(
-                        stringResource(R.string.connections_openai_url_preview, openaiPreview),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 4.dp),
-                    )
-                    // AI route carrier: route the endpoint's HTTP through an
-                    // SSH forward or a Reticulum bridge, like the desktops'
-                    // Tunnel-through-SSH rows. Picking a carrier here clears
-                    // the Route-through tunnel below (the carrier IS the
-                    // transport — stacking both is a double-hop).
-                    Spacer(Modifier.height(4.dp))
-                    AiRouteBlock(
-                        mode = aiRouteMode,
-                        carrierId = aiRouteCarrierId,
-                        profiles = sshProfiles,
-                        onModeChange = { mode ->
-                            aiRouteMode = mode
-                            if (mode != "NONE") {
-                                tunnelConfigId = null
-                                proxyType = null
-                                proxyHost = ""
-                            }
-                        },
-                        onCarrierChange = { aiRouteCarrierId = it },
-                    )
                 } else if (connectionType == "VNC") {
                     ConnectionSection(stringResource(R.string.connections_section_vnc))
                     // VNC: tunnel toggle first (it changes what Host means),
@@ -3690,11 +3332,11 @@ fun ConnectionEditDialog(
                 // Port knocking. Visible for any profile with a remote
                 // TCP host — skipped for LOCAL (no host), RCLONE (its own
                 // protocol), and RETICULUM (mesh, not TCP).
-                if (connectionType in setOf("VNC", "RDP", "SPICE", "GLKVM", "SMB", "EMAIL", "OPENAI")) {
+                if (connectionType in setOf("VNC", "RDP", "SPICE", "GLKVM", "SMB")) {
                     ConnectionSection(stringResource(R.string.connections_section_routing))
                     routingBody()
                 }
-                if (connectionType in setOf("VNC", "RDP", "SPICE", "GLKVM", "SMB", "EMAIL", "OPENAI")) {
+                if (connectionType in setOf("VNC", "RDP", "SPICE", "GLKVM", "SMB")) {
                     ConnectionSection(stringResource(R.string.connections_section_port_knock))
                     portKnockBody()
                     ConnectionSection(stringResource(R.string.connections_section_spa))
@@ -3734,9 +3376,6 @@ fun ConnectionEditDialog(
                 // other provider must have its remote written via Configure first (#295).
                 "RCLONE" -> rcloneProvider.isNotBlank() &&
                     (rcloneProvider in sh.haven.core.rclone.RCLONE_OAUTH_PROVIDERS || rcloneConfigured)
-                "EMAIL" -> emailUsername.isNotBlank() && emailPassword.isNotBlank() &&
-                    (!emailProvider.equals("imap", ignoreCase = true) || emailServer.isNotBlank())
-                "OPENAI" -> host.isNotBlank() && aiRouteComplete(aiRouteMode, aiRouteCarrierId)
                 else -> destinationHash.length == 32 && (localSideband || rnsHost.isNotBlank())
             }
             // Build the profile from the current form state. Shared by Save
@@ -4007,93 +3646,6 @@ fun ConnectionEditDialog(
                                 colorTag = colorTag,
                                 groupId = groupId,
                                 identityId = identityId,
-                            )
-                        } else if (connectionType == "EMAIL") {
-                            (existing ?: ConnectionProfile(
-                                label = label,
-                                host = host,
-                                username = emailUsername,
-                            )).copy(
-                                label = label.ifBlank {
-                                    emailUsername.ifBlank {
-                                        if (emailProvider.equals("imap", true)) "Email" else "Proton Mail"
-                                    }
-                                },
-                                // host carries the optional tunnel-ingress/bastion that
-                                // SPA/knock guards; for Proton the mail server is Proton's,
-                                // for IMAP it's emailServer (reached through the tunnel).
-                                host = host,
-                                port = 0,
-                                username = emailUsername,
-                                connectionType = "EMAIL",
-                                emailProvider = emailProvider,
-                                emailUsername = emailUsername,
-                                emailPassword = emailPassword.ifBlank { null },
-                                emailMailboxPassword = emailMailboxPassword.ifBlank { null },
-                                emailServer = emailServer.ifBlank { null },
-                                emailSmtpServer = emailSmtpServer.ifBlank { null },
-                                emailPort = emailPort.toIntOrNull()?.takeIf { it in 1..65535 } ?: 993,
-                                emailSmtpPort = emailSmtpPort.toIntOrNull()?.takeIf { it in 1..65535 } ?: 465,
-                                emailTls = emailTls,
-                                colorTag = colorTag,
-                                groupId = groupId,
-                                identityId = identityId,
-                                tunnelConfigId = tunnelConfigId,
-                                portKnockSequence = portKnockSequence.ifBlank { null },
-                                portKnockDelayMs = portKnockDelayMs.toIntOrNull()
-                                    ?.coerceAtLeast(0) ?: KnockSequence.DEFAULT_DELAY_MS,
-                                spaKey = spaKey.ifBlank { null },
-                                spaKeyBase64 = spaKeyBase64,
-                                spaHmacKey = spaHmacKey.ifBlank { null },
-                                spaHmacKeyBase64 = spaHmacKeyBase64,
-                                spaAccessSpec = spaAccessSpec.ifBlank { null },
-                                spaAllowMode = spaAllowMode,
-                                spaExplicitIp = spaExplicitIp.ifBlank { null },
-                                spaPort = spaPort.toIntOrNull()?.takeIf { it in 1..65535 }
-                                    ?: SpaConfig.DEFAULT_SPA_PORT,
-                            )
-                        } else if (connectionType == "OPENAI") {
-                            (existing ?: ConnectionProfile(
-                                label = label,
-                                host = host,
-                                username = "",
-                            )).copy(
-                                label = label.ifBlank { "AI Endpoint" },
-                                host = host,
-                                port = port.toIntOrNull()?.takeIf { it in 1..65535 } ?: 0,
-                                username = "",
-                                connectionType = "OPENAI",
-                                openaiApiKey = openaiApiKey.ifBlank { null },
-                                openaiPathPrefix = openaiPathPrefix.trim().ifBlank { null },
-                                aiProtocol = openaiProtocol.takeIf { it != "OPENAI" },
-                                colorTag = colorTag,
-                                groupId = groupId,
-                                identityId = identityId,
-                                tunnelConfigId = tunnelConfigId,
-                                portKnockSequence = portKnockSequence.ifBlank { null },
-                                portKnockDelayMs = portKnockDelayMs.toIntOrNull()
-                                    ?.coerceAtLeast(0) ?: KnockSequence.DEFAULT_DELAY_MS,
-                                spaKey = spaKey.ifBlank { null },
-                                spaKeyBase64 = spaKeyBase64,
-                                spaHmacKey = spaHmacKey.ifBlank { null },
-                                spaHmacKeyBase64 = spaHmacKeyBase64,
-                                spaAccessSpec = spaAccessSpec.ifBlank { null },
-                                spaAllowMode = spaAllowMode,
-                                spaExplicitIp = spaExplicitIp.ifBlank { null },
-                                spaPort = spaPort.toIntOrNull()?.takeIf { it in 1..65535 }
-                                    ?: SpaConfig.DEFAULT_SPA_PORT,
-                            ).withRoutingSelection(
-                                proxyType = if (aiRouteMode == "NONE") proxyType else null,
-                                proxyHost = proxyHost,
-                                proxyPort = proxyPort,
-                                proxyUser = proxyUser,
-                                proxyPassword = proxyPassword,
-                                tunnelConfigId = if (aiRouteMode == "NONE") tunnelConfigId else null,
-                            ).copy(
-                                // One (type, carrier) pair, self-exclusive: a
-                                // saved profile can never carry two carriers.
-                                aiRouteType = aiRouteTypeForSave(aiRouteMode),
-                                aiRouteProfileId = aiRouteCarrierForSave(aiRouteMode, aiRouteCarrierId),
                             )
                         } else if (connectionType == "SMB") {
                             val smbPortInt = port.toIntOrNull() ?: 445
@@ -4600,118 +4152,6 @@ private fun SshTunnelBlock(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.error,
         )
-    }
-}
-
-/**
- * AI route carrier picker: the OPENAI counterpart of [SshTunnelBlock].
- * Three-way mode (Direct / Via SSH / Via Reticulum), then the carrier
- * dropdown for the chosen kind. Save is gated by [aiRouteComplete] — a
- * picked mode without a carrier can't be saved.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AiRouteBlock(
-    mode: String,
-    carrierId: String?,
-    profiles: List<ConnectionProfile>,
-    onModeChange: (String) -> Unit,
-    onCarrierChange: (String) -> Unit,
-) {
-    var modeExpanded by remember { mutableStateOf(false) }
-    val modeOptions = listOf(
-        "NONE" to stringResource(R.string.connections_dropdown_none_direct),
-        "SSH" to stringResource(R.string.connections_ai_route_via_ssh),
-        "RETICULUM" to stringResource(R.string.connections_ai_route_via_reticulum),
-    )
-    ExposedDropdownMenuBox(
-        expanded = modeExpanded,
-        onExpandedChange = { modeExpanded = it },
-    ) {
-        OutlinedTextField(
-            value = modeOptions.firstOrNull { it.first == mode }?.second
-                ?: stringResource(R.string.connections_dropdown_none_direct),
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(stringResource(R.string.connections_ai_route_section)) },
-            supportingText = { Text(stringResource(R.string.connections_helper_ai_route)) },
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = modeExpanded)
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
-        )
-        ExposedDropdownMenu(
-            expanded = modeExpanded,
-            onDismissRequest = { modeExpanded = false },
-        ) {
-            modeOptions.forEach { (value, label) ->
-                DropdownMenuItem(
-                    text = { Text(label) },
-                    onClick = {
-                        onModeChange(value)
-                        modeExpanded = false
-                    },
-                )
-            }
-        }
-    }
-    when (mode) {
-        "SSH" -> SshTunnelBlock(
-            enabled = true,
-            carrierId = carrierId,
-            sshProfiles = profiles,
-            onEnabledChange = { /* always on inside the AI route block */ },
-            onCarrierChange = onCarrierChange,
-            showToggle = false,
-        )
-        "RETICULUM" -> {
-            val candidates = profiles.filter { it.isReticulum }
-            if (candidates.isNotEmpty()) {
-                Spacer(Modifier.height(4.dp))
-                var reticulumExpanded by remember { mutableStateOf(false) }
-                val selected = candidates.firstOrNull { it.id == carrierId }
-                ExposedDropdownMenuBox(
-                    expanded = reticulumExpanded,
-                    onExpandedChange = { reticulumExpanded = it },
-                ) {
-                    OutlinedTextField(
-                        value = selected?.label
-                            ?: stringResource(R.string.connections_dropdown_select_carrier),
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text(stringResource(R.string.connections_field_ai_route_carrier)) },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(reticulumExpanded)
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor(MenuAnchorType.PrimaryNotEditable),
-                    )
-                    ExposedDropdownMenu(
-                        expanded = reticulumExpanded,
-                        onDismissRequest = { reticulumExpanded = false },
-                    ) {
-                        candidates.forEach { candidate ->
-                            DropdownMenuItem(
-                                text = { Text(candidate.label) },
-                                onClick = {
-                                    onCarrierChange(candidate.id)
-                                    reticulumExpanded = false
-                                },
-                            )
-                        }
-                    }
-                }
-            } else {
-                Text(
-                    stringResource(R.string.connections_helper_add_reticulum_first),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-        }
     }
 }
 

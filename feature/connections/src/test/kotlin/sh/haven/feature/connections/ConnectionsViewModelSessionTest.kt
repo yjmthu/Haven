@@ -44,7 +44,6 @@ import sh.haven.core.fido.FidoAuthenticator
 import sh.haven.core.local.DesktopManager
 import sh.haven.core.local.LocalSessionManager
 import sh.haven.core.local.ProotManager
-import sh.haven.core.mail.MailSessionManager
 import sh.haven.core.mosh.MoshSessionManager
 import sh.haven.core.reticulum.ReticulumTransport
 import sh.haven.core.reticulum.ReticulumSessionManager
@@ -88,10 +87,7 @@ class ConnectionsViewModelSessionTest {
     private lateinit var smbSessionManager: SmbSessionManager
     private lateinit var localSessionManager: LocalSessionManager
     private lateinit var rdpSessionManager: RdpSessionManager
-    private lateinit var mailSessionManager: MailSessionManager
     private lateinit var rcloneSessionManager: sh.haven.core.rclone.RcloneSessionManager
-    private lateinit var openAiSessionManager: sh.haven.core.openai.OpenAiSessionManager
-    private val openAiSessions = MutableStateFlow<Map<String, sh.haven.core.openai.OpenAiSessionManager.SessionState>>(emptyMap())
     private lateinit var prootManager: ProotManager
     private lateinit var desktopManager: DesktopManager
     private lateinit var sessionManagerRegistry: SessionManagerRegistry
@@ -146,15 +142,8 @@ class ConnectionsViewModelSessionTest {
             every { sessions } returns MutableStateFlow(emptyMap())
             every { activeSessions } returns emptyList()
         }
-        mailSessionManager = mockk(relaxed = true) {
-            every { sessions } returns MutableStateFlow(emptyMap())
-        }
         rcloneSessionManager = mockk(relaxed = true) {
             every { sessions } returns MutableStateFlow(emptyMap())
-        }
-        openAiSessionManager = mockk(relaxed = true) {
-            every { sessions } returns openAiSessions
-            every { activeSessions } returns emptyList()
         }
         // Since #510 the registry takes contributed transports rather than
         // naming each manager, so the bindings that :app provides in
@@ -170,11 +159,7 @@ class ConnectionsViewModelSessionTest {
                 disconnectable(Transport.SMB) { smbSessionManager.removeAllSessionsForProfile(it) },
                 disconnectable(Transport.LOCAL) { localSessionManager.removeAllSessionsForProfile(it) },
                 disconnectable(Transport.RDP) { rdpSessionManager.removeAllSessionsForProfile(it) },
-                disconnectable(Transport.MAIL) { mailSessionManager.removeAllSessionsForProfile(it) },
                 disconnectable(Transport.RCLONE) { rcloneSessionManager.removeAllSessionsForProfile(it) },
-                // OPENAI was missing from this set, so disconnect left the chat
-                // session CONNECTED forever (the same #363 shape as rclone).
-                disconnectable(Transport.OPENAI) { openAiSessionManager.removeAllSessionsForProfile(it) },
                 // The three serial transports were anonymous mocks here before
                 // and nothing asserts them; they stay no-ops.
                 disconnectable(Transport.BTSERIAL) {},
@@ -244,7 +229,6 @@ class ConnectionsViewModelSessionTest {
             umlGuestManager = mockk(relaxed = true) {
                 every { sessions } returns kotlinx.coroutines.flow.MutableStateFlow(emptyMap())
             },
-            mailSessionManager = mailSessionManager,
             sessionManagerRegistry = sessionManagerRegistry,
             sshKeyRepository = sshKeyRepository,
             totpSecretRepository = mockk(relaxed = true) {
@@ -286,8 +270,6 @@ class ConnectionsViewModelSessionTest {
             biometricGate = mockk(relaxed = true),
             pendingAuthPromptHolder = mockk(relaxed = true),
             sessionSelectionHolder = mockk(relaxed = true),
-            openAiSessionManager = openAiSessionManager,
-            aiRouteRegistry = sh.haven.core.openai.AiRouteRegistry(),
             connectionPreflight = mockk(relaxed = true) {
                 coEvery { beforeConnect(any()) } answers {
                     sh.haven.core.data.repository.ConnectionPreflight.Result.Proceed(firstArg())
@@ -335,29 +317,6 @@ class ConnectionsViewModelSessionTest {
         verify { smbSessionManager.removeAllSessionsForProfile("profile1") }
         verify { localSessionManager.removeAllSessionsForProfile("profile1") }
         verify { rcloneSessionManager.removeAllSessionsForProfile("profile1") }
-        verify { openAiSessionManager.removeAllSessionsForProfile("profile1") }
-    }
-
-    // A connected OPENAI/chat profile must surface CONNECTED in profileStatuses,
-    // otherwise the connections-list row shows no status dot and tapping it falls
-    // through to the SSH password prompt instead of opening the chat.
-    @Test
-    fun `connected openai session surfaces CONNECTED profile status`() = runTest {
-        openAiSessions.value = mapOf(
-            "s1" to sh.haven.core.openai.OpenAiSessionManager.SessionState(
-                sessionId = "s1",
-                profileId = "openai1",
-                label = "local model",
-                status = sh.haven.core.openai.OpenAiSessionManager.SessionState.Status.CONNECTED,
-            ),
-        )
-        backgroundScope.launch { viewModel.profileStatuses.collect { } }
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        org.junit.Assert.assertEquals(
-            sh.haven.feature.connections.ProfileStatus.CONNECTED,
-            viewModel.profileStatuses.value["openai1"],
-        )
     }
 
     @Test

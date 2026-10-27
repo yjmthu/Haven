@@ -81,9 +81,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import sh.haven.app.desktop.DesktopViewModel
 import sh.haven.feature.connections.ConnectionsScreen
 import sh.haven.feature.connections.ConnectionsViewModel
-import sh.haven.feature.chat.ChatScreen
 import sh.haven.feature.keys.KeysScreen
-import sh.haven.feature.mail.MailScreen
 import sh.haven.feature.settings.SettingsScreen
 import androidx.compose.ui.unit.dp
 import sh.haven.feature.sftp.SftpScreen
@@ -101,8 +99,6 @@ fun HavenNavHost(
     sshKeyRepository: sh.haven.core.data.repository.SshKeyRepository,
     agentUiCommandBus: sh.haven.core.data.agent.AgentUiCommandBus,
     userMessageBus: sh.haven.core.data.message.UserMessageBus,
-    mailSessionManager: sh.haven.core.mail.MailSessionManager,
-    openAiSessionManager: sh.haven.core.openai.OpenAiSessionManager,
     mcpStatusHolder: sh.haven.core.data.agent.McpStatusHolder,
 ) {
     // Desktop multi-session ViewModel — hoisted to nav scope so it survives tab switches
@@ -155,37 +151,18 @@ fun HavenNavHost(
         .collectAsState(initial = 1f)
 
     val hasTerminalProfiles = connections.any { it.isTerminal }
-    // The Mail tab tracks live sessions, not saved profiles: it appears only
-    // while an email connection is actually open (a CONNECTED session) and
-    // disappears on disconnect — mail is a transient view with no offline
-    // store yet, unlike the Terminal/Keys tabs which gate on profile existence.
-    val mailSessions by mailSessionManager.sessions.collectAsState()
-    val hasOpenEmailSession = mailSessions.values.any {
-        it.status == sh.haven.core.mail.MailSessionManager.SessionState.Status.CONNECTED
-    }
-
-    // Same live-session tracking for the Chat tab: appears while an OpenAI
-    // endpoint connection is open, hides on disconnect.
-    val openAiSessions by openAiSessionManager.sessions.collectAsState()
-    val hasOpenChatSession = openAiSessions.values.any {
-        it.status == sh.haven.core.openai.OpenAiSessionManager.SessionState.Status.CONNECTED
-    }
 
     val screenOrderPref by preferencesRepository.screenOrder
         .collectAsState(initial = emptyList())
     val screens = remember(
         screenOrderPref,
         hasTerminalProfiles,
-        hasOpenEmailSession,
-        hasOpenChatSession,
         tabVisibility,
     ) {
         visibleScreens(
             screenOrder = screenOrderPref,
             tabVisibility = tabVisibility,
             hasTerminalProfiles = hasTerminalProfiles,
-            hasOpenEmailSession = hasOpenEmailSession,
-            hasOpenChatSession = hasOpenChatSession,
         )
     }
     // Separate mutable list for nav bar visual order during drag (pager untouched)
@@ -347,12 +324,6 @@ fun HavenNavHost(
         }
     }
 
-    // Set when the "mail actions awaiting approval" notification tap routes
-    // through (MainActivity → AgentUiCommand.OpenMailRules): MailScreen opens
-    // its rules pane once composed, then consumes the flag. Declared here
-    // (before the command collector below) so the collector can set it.
-    var pendingOpenMailRules by rememberSaveable { mutableStateOf(false) }
-
     // Agent UI commands — when an MCP tool posts a navigation verb, switch
     // the pager to the right tab so the user lands where the agent asked.
     // The matching feature ViewModel collects the same bus and adjusts its
@@ -402,15 +373,10 @@ fun HavenNavHost(
                     Screen.Connections
                 is sh.haven.core.data.agent.AgentUiCommand.OpenBackupPasswordDialog ->
                     Screen.Settings
-                is sh.haven.core.data.agent.AgentUiCommand.OpenMailRules -> {
-                    // Approval-queue notification tap: land on Mail with the
-                    // rules pane open. With no live email session the Mail tab
-                    // is hidden; the selection is remembered and both fire
-                    // once the user reconnects the account (approval needs the
-                    // session anyway).
-                    pendingOpenMailRules = true
-                    Screen.Mail
-                }
+                is sh.haven.core.data.agent.AgentUiCommand.OpenMailRules ->
+                    // Email was removed from this build; the command has no
+                    // destination left, so land somewhere always-visible.
+                    Screen.Connections
             }
             // Reactive: e.g. OpenRemoteDesktop waits for Desktop to appear
             // rather than silently no-op'ing when it's still hidden.
@@ -522,11 +488,6 @@ fun HavenNavHost(
 
     // Rclone auto-connect params
     var pendingRcloneProfileId by rememberSaveable { mutableStateOf<String?>(null) }
-
-    // Email (Mail) auto-open params
-    var pendingEmailProfileId by rememberSaveable { mutableStateOf<String?>(null) }
-    // Profile id an OPENAI connect landed on; consumed by the Chat screen on first show.
-    var pendingChatProfileId by rememberSaveable { mutableStateOf<String?>(null) }
 
     // Local-shell open requests from the Desktop → Manage shell button (#168).
     // Always-composed HavenNavHost collects them, sets the pending profile,
@@ -661,18 +622,6 @@ fun HavenNavHost(
                         pendingRcloneProfileId = profileId
                         coroutineScope.launch {
                             requestScreen(Screen.Sftp)
-                        }
-                    },
-                    onNavigateToEmail = { profileId ->
-                        pendingEmailProfileId = profileId
-                        coroutineScope.launch {
-                            requestScreen(Screen.Mail)
-                        }
-                    },
-                    onNavigateToChat = { profileId ->
-                        pendingChatProfileId = profileId
-                        coroutineScope.launch {
-                            requestScreen(Screen.Chat)
                         }
                     },
                     onNavigateToWayland = {
@@ -880,13 +829,6 @@ fun HavenNavHost(
                                 requestScreen(Screen.Terminal)
                             }
                         },
-                        onChatAttachFinished = {
-                            // Once the chat pick resolves, land back on the
-                            // Chat page where the staged image is waiting.
-                            coroutineScope.launch {
-                                requestScreen(Screen.Chat)
-                            }
-                        },
                         onOpenUsbDrive = { desktopViewModel.openUsbDrive() },
                         viewModel = sftpViewModel,
                     )
@@ -898,35 +840,6 @@ fun HavenNavHost(
                     LaunchedEffect(pendingRcloneProfileId) {
                         if (pendingRcloneProfileId != null) {
                             pendingRcloneProfileId = null
-                        }
-                    }
-                }
-                Screen.Mail -> {
-                    MailScreen(
-                        pendingProfileId = pendingEmailProfileId,
-                        pendingOpenRules = pendingOpenMailRules,
-                        onPendingRulesConsumed = { pendingOpenMailRules = false },
-                        mailModifier = Modifier.fillMaxSize(),
-                    )
-                    LaunchedEffect(pendingEmailProfileId) {
-                        if (pendingEmailProfileId != null) {
-                            pendingEmailProfileId = null
-                        }
-                    }
-                }
-                Screen.Chat -> {
-                    ChatScreen(
-                        pendingProfileId = pendingChatProfileId,
-                        onOpenFilesTab = {
-                            coroutineScope.launch {
-                                requestScreen(Screen.Sftp)
-                            }
-                        },
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                    LaunchedEffect(pendingChatProfileId) {
-                        if (pendingChatProfileId != null) {
-                            pendingChatProfileId = null
                         }
                     }
                 }
@@ -1167,10 +1080,6 @@ internal fun visibleScreens(
     screenOrder: List<String>,
     tabVisibility: Map<String, TabVisibility>,
     hasTerminalProfiles: Boolean,
-    hasOpenEmailSession: Boolean,
-    // Defaulted so the existing positional test constructions keep compiling;
-    // the production caller passes the live chat-session check.
-    hasOpenChatSession: Boolean = false,
 ): List<Screen> {
     val ordered = if (screenOrder.isNotEmpty()) {
         val byRoute = screenOrder.mapNotNull { route ->
@@ -1199,12 +1108,6 @@ internal fun visibleScreens(
                     // SFTP file browser is useful even with no remote storage
                     // (local file paths work).
                     Screen.Sftp -> true
-                    // Mail shows only while an email connection is open (a live
-                    // CONNECTED session) and hides again on disconnect.
-                    Screen.Mail -> hasOpenEmailSession
-                    // Chat shows only while an OpenAI endpoint connection is
-                    // open, mirroring Mail's live-session rule.
-                    Screen.Chat -> hasOpenChatSession
                     // Terminal hides until there's any SSH/Mosh/ET/Reticulum
                     // profile (ConnectionProfile.isTerminal covers them all).
                     Screen.Terminal -> hasTerminalProfiles

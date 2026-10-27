@@ -78,7 +78,6 @@ internal class McpTools(
     private val reticulumSessionManager: sh.haven.core.reticulum.ReticulumSessionManager,
     private val reticulumForwardServer: sh.haven.core.reticulum.ReticulumForwardServer,
     private val rcloneClient: RcloneClient,
-    private val mailSessionManager: sh.haven.core.mail.MailSessionManager,
     private val sftpStreamServer: SftpStreamServer,
     private val hlsStreamServer: HlsStreamServer,
     private val ffmpegExecutor: FfmpegExecutor,
@@ -97,8 +96,6 @@ internal class McpTools(
     private val connectionLogRepository: sh.haven.core.data.repository.ConnectionLogRepository,
     private val servedFileTracker: sh.haven.core.data.agent.ServedFileTracker,
     private val syncProfileRepository: sh.haven.core.data.repository.SyncProfileRepository,
-    private val mailRuleRepository: sh.haven.core.data.repository.MailRuleRepository,
-    private val mailWatchManager: sh.haven.app.agent.mailrules.MailWatchManager,
     private val agentActivityHolder: sh.haven.core.data.agent.AgentActivityHolder,
     private val terminalInputQueue: TerminalInputQueue,
     private val prootInstallLogRepository: sh.haven.core.data.repository.ProotInstallLogRepository,
@@ -108,7 +105,6 @@ internal class McpTools(
     private val totpSecretRepository: sh.haven.core.data.repository.TotpSecretRepository,
     private val ageIdentityRepository: sh.haven.core.data.repository.AgeIdentityRepository,
     private val desktopSessionRegistry: sh.haven.core.data.desktop.DesktopSessionRegistry,
-    private val aiRouteRegistry: sh.haven.core.openai.AiRouteRegistry,
     private val usbBroker: sh.haven.core.usb.UsbBroker,
     private val usbIpServer: sh.haven.core.usb.UsbIpServer,
     private val usbDriveVmManager: sh.haven.app.usb.UsbDriveVmManager,
@@ -127,13 +123,6 @@ internal class McpTools(
     private val btSerialSessionManager: sh.haven.core.btserial.BtSerialSessionManager? = null,
     private val bleSerialSessionManager: sh.haven.core.bleserial.BleSerialSessionManager? = null,
     private val usbSerialSessionManager: sh.haven.core.usbserial.UsbSerialSessionManager? = null,
-    // OpenAI-endpoint session manager + tunnel resolver for the openai_* tools
-    // (openai_list_models / openai_chat). Nullable + defaulted like the serial
-    // managers above so manual McpTools test constructions compile unchanged;
-    // when either is absent the tools simply don't register. McpServer passes
-    // the real Hilt singletons.
-    private val openAiSessionManager: sh.haven.core.openai.OpenAiSessionManager? = null,
-    private val tunnelResolver: sh.haven.core.tunnel.TunnelResolver? = null,
     // One-shot exec on a saved SSH profile (run_command, #367). Nullable +
     // defaulted so the many manual McpTools constructions in unit tests that
     // don't exercise it compile unchanged; McpServer always passes the real
@@ -307,32 +296,6 @@ internal class McpTools(
         desktopSessionRegistry = desktopSessionRegistry,
         localSessionManager = localSessionManager,
     )
-    private val mailProvider = MailToolProvider(
-        ctx = toolContext,
-        mailSessionManager = mailSessionManager,
-        mailRuleRepository = mailRuleRepository,
-        mailWatchManager = mailWatchManager,
-        transportSelector = transportSelector,
-        preferencesRepository = preferencesRepository,
-        connectionLogRepository = connectionLogRepository,
-        connectionRepository = connectionRepository,
-        agentUiCommandBus = agentUiCommandBus,
-    )
-    // Null when the OpenAI session manager (or its tunnel resolver) isn't
-    // supplied — e.g. a manual test construction — in which case no openai_*
-    // tools register.
-    private val openAiProvider: OpenAiToolProvider? =
-        if (openAiSessionManager != null && tunnelResolver != null) {
-            OpenAiToolProvider(
-                ctx = toolContext,
-                openAiSessionManager = openAiSessionManager,
-                connectionRepository = connectionRepository,
-                openAiClient = sh.haven.core.openai.OpenAiClient(),
-                tunnelResolver = tunnelResolver,
-            )
-        } else {
-            null
-        }
     private val serialBridgeProvider = SerialBridgeToolProvider(
         btSerial = btSerialSessionManager,
         bleSerial = bleSerialSessionManager,
@@ -419,7 +382,7 @@ internal class McpTools(
         toolsPart1() + toolsPart2() + toolsPart3() + toolsPart4() +
             keyStoreProvider.tools() + tunnelProvider.tools() + sshKeyProvider.tools() +
             hostKeyProvider.tools() + stepCaProvider.tools() + rcloneProvider.tools() + usbProvider.tools() +
-            desktopProvider.tools() + mailProvider.tools() + (openAiProvider?.tools() ?: emptyMap()) +
+            desktopProvider.tools() +
                 serialBridgeProvider.tools() +
             sensesProvider.tools() + gpsProvider.tools() + notificationProvider.tools() + reflexProvider.tools() +
             crossProtocolProvider.tools() + credentialProvider.tools()
@@ -3543,13 +3506,6 @@ internal class McpTools(
         val profileId = args.optString("profileId").ifEmpty {
             throw McpError(-32602, "Missing required argument: profileId")
         }
-        // AI route teardown FIRST, matching ConnectionsViewModel.disconnect's
-        // order: release the routes this profile owns (it's the endpoint) and
-        // cascade the ones it carries (it's the carrier) while the carrier's
-        // SSH client is still alive to remove the LOCAL forward from. Coming
-        // after the registry disconnect would leave the forward LISTENing on
-        // a session that survives (#observed on the routed-chat verification).
-        aiRouteRegistry.teardownFor(profileId)
         // Cross-transport hammer; the registry already knows which
         // transports have sessions for this profile and only acts where
         // there's something to do, so it's safe to call unconditionally.

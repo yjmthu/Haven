@@ -73,7 +73,6 @@ class McpWorkspaceToolsTest {
             sshSessionManager = mockk<SshSessionManager>(relaxed = true),
             sessionManagerRegistry = mockk<SessionManagerRegistry>(relaxed = true),
             rcloneClient = mockk<RcloneClient>(relaxed = true),
-            mailSessionManager = mockk<sh.haven.core.mail.MailSessionManager>(relaxed = true),
             sftpStreamServer = mockk<SftpStreamServer>(relaxed = true),
             hlsStreamServer = mockk<HlsStreamServer>(relaxed = true),
             ffmpegExecutor = mockk<FfmpegExecutor>(relaxed = true),
@@ -102,7 +101,6 @@ class McpWorkspaceToolsTest {
             totpSecretRepository = mockk<sh.haven.core.data.repository.TotpSecretRepository>(relaxed = true),
             ageIdentityRepository = mockk<sh.haven.core.data.repository.AgeIdentityRepository>(relaxed = true),
             desktopSessionRegistry = mockk<sh.haven.core.data.desktop.DesktopSessionRegistry>(relaxed = true),
-            aiRouteRegistry = sh.haven.core.openai.AiRouteRegistry(),
             usbBroker = mockk<sh.haven.core.usb.UsbBroker>(relaxed = true),
             usbIpServer = mockk<sh.haven.core.usb.UsbIpServer>(relaxed = true),
             usbDriveVmManager = mockk<sh.haven.app.usb.UsbDriveVmManager>(relaxed = true),
@@ -120,10 +118,6 @@ class McpWorkspaceToolsTest {
             hardwareKeySource = mockk(relaxed = true),
             reticulumSessionManager = mockk(relaxed = true),
             reticulumForwardServer = mockk(relaxed = true),
-            mailRuleRepository = mockk(relaxed = true),
-            mailWatchManager = mockk(relaxed = true),
-            openAiSessionManager = mockk<sh.haven.core.openai.OpenAiSessionManager>(relaxed = true),
-            tunnelResolver = mockk<sh.haven.core.tunnel.TunnelResolver>(relaxed = true),
             agentActivityHolder = mockk(relaxed = true),
         )
         // #337 mechanism 3: an unanswered consent HOLDS for the wait

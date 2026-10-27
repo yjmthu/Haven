@@ -68,9 +68,6 @@ class MainActivity : AppCompatActivity() {
     // Eagerly injected to trigger one-time password encryption migration
     @Inject lateinit var connectionRepository: ConnectionRepository
     @Inject lateinit var sshKeyRepository: sh.haven.core.data.repository.SshKeyRepository
-    // Drives the Mail tab's visibility (shown only while a mail session is open).
-    @Inject lateinit var mailSessionManager: sh.haven.core.mail.MailSessionManager
-    @Inject lateinit var openAiSessionManager: sh.haven.core.openai.OpenAiSessionManager
     // Published to FidoAuthenticator in onResume so NFC reader mode can
     // be enabled during FIDO2 SSH assertions. Without this, Nitrokey /
     // SoloKey / YubiKey-over-NFC flows never saw a Tag (#15).
@@ -190,7 +187,6 @@ class MainActivity : AppCompatActivity() {
         handleConnectDeepLink(intent)
         handleStandardSchemeDeepLink(intent)
         handleOpenUsbDriveIntent(intent)
-        handleOpenMailRulesIntent(intent)
         handleOpenAgentLogExtra(intent)
         handleTaskerRunIntent(intent)
         handleBackupShortcutIntent(intent)
@@ -262,18 +258,6 @@ class MainActivity : AppCompatActivity() {
         intent.action = null
         Log.d("MainActivity", "open-usb-drive intent for ${device ?: "(sole drive)"}")
         agentUiCommandBus.emit(sh.haven.core.data.agent.AgentUiCommand.OpenUsbDrive(device))
-    }
-
-    /**
-     * Handle the "mail actions awaiting approval" notification tap: the
-     * content intent carries [sh.haven.app.agent.mailrules.MailRuleNotifier]'s
-     * action; re-publish onto the UI command bus so HavenNavHost switches to
-     * Mail and opens the rules pane's approval queue.
-     */
-    private fun handleOpenMailRulesIntent(intent: Intent?) {
-        if (intent?.action != sh.haven.app.agent.mailrules.MailRuleNotifier.ACTION_OPEN_MAIL_RULES) return
-        intent.action = null
-        agentUiCommandBus.emit(sh.haven.core.data.agent.AgentUiCommand.OpenMailRules)
     }
 
     // --- Picture-in-Picture (app windows) ---
@@ -522,7 +506,6 @@ class MainActivity : AppCompatActivity() {
         handleConnectDeepLink(intent)
         handleStandardSchemeDeepLink(intent)
         handleOpenUsbDriveIntent(intent)
-        handleOpenMailRulesIntent(intent)
         handleOpenAgentLogExtra(intent)
         handleTaskerRunIntent(intent)
         handleBackupShortcutIntent(intent)
@@ -649,8 +632,6 @@ class MainActivity : AppCompatActivity() {
                         sshKeyRepository = sshKeyRepository,
                         agentUiCommandBus = agentUiCommandBus,
                         userMessageBus = userMessageBus,
-                        mailSessionManager = mailSessionManager,
-                        openAiSessionManager = openAiSessionManager,
                         mcpStatusHolder = mcpStatusHolder,
                     )
                     // Floats above whatever screen is active so an

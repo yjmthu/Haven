@@ -134,10 +134,7 @@ internal class CrossProtocolToolProvider(
         -> WorkspaceItem.Kind.TERMINAL
         Transport.SMB -> WorkspaceItem.Kind.FILE_BROWSER
         Transport.RDP -> WorkspaceItem.Kind.DESKTOP
-        Transport.MAIL, Transport.RCLONE -> null
-        // OPENAI is an HTTP chat session — no terminal, no file tree; not
-        // captured into workspaces, like MAIL above.
-        Transport.OPENAI -> null
+        Transport.RCLONE -> null
     }
 
     private suspend fun captureLiveItems(workspaceId: String): List<WorkspaceItem> =

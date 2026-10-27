@@ -25,7 +25,6 @@ class VisibleScreensTest {
             screenOrder = emptyList(),
             tabVisibility = emptyMap(),
             hasTerminalProfiles = false,
-            hasOpenEmailSession = false,
         )
         val routes = names(screens)
         assertEquals(Screen.Connections.route, routes.first())
@@ -34,7 +33,6 @@ class VisibleScreensTest {
             .forEach { assertEquals("expected ${it.route} present", true, it.route in routes) }
         // Usage-gated tabs absent with no profiles / no session:
         assertEquals("Terminal hidden without profiles", false, Screen.Terminal.route in routes)
-        assertEquals("Mail hidden without an open session", false, Screen.Mail.route in routes)
         // Default order: all present tabs in Screen.entries order.
         assertEquals(
             Screen.entries.map { it.route }.filter { it in routes },
@@ -44,18 +42,10 @@ class VisibleScreensTest {
 
     @Test
     fun `auto terminal appears only when a terminal profile exists`() {
-        val none = visibleScreens(emptyList(), emptyMap(), hasTerminalProfiles = false, false)
+        val none = visibleScreens(emptyList(), emptyMap(), hasTerminalProfiles = false)
         assertEquals(false, Screen.Terminal.route in names(none))
-        val some = visibleScreens(emptyList(), emptyMap(), hasTerminalProfiles = true, false)
+        val some = visibleScreens(emptyList(), emptyMap(), hasTerminalProfiles = true)
         assertEquals(true, Screen.Terminal.route in names(some))
-    }
-
-    @Test
-    fun `auto mail appears only while an email session is connected`() {
-        val none = visibleScreens(emptyList(), emptyMap(), hasTerminalProfiles = false, false)
-        assertEquals(false, Screen.Mail.route in names(none))
-        val some = visibleScreens(emptyList(), emptyMap(), hasTerminalProfiles = false, true)
-        assertEquals(true, Screen.Mail.route in names(some))
     }
 
     // ---- SHOW forces visible ----
@@ -63,15 +53,8 @@ class VisibleScreensTest {
     @Test
     fun `show forces the tab visible even when the usage rule would hide it`() {
         val prefs = mapOf(Screen.Terminal.route to TabVisibility.SHOW)
-        val screens = visibleScreens(emptyList(), prefs, hasTerminalProfiles = false, false)
+        val screens = visibleScreens(emptyList(), prefs, hasTerminalProfiles = false)
         assertEquals(true, Screen.Terminal.route in names(screens))
-    }
-
-    @Test
-    fun `show on mail keeps it visible with no session`() {
-        val prefs = mapOf(Screen.Mail.route to TabVisibility.SHOW)
-        val screens = visibleScreens(emptyList(), prefs, hasTerminalProfiles = false, false)
-        assertEquals(true, Screen.Mail.route in names(screens))
     }
 
     // ---- HIDE forces hidden ----
@@ -79,14 +62,14 @@ class VisibleScreensTest {
     @Test
     fun `hide removes an always-visible tab from the nav`() {
         val prefs = mapOf(Screen.Desktop.route to TabVisibility.HIDE)
-        val screens = visibleScreens(emptyList(), prefs, hasTerminalProfiles = false, false)
+        val screens = visibleScreens(emptyList(), prefs, hasTerminalProfiles = false)
         assertEquals(false, Screen.Desktop.route in names(screens))
     }
 
     @Test
     fun `hide removes a usage-visible tab`() {
         val prefs = mapOf(Screen.Terminal.route to TabVisibility.HIDE)
-        val screens = visibleScreens(emptyList(), prefs, hasTerminalProfiles = true, false)
+        val screens = visibleScreens(emptyList(), prefs, hasTerminalProfiles = true)
         assertEquals(false, Screen.Terminal.route in names(screens))
     }
 
@@ -98,7 +81,7 @@ class VisibleScreensTest {
             Screen.Terminal.route to TabVisibility.SHOW, // no profile, forced on
             Screen.Desktop.route to TabVisibility.HIDE, // always-on, forced off
         )
-        val screens = visibleScreens(emptyList(), prefs, hasTerminalProfiles = false, false)
+        val screens = visibleScreens(emptyList(), prefs, hasTerminalProfiles = false)
         val routes = names(screens)
         assertEquals(true, Screen.Terminal.route in routes)
         assertEquals(false, Screen.Desktop.route in routes)
@@ -112,7 +95,7 @@ class VisibleScreensTest {
             Screen.Settings.route to TabVisibility.HIDE,
             Screen.Connections.route to TabVisibility.HIDE,
         )
-        val screens = visibleScreens(emptyList(), prefs, hasTerminalProfiles = false, false)
+        val screens = visibleScreens(emptyList(), prefs, hasTerminalProfiles = false)
         val routes = names(screens)
         // Connections and Settings are isAlwaysVisible; their HIDE is ignored.
         assertEquals(true, Screen.Settings.route in routes)
@@ -133,11 +116,10 @@ class VisibleScreensTest {
             screenOrder = order,
             tabVisibility = emptyMap(),
             hasTerminalProfiles = false,
-            hasOpenEmailSession = false,
         )
         // The four user-ordered tabs keep that exact order; the remainder not
         // in the user's list (Sftp) follows in default Screen.entries order.
-        // Mail is absent — no open session — and so is Terminal.
+        // Terminal is absent — no profile.
         assertEquals(
             listOf(
                 Screen.Settings.route,
@@ -166,10 +148,9 @@ class VisibleScreensTest {
             screenOrder = order,
             tabVisibility = prefs,
             hasTerminalProfiles = false,
-            hasOpenEmailSession = false,
         )
         // Desktop hidden; Keys then Sftp keep user order; Terminal shown; the
-        // default-order remainder (Connections, Mail, Settings) is appended, so
+        // default-order remainder (Connections, Settings) is appended, so
         // the final list is Keys, Sftp, Terminal, Connections, Settings.
         val routes = names(screens)
         assertEquals(false, Screen.Desktop.route in routes)
@@ -185,34 +166,5 @@ class VisibleScreensTest {
             ),
             routes,
         )
-    }
-
-    // ---- Chat: same usage rule as Mail, driven by an open OPENAI session ----
-
-    @Test
-    fun `auto chat appears only while an openai session is connected`() {
-        val none = visibleScreens(emptyList(), emptyMap(), hasTerminalProfiles = false, false)
-        assertEquals(false, Screen.Chat.route in names(none))
-        val some = visibleScreens(
-            emptyList(), emptyMap(),
-            hasTerminalProfiles = false, false, hasOpenChatSession = true,
-        )
-        assertEquals(true, Screen.Chat.route in names(some))
-    }
-
-    @Test
-    fun `chat preference overrides the session rule both ways`() {
-        val shown = visibleScreens(
-            emptyList(),
-            mapOf(Screen.Chat.route to TabVisibility.SHOW),
-            hasTerminalProfiles = false, false, hasOpenChatSession = false,
-        )
-        assertEquals(true, Screen.Chat.route in names(shown))
-        val hidden = visibleScreens(
-            emptyList(),
-            mapOf(Screen.Chat.route to TabVisibility.HIDE),
-            hasTerminalProfiles = false, false, hasOpenChatSession = true,
-        )
-        assertEquals(false, Screen.Chat.route in names(hidden))
     }
 }

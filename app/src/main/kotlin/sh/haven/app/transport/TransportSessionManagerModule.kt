@@ -9,8 +9,6 @@ import sh.haven.core.bleserial.BleSerialSessionManager
 import sh.haven.core.btserial.BtSerialSessionManager
 import sh.haven.core.et.EtSessionManager
 import sh.haven.core.local.LocalSessionManager
-import sh.haven.core.mail.MailSessionManager
-import sh.haven.core.openai.OpenAiSessionManager
 import sh.haven.core.mosh.MoshSessionManager
 import sh.haven.core.rclone.RcloneSessionManager
 import sh.haven.core.reticulum.ReticulumSessionManager
@@ -170,28 +168,6 @@ object TransportSessionManagerModule {
         override val sessions
             get() = m.sessions.value.values.map {
                 UnifiedSession(it.sessionId, it.profileId, it.label, mapStatus(it.status.name), Transport.SMB)
-            }
-    }
-
-    @Provides @IntoSet
-    fun mail(m: MailSessionManager): TransportSessionManager = object : TransportSessionManager {
-        override val transport = Transport.MAIL
-        override fun removeAllSessionsForProfile(profileId: String) = m.removeAllSessionsForProfile(profileId)
-        override val activeSessionCount get() = m.activeSessions.size
-        override val sessions
-            get() = m.sessions.value.values.map {
-                UnifiedSession(it.sessionId, it.profileId, it.label, mapStatus(it.status.name), Transport.MAIL)
-            }
-    }
-
-    @Provides @IntoSet
-    fun openai(m: OpenAiSessionManager): TransportSessionManager = object : TransportSessionManager {
-        override val transport = Transport.OPENAI
-        override fun removeAllSessionsForProfile(profileId: String) = m.removeAllSessionsForProfile(profileId)
-        override val activeSessionCount get() = m.activeSessions.size
-        override val sessions
-            get() = m.sessions.value.values.map {
-                UnifiedSession(it.sessionId, it.profileId, it.label, mapStatus(it.status.name), Transport.OPENAI)
             }
     }
 

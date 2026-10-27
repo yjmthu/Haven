@@ -41,9 +41,9 @@ Tools are grouped into sections by what they touch, and each tool is collapsed �
 expand one for its description and arguments. The tag after each name is its
 consent level:
 
-- **asks every call** — side-effectful or sensitive; a consent sheet describing the specific action on every call (78 tools).
-- **asks once per session** — reversible actions and screen-reading; prompts the first time each session, then proceeds (62 tools).
-- **no per-call prompt** — read-only queries and tap-equivalent UI actions; still behind the endpoint being enabled and the client paired (92 tools).
+- **asks every call** — side-effectful or sensitive; a consent sheet describing the specific action on every call (71 tools).
+- **asks once per session** — reversible actions and screen-reading; prompts the first time each session, then proceeds (61 tools).
+- **no per-call prompt** — read-only queries and tap-equivalent UI actions; still behind the endpoint being enabled and the client paired (85 tools).
 
 ## Sections
 
@@ -53,7 +53,7 @@ consent level:
 - [**Terminal, selection & sessions**](#sec-terminal) — 29 tools
 - [**Files, media & clipboard**](#sec-files) — 23 tools
 - [**Cloud storage (rclone)**](#sec-rclone) — 15 tools
-- [**Email**](#sec-email) — 15 tools
+- [**Email**](#sec-email) — 0 tools
 - [**Linux guest (proot) & desktops**](#sec-linux) — 47 tools
 - [**Networking — tunnels & port forwarding**](#sec-networking) — 14 tools
 - [**USB & host-device brokers**](#sec-usb) — 19 tools
@@ -1075,183 +1075,9 @@ Update an existing rclone remote's config in place (rclone config/update) — un
 
 <a id="sec-email"></a>
 
-## Email (15)
+## Email (0)
 
 Mailboxes, messages, drafts, and inbound Mail Rules automation.
-
-<details markdown="1">
-<summary><code>create_mail_folder</code> · asks every call</summary>
-
-Create a new folder/label on a connected EMAIL profile (IMAP CREATE; on Gmail this is a new label). Pass profileId + name (use the server's hierarchy separator for nesting, e.g. "Work/2026"). Returns { created, folderId } — use folderId as a destination for modify_mail_message move/copy. Fails if it already exists. IMAP/Gmail only — Proton returns 501. Changes the mailbox — prompts for consent on every call.
-
-- `name` (string, required) — New folder/label name (e.g. "Receipts" or "Work/2026").
-- `profileId` (string, required) — EMAIL connection profile id.
-
-</details>
-
-<details markdown="1">
-<summary><code>create_mail_rule</code> · asks every call</summary>
-
-Create an inbound-email automation rule: when a message in folderId (default INBOX) of accountProfileId (omit = any connected email account) matches `criteria`, run the ordered `actions`. criteria = {combinator:"ALL"|"ANY", conditions:[{type, op, value}]} where type is from|to|subject|is_unread|body|has_attachment|attachment_name|attachment_mime|header and op is CONTAINS|EQUALS|REGEX|GLOB. actions = an ordered array of {type, …}: save_attachments{destProfileId,destDir,nameGlob?,mimeGlob?} | run_command{template,background?} | send_to_agent{messageTemplate,targetSessionId?} | notify{titleTemplate,bodyTemplate} | imap_filter{op: MARK_READ|MARK_UNREAD|SET_FLAGGED|UNSET_FLAGGED|MOVE|DELETE, destFolderId?} | forward{to[],template?} | invoke_mcp_tool{toolName,argsTemplateJson}. Templates may use {from} {fromName} {subject} {to} {uid}. Creating + enabling a rule is your standing authorization for its actions (they fire without a per-call prompt); destructive actions (move/delete/forward/run-command, or a non-NEVER MCP tool) are queued for foreground approval when Haven is backgrounded. Turn the master switch on with set_preference mail_automation_enabled=true.
-
-- `actions` (object[], required) — Ordered actions — see the tool description.
-- `criteria` (object, required) — {combinator, conditions:[…]} — see the tool description.
-- `name` (string, required) — Human label for the rule.
-- `accountProfileId` (string) — EMAIL profile id to watch; omit for any connected email account.
-- `enabled` (boolean) — Default true.
-- `folderId` (string) — Folder to watch (default INBOX).
-- `notifyOnFire` (boolean) — Raise a notification each time the rule fires.
-- `orderIndex` (integer) — Evaluation order; lower runs first.
-- `stopOnMatch` (boolean) — Stop evaluating later rules when this one matches.
-
-</details>
-
-<details markdown="1">
-<summary><code>delete_mail_folder</code> · asks every call</summary>
-
-Delete a folder/label on a connected EMAIL profile (IMAP DELETE). Pass profileId + folderId (from list_mail_folders). On Gmail this removes the LABEL — messages survive in All Mail; on a plain IMAP server it deletes the mailbox AND its messages (destructive). System folders (Inbox/Sent/Drafts/Trash/Spam/All Mail/…) are refused. Returns { deleted, folderId }. IMAP/Gmail only — Proton returns 501. Destructive — prompts for consent on every call.
-
-- `folderId` (string, required) — Folder/label id to delete (from list_mail_folders). System folders are refused.
-- `profileId` (string, required) — EMAIL connection profile id.
-
-</details>
-
-<details markdown="1">
-<summary><code>delete_mail_rule</code> · asks once per session</summary>
-
-Delete a Mail Rule by id (see list_mail_rules).
-
-- `id` (string, required) — Rule id from list_mail_rules.
-
-</details>
-
-<details markdown="1">
-<summary><code>get_mail_automation_status</code> · no per-call prompt</summary>
-
-Mail-Rules automation status: master switch, rule counts, recent firings (the audit log), and destructive actions queued for foreground approval. Read-only.
-
-</details>
-
-<details markdown="1">
-<summary><code>list_mail_folders</code> · no per-call prompt</summary>
-
-List folders/labels for a connected EMAIL profile (IMAP/Gmail or Proton). Pass profileId (from list_connections). The profile must already be connected (connect_profile first). Returns each folder's id, name, type, and role (inbox/sent/trash/…). Read-only.
-
-- `profileId` (string, required) — EMAIL connection profile id.
-
-</details>
-
-<details markdown="1">
-<summary><code>list_mail_messages</code> · no per-call prompt</summary>
-
-List message envelopes in a folder of a connected EMAIL profile. Pass profileId and folderId (default '0'/INBOX; see list_mail_folders). Returns id, subject, from, unread, time, numAttachments per message, newest first. Page with limit (default 100) + offset (skip from the newest end; offset = page*limit walks older). Read-only.
-
-- `profileId` (string, required) — EMAIL connection profile id.
-- `folderId` (string) — Folder/label id (default '0'/INBOX).
-- `limit` (integer) — Max envelopes to return (default 100, 1..500).
-- `offset` (integer) — Skip this many from the newest end (default 0) — page older with offset = page*limit.
-
-</details>
-
-<details markdown="1">
-<summary><code>list_mail_rules</code> · no per-call prompt</summary>
-
-List inbound-email automation rules (Mail Rules). Returns each rule's id, name, enabled, orderIndex, accountProfileId (null=any), folderId, criteria, actions, lastFiredAt. Read-only.
-
-</details>
-
-<details markdown="1">
-<summary><code>modify_mail_message</code> · asks every call</summary>
-
-Mutate one message on a connected EMAIL profile: mark read/unread, flag/unflag (star), move to another folder, copy/apply-a-label, or delete. Pass profileId + messageId (from list_mail_messages) + op (mark_read | mark_unread | flag | unflag | move | copy | delete). op=move and op=copy also require destFolderId (a folder id from list_mail_folders). IMAP/Gmail only — the Proton engine returns 501. On Gmail: move relabels (removes the source label, adds dest); copy is additive — it applies the dest label and KEEPS the message in its current folders (use copy to label without archiving from Inbox); delete moves to Trash. Returns { ok, op, messageId }. Side-effectful — prompts for consent on every call.
-
-- `messageId` (string, required) — Message id from list_mail_messages.
-- `op` (string, required) — mark_read | mark_unread | flag | unflag | move | copy | delete
-- `profileId` (string, required) — EMAIL connection profile id.
-- `destFolderId` (string) — Destination folder/label id (from list_mail_folders) — required when op=move or op=copy.
-
-</details>
-
-<details markdown="1">
-<summary><code>poke_mail_watch</code> · no per-call prompt</summary>
-
-Force a Mail-Rules poll cycle now instead of waiting for the periodic timer (for testing/immediacy). No-op when the master switch is off. Returns { poked }.
-
-</details>
-
-<details markdown="1">
-<summary><code>read_mail_message</code> · no per-call prompt</summary>
-
-Fetch one message from a connected EMAIL profile (IMAP/Gmail or Proton; Proton messages are decrypted), returning parsed headers (from, to[], cc[] — cc enables reply-all) and plain-text body (HTML is stripped; remote content is never loaded). Pass profileId and messageId (from list_mail_messages). Each attachment carries an { index, filename, mimeType, sizeBytes, isInline } — pass the index to save_mail_attachment to write its bytes to any connected filesystem. Read-only.
-
-- `messageId` (string, required) — Message id from list_mail_messages.
-- `profileId` (string, required) — EMAIL connection profile id.
-
-</details>
-
-<details markdown="1">
-<summary><code>save_mail_attachment</code> · asks every call</summary>
-
-Save one attachment from a message on a connected EMAIL profile to any connected filesystem (local, SFTP, SMB, rclone, Reticulum). Pass profileId + messageId + attachmentIndex (the index from read_mail_message), and the destination as destProfileId ("local" or any connected profile id) + destPath (a directory). Optional destFilename overrides the saved name. The file is named after the attachment (sanitised); a collision gets " (1)", " (2)", … Returns { saved, destProfileId, backend, destPath, filename, bytes }. Works for both IMAP and Proton. Writes a file — prompts for consent on every call.
-
-- `attachmentIndex` (integer, required) — Attachment index from read_mail_message.
-- `destPath` (string, required) — Destination directory on the chosen backend.
-- `destProfileId` (string, required) — Destination backend profile id, or "local" for the device filesystem.
-- `messageId` (string, required) — Message id from list_mail_messages.
-- `profileId` (string, required) — Source EMAIL connection profile id.
-- `destFilename` (string) — Optional name to save as (defaults to the attachment's own filename).
-
-</details>
-
-<details markdown="1">
-<summary><code>save_mail_draft</code> · asks every call</summary>
-
-Save a draft (NOT sent) to the account's Drafts folder on a connected EMAIL profile — use to compose a message for the user to review/send later. Same fields as send_mail (to/cc/bcc/subject/body, optional attachments, optional inReplyToMessageId to thread) but all are optional — a draft may be incomplete. Returns { saved, draftFolderId }. IMAP/Gmail only — Proton returns 501. Writes to the mailbox — prompts for consent on every call.
-
-- `profileId` (string, required) — EMAIL connection profile id.
-- `attachments` (object[]) — Optional files to attach, each { profileId, path }.
-- `bcc` (string[]) — Optional Bcc addresses.
-- `body` (string) — Plain-text body.
-- `cc` (string[]) — Optional Cc addresses.
-- `inReplyToMessageId` (string) — Optional: messageId this draft replies to — threads via In-Reply-To/References.
-- `subject` (string) — Subject line.
-- `to` (string[]) — Recipient addresses (optional for a draft).
-
-</details>
-
-<details markdown="1">
-<summary><code>search_mail</code> · no per-call prompt</summary>
-
-Server-side search of a folder on a connected EMAIL profile. Pass profileId, optional folderId (default INBOX; see list_mail_folders), and one or more criteria: from, to, subject, body (substring matches), unreadOnly (bool), sinceEpochSec / beforeEpochSec (Unix seconds, day granularity). Criteria are ANDed; at least one is required. Optional limit (default 100, 1..500). Returns the same envelope shape as list_mail_messages (newest first) — feed ids into read_mail_message / modify_mail_message. IMAP/Gmail only — Proton returns 501. Read-only.
-
-- `profileId` (string, required) — EMAIL connection profile id.
-- `beforeEpochSec` (integer) — On/before this Unix-seconds date (day granularity).
-- `body` (string) — Match body text (substring).
-- `folderId` (string) — Folder/label id to search (default INBOX).
-- `from` (string) — Match sender address/name (substring).
-- `limit` (integer) — Max results (default 100, 1..500).
-- `sinceEpochSec` (integer) — On/after this Unix-seconds date (day granularity).
-- `subject` (string) — Match subject (substring).
-- `to` (string) — Match a To recipient (substring).
-- `unreadOnly` (boolean) — Only unread (no \Seen) messages.
-
-</details>
-
-<details markdown="1">
-<summary><code>send_mail</code> · asks every call</summary>
-
-Send a plain-text email from a connected EMAIL profile. Pass profileId (from list_connections; connect_profile first), to (array of recipient addresses, at least one), subject, and body (plain text). Optional cc/bcc arrays. Optional attachments: an array of { profileId, path } files on any connected backend ("local" or a connected profile id) to attach. To reply in-thread, pass inReplyToMessageId (a messageId from list_mail_messages) — the engine sets In-Reply-To/References from that message so the reply threads (set your own "Re: …" subject). Returns { sent, messageId, appendedToSent }. IMAP/SMTP only — Proton send is not yet implemented and returns an error. Side-effectful: prompts for consent on every call and is recorded in the connection log.
-
-- `body` (string, required) — Plain-text message body.
-- `profileId` (string, required) — EMAIL connection profile id.
-- `subject` (string, required) — Subject line.
-- `to` (string[], required) — Recipient email addresses (at least one).
-- `attachments` (object[]) — Optional files to attach, each { profileId, path } on a connected backend.
-- `bcc` (string[]) — Optional Bcc addresses.
-- `cc` (string[]) — Optional Cc addresses.
-- `inReplyToMessageId` (string) — Optional: messageId (from list_mail_messages) this is a reply to — threads via In-Reply-To/References.
-
-</details>
 
 <a id="sec-linux"></a>
 
