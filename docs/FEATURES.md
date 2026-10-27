@@ -5,27 +5,33 @@ title: Features
 
 # Features
 
-Haven is one app for SSH/terminal, remote and local desktops, files and cloud
-storage, email, on-device Linux, and an AI-agent bridge. Each area has its own
-page below; the [landing page](index.md) has a short summary.
+Haven is one app for SSH terminals, remote desktops, files and SSH keys. This
+build keeps six surfaces: connections, terminal, desktop, keys, files and
+settings. The [landing page](index.md) has a short summary.
 
-- **[Terminal](features/terminal.md)** — Mosh / Eternal Terminal / SSH, USB / Bluetooth / BLE serial consoles with a serial↔TCP bridge, tmux-aware session restore, configurable keyboard toolbar, OSC 7/8/9/52/133/777 integration.
-- **[Desktops](features/desktops.md)** — VNC (RFB 3.8 / VeNCrypt), RDP (IronRDP + EGFX), SPICE (QEMU/KVM, GLZ/QUIC), a GPU-accelerated native Wayland compositor, and a multi-distro local-desktop manager.
-- **[GPU acceleration](gpu-acceleration.md)** — how guest Linux GL/Vulkan apps reach the phone's real Mali GPU from a proot cage (no `/dev/dri`): the host-brokered virgl/venus renderer and the R1→R8 deep-dive behind it.
-- **[Files & cloud storage](features/files-and-cloud.md)** — unified browser for SFTP/SCP, SMB, and 60+ cloud providers; cross-filesystem copy/move, editor and image tools, folder sync; plus on-device FFmpeg transcode, HLS streaming, and a DLNA server.
-- **[Connections & networking](features/connections.md)** — host-key TOFU, port forwarding (-L/-R/-D/-J), SOCKS/HTTP/Tor proxies, per-app WireGuard & Tailscale tunnels, port knocking and fwknop SPA, and on-device SSH key management (incl. FIDO2/SK).
-- **[Email & Mail Rules](features/email.md)** — read ProtonMail (bridge protocol) and any IMAP/SMTP mailbox; compose/reply/forward, multi-account, attachments; plus inbound automation with an approval queue.
-- **[AI chat](features/chat.md)** — chat with models you host or have API access to (OpenAI-compatible, Ollama, Anthropic, Gemini), over the same per-profile tunnel routing as every other transport; image attach for vision models, clipboard copy/paste of text and images, opt-in encrypted saved transcripts; the agent can drive it over MCP.
-- **[Local Linux on-device](features/local-linux.md)** — a real Linux userland via PRoot (no root): Alpine, Debian, Ubuntu, Arch, or Void side-by-side, each with its native package manager.
-- **[Linux Guest (UML)](features/uml-guest.md)** — a whole Linux kernel (user-mode Linux) booted as an app process on any arm64 device, no root: Alpine with `apk`, its own ext4 disk and network stack, for when PRoot's syscall emulation isn't enough.
-- **[USB device forwarding](features/usb.md)** — broker an attached USB device through Android and re-expose it to the agent, into the Linux guest, or over USB/IP to a **remote host** (e.g. forward a phone-hosted YubiKey, touch on the phone); includes a device-class support matrix for what works where.
-- **[Reading USB drives](features/usb-drives.md)** — plug in a USB flash drive or SSD and read its files, even Linux-formatted (ext4/GPT) drives the phone can't open itself; Haven mounts them in a small on-device Linux VM and surfaces the files in the normal file browser. No jargon required.
-- **[USB card rescue console](features/usb-recovery-live.md)** — the fast route for a failing SD card: the raw card reaches a small Linux guest in seconds, ready for `ddrescue`; the rescued image lands in app storage.
-- **[Reticulum mesh](features/reticulum.md)** — rnsh shell, file transfer, and `-L`/`-D` port forwarding over Reticulum, pure Kotlin. The one transport that keeps working with no internet at all.
-- **[Agent transport (MCP)](mcp-tools.md)** — an optional MCP server exposing ~230 consent-gated, audited tools, including ones that drive Haven's own UI for a self-hosting build → install → verify loop.
-- **[Automation (Tasker / MacroDroid)](features/automation.md)** — a native Tasker/Locale/MacroDroid plugin action to run a command on a saved SSH server, with host-variable substitution, wait-until-finished, output returned as `%hstdout`/`%hstderr`/`%hexit` variables, and an optional live-terminal watch.
-- **[Security & privacy](features/security.md)** — biometric lock, no telemetry, encrypted backup/restore (AES-256-GCM).
-- **[Languages & translation](features/i18n.md)** — 12 languages, follows the device locale, in-app language picker; contribute corrections or whole new languages from the web translation page, no setup required.
+- **Terminal** — SSH with a configurable keyboard toolbar, per-tab tmux-aware
+  session handling, OSC 7/8/9/52/133/777 integration, and a paperclip attach
+  flow that uploads a file (or a photo) and pastes the remote path at the
+  cursor.
+- **Desktops** — VNC (RFB 3.8 / VeNCrypt) and RDP (IronRDP + EGFX) viewers in a
+  multi-session tabbed workspace, both able to ride an SSH tunnel.
+- **Files** — a unified browser for SFTP/SCP and the device's own storage, with
+  cross-profile copy/move, permissions and ownership editing, folder upload,
+  and age encryption/decryption.
+- **Keys** — SSH key management (import, generate, export, hardware/security-key
+  and FIDO2 authenticators), TOTP secrets, and OpenSSH certificate handling.
+- **[Connections & networking](features/connections.md)** — host-key TOFU, port
+  forwarding (-L/-R/-D/-J), SOCKS/HTTP/Tor proxies, per-app WireGuard and
+  Tailscale tunnels, and `haven://connect` deep links.
+- **[Security & privacy](features/security.md)** — biometric lock, no telemetry,
+  encrypted backup/restore (AES-256-GCM).
+- **[Automation (Tasker / MacroDroid)](features/automation.md)** — a native
+  Tasker/Locale/MacroDroid plugin action to run a command on a saved SSH
+  server, with host-variable substitution and output returned as
+  `%hstdout`/`%hstderr`/`%hexit`.
+- **[Languages & translation](features/i18n.md)** — 12 languages, follows the
+  device locale, in-app language picker; contribute corrections or whole new
+  languages from the web translation page, no setup required.
 
 **Languages** — the UI is translated into 12 languages (English, Chinese, Spanish, Hindi, Arabic with RTL, Portuguese, Bengali, Russian, Japanese, Korean, French, German) and follows the device language. See [Languages & translation](features/i18n.md), or jump straight to the [translation page](translate.html).
 

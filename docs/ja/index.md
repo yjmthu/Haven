@@ -72,15 +72,7 @@ title: Haven
 
 - **[ターミナル](../features/terminal.md)** — Mosh / Eternal Terminal / SSH、シリアル↔TCP ブリッジ付きの USB / Bluetooth / BLE シリアルコンソール、tmux セッションの復元、カスタマイズ可能なキーボードツールバー、OSC 7/8/9/52/133/777 連携。
 - **[デスクトップ](../features/desktops.md)** — VNC（RFB 3.8 / VeNCrypt）、RDP（IronRDP + EGFX）、SPICE（QEMU/KVM、GLZ/QUIC）、GPU アクセラレーション対応のネイティブ Wayland コンポジタ、複数ディストリビューション対応のローカルデスクトップマネージャ。
-- **[ファイルとクラウド](../features/files-and-cloud.md)** — SFTP/SCP、SMB、60 以上のクラウドプロバイダ（rclone）、ファイルシステムをまたいだコピー／移動。さらに FFmpeg によるトランスコード、HLS、DLNA。
 - **[接続](../features/connections.md)** — ポートフォワーディング（-L/-R/-D/-J）、SOCKS/HTTP/Tor プロキシ、アプリごとの WireGuard と Tailscale トンネル、ポートノッキング + fwknop SPA、SSH 鍵と FIDO2。
-- **[メール](../features/email.md)** — ProtonMail + IMAP/SMTP、作成／返信／転送、複数アカウント、メールルールの自動化。
-- **[ローカル Linux](../features/local-linux.md)** — PRoot 経由の Alpine / Debian / Ubuntu / Arch / Void を並行して実行。root 不要。
-- **[Linux ゲスト（UML）](../features/uml-guest.md)** — 任意の arm64 デバイス上で root なしのアプリプロセスとして起動する完全な Linux カーネル（user-mode Linux）：`apk` 付き Alpine、独自の ext4 ディスクとネットワークスタックを備え、PRoot のシステムコールエミュレーションでは不十分な場面に対応。
-- **[USB カードレスキューコンソール](../features/usb-recovery-live.md)** — 故障しかけた SD カードの raw デバイスが数秒で Linux ゲストに渡り、すぐに `ddrescue` を実行可能。
-- **[USB フォワーディング](../features/usb.md)** — USB デバイスをエージェント、Linux ゲスト、または USB/IP 経由でリモートホストに仲介します。
-- **[Reticulum](../features/reticulum.md)** — rnsh シェル、ファイル転送、メッシュ越しの `-L`/`-D` フォワーディング。インターネットがまったくなくても機能し続ける唯一のトランスポート。
-- **[エージェントトランスポート（MCP）](../mcp-tools.md)** — 約 230 個の同意制ツール。エージェントは Haven 自身の UI を操作することさえできます。
 - **[セキュリティ](../features/security.md)** — 生体認証ロック、テレメトリなし、暗号化されたバックアップ／復元（AES-256-GCM）。
 
 [全機能一覧](../FEATURES.md)を見る。

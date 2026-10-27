@@ -10,11 +10,8 @@
     <string name="common_edit">Modifier</string>
     <string name="common_rename">Renommer</string>
     <string name="common_create">Créer</string>
-    <string name="common_connect">Connecter</string>
     <string name="connections_connect_without_saving">Connecter sans enregistrer</string>
-    <string name="common_disconnect">Déconnecter</string>
     <string name="common_copy">Copier</string>
-    <string name="common_paste">Coller</string>
     <string name="common_label">Libellé</string>
     <string name="common_password">Mot de passe</string>
     <string name="common_port">Port</string>
@@ -24,9 +21,6 @@
     <string name="common_reset">Réinitialiser</string>
     <string name="common_allow">Autoriser</string>
     <string name="common_not_now">Pas maintenant</string>
-    <string name="common_import">Importer</string>
-    <string name="common_add">Ajouter</string>
-    <string name="common_download">Télécharger</string>
     <string name="common_unlock">Déverrouiller</string>
 
     <!-- Common strings (shared across features) -->
@@ -51,9 +45,6 @@
     <string name="connections_status_disconnected">Déconnecté</string>
 
     <!-- Connection tree item -->
-    <string name="connections_proot_label">PRoot Alpine Linux</string>
-    <string name="connections_launch_desktop">Lancer le bureau</string>
-    <string name="connections_setup_desktop">Configurer le bureau</string>
 
     <!-- Connection context menu -->
     <string name="connections_menu_port_forwards">Redirection de ports</string>
@@ -91,20 +82,8 @@
     <string name="connections_rename_title">Renommer la connexion</string>
 
     <!-- Linux VM card -->
-    <string name="connections_linux_vm">Linux VM</string>
-    <string name="connections_vm_tap_to_setup">Appuyez pour configurer</string>
-    <string name="connections_vm_status_active">Active</string>
-    <string name="connections_vm_refresh">Actualiser le statut VM</string>
 
     <!-- Desktop setup dialog -->
-    <string name="connections_desktop_setup_title">Configuration du bureau</string>
-    <string name="connections_desktop_wayland_description">Installer un compositeur Wayland dans l\'environnement PRoot. Expérimental — rendu logiciel.</string>
-    <string name="connections_desktop_openbox_description">Installer un bureau et un serveur VNC dans l\'environnement PRoot. Openbox est minimal — clic droit sur le bureau pour le menu.</string>
-    <string name="connections_desktop_vnc_description">Installer un bureau et un serveur VNC dans l\'environnement PRoot.</string>
-    <string name="connections_desktop_vnc_password">Mot de passe VNC</string>
-    <string name="connections_desktop_shell">Shell</string>
-    <string name="connections_desktop_installed">Bureau installé. Connexion VNC\u2026</string>
-    <string name="connections_desktop_setup_failed">Échec de la configuration : %1$s</string>
 
     <!-- New group dialog -->
     <string name="connections_new_group_title">Nouveau groupe</string>
@@ -117,15 +96,7 @@
     <string name="connections_menu_launch_all">Tout lancer</string>
     <string name="connections_menu_delete_group">Supprimer le groupe</string>
     <string name="connections_new_group_action">Nouveau groupe</string>
-    <string name="connections_desktop_addons_header">Fonctions bureau (optionnel)</string>
     <string name="connections_menu_duplicate">Duplicate</string>
-    <string name="connections_desktops_title">Desktops</string>
-    <string name="connections_desktop_start">Start</string>
-    <string name="connections_desktop_stop">Stop</string>
-    <string name="connections_desktop_native_running">Native compositor</string>
-    <string name="connections_desktop_uninstall_title">Uninstall desktop?</string>
-    <string name="connections_desktop_uninstall_message">Désinstaller %1$s ? Les paquets seront supprimés de l’environnement PRoot.</string>
-    <string name="connections_use_android_shell">Utiliser le shell Android natif</string>
     <!-- Backfilled translations (i18n drift fix) -->
     <string name="connections_new_session_create">Créer</string>
 
@@ -137,26 +108,16 @@
     <string name="connections_helper_disable_alt_screen">Le défilement arrière fonctionne dans screen/vim. La sortie du programme reste dans l’historique après la fermeture.</string>
     <string name="connections_toggle_forward_agent">Transférer l’agent SSH</string>
     <string name="connections_helper_forward_agent">Expose à l’hôte distant les clés SSH enregistrées non chiffrées (pour git push, etc.). Les clés chiffrées sont ignorées.</string>
-    <string name="connections_field_ssh_key">SSH Key</string>
-    <string name="connections_ssh_key_any">N’importe laquelle (essayer toutes les clés)</string>
     <string name="connections_field_vnc_port">VNC port</string>
     <string name="connections_field_vnc_password">VNC password</string>
     <string name="connections_field_vnc_color_depth">Profondeur de couleur VNC</string>
     <string name="connections_action_clear_vnc">Effacer les paramètres VNC enregistrés</string>
-    <string name="connections_toggle_local_sideband">Local Sideband</string>
-    <string name="connections_field_gateway_host">Gateway Host</string>
-    <string name="connections_field_network_name">Network Name</string>
-    <string name="connections_helper_network_name">Nom du réseau IFAC (facultatif)</string>
-    <string name="connections_action_scan_rnsh">Rechercher des nœuds rnsh</string>
-    <string name="connections_field_destination_hash">Destination Hash</string>
-    <string name="connections_helper_destination_hash">32-character hex</string>
     <string name="connections_field_color_scheme">Palette de couleurs du terminal</string>
     <string name="connections_color_scheme_inherit">Utiliser la valeur par défaut (paramètre global)</string>
 
     <string name="connections_tunnel_dropdown_label">Tunnel: %1$s</string>
     <string name="connections_session_default_with">Default (%1$s)</string>
     <string name="connections_discovered_count">Discovered (%1$d)</string>
-    <string name="connections_discovered_count_filtered">Détectés (%1$d sur %2$d)</string>
 
     <!-- #135 third pass -->
 
@@ -192,26 +153,8 @@
 
     <string name="connections_ki_submit">Submit</string>
 
-    <string name="connections_vm_title">Linux VM</string>
-    <string name="connections_vm_detected_services">Detected services</string>
-    <string name="connections_vm_quick_setup">Quick setup</string>
-    <string name="connections_vm_copy_install">Copier la commande d’installation</string>
-    <string name="connections_vm_view_script">View script</string>
-    <string name="connections_vm_step_start">1. Démarrer la VM Linux</string>
-    <string name="connections_vm_open_terminal">Ouvrir l’application Terminal</string>
-    <string name="connections_vm_step_open_port">2. Ouvrir le port 8022</string>
-    <string name="connections_vm_step_password">3. Définir le mot de passe et installer SSH</string>
-    <string name="connections_vm_step_vnc">4. Installer un serveur VNC (facultatif)</string>
-    <string name="connections_vm_step_desktop">5. Installer un bureau (facultatif)</string>
-    <string name="connections_vm_step_apps">6. Installer des applications de bureau (facultatif)</string>
 
-    <string name="connections_section_desktops">Desktops</string>
-    <string name="connections_action_back">Back</string>
-    <string name="connections_vnc_password_title">VNC Password</string>
-    <string name="connections_action_local_terminal">Local terminal</string>
     <string name="connections_action_tunnels">Tunnels</string>
-    <string name="connections_action_reauthenticate">Re-authenticate</string>
-    <string name="connections_action_cancel_oauth">Cancel OAuth</string>
 
     <string name="connections_hostkey_verify_hint">Vérifiez que cette empreinte correspond à la clé du serveur avant de lui faire confiance.</string>
     <string name="connections_hostkey_changed_title">Clé d’hôte modifiée</string>
@@ -235,36 +178,11 @@
     <string name="connections_ki_response_fallback">Response</string>
     <string name="connections_ki_title_additional">Authentification supplémentaire requise</string>
     <string name="connections_ki_title_server">Server prompt</string>
-    <string name="connections_vm_install_blurb">Installe SSH, VNC, le bureau Xfce4 et des applications (navigateur, éditeur, gestionnaire de fichiers) :</string>
-    <string name="connections_vm_copied">Copié dans le presse-papiers</string>
-    <string name="connections_vm_show_steps">Afficher les étapes de configuration</string>
-    <string name="connections_vm_hide_steps">Masquer les étapes de configuration</string>
-    <string name="connections_vm_step_start_body">Ouvrez l’application Terminal d’Android pour démarrer la VM.</string>
-    <string name="connections_vm_step_open_port_body">Dans les paramètres de l’application Terminal, ajoutez le port 8022 à la liste des ports d’écoute.</string>
-    <string name="connections_vm_step_password_body">À exécuter dans l’application Terminal. Vous serez invité à définir un mot de passe pour l’utilisateur droid.</string>
-    <string name="connections_vm_step_password_hint">Connectez-vous ensuite avec : droid@localhost:8022</string>
-    <string name="connections_vm_step_vnc_body">Pour l’accès au bureau à distance via l’onglet Desktop de Haven.</string>
-    <string name="connections_vm_step_desktop_body">Xfce4 est léger et fonctionne bien via VNC.</string>
-    <string name="connections_vm_step_apps_body">Gestionnaire de fichiers, éditeur de texte, visionneuse d’images, navigateur, calculatrice.</string>
 
     <!-- #133 phase 2b: cert renewal status banner (en fallback) -->
-    <string name="connections_renewing_cert">Renouvellement du certificat de %1$s via %2$s…</string>
     <string name="connections_open_plain_shell">Ouvrir shell brut</string>
 
     <!-- Port knocking -->
-    <string name="connections_section_port_knock">Port knocking</string>
-    <string name="connections_field_port_knock_sequence">Séquence de knock (facultative)</string>
-    <string name="connections_hint_port_knock_sequence">ex. 7000 8000 9000 ou 7000/tcp 8000/udp</string>
-    <string name="connections_helper_port_knock_active">Envoyée avant chaque connexion directe. Ignorée sur les chemins tunnelés SSH/SOCKS.</string>
-    <string name="connections_helper_port_knock_blank">Laisser vide pour désactiver.</string>
-    <string name="connections_field_port_knock_delay">Délai entre les knocks (ms)</string>
-    <string name="connections_button_test_knock">Tester le knock</string>
-    <string name="connections_button_test_knock_running">Knock en cours…</string>
-    <string name="connections_knock_invalid_sequence">Séquence invalide : %1$s</string>
-    <string name="connections_knock_empty">La séquence de knock est vide</string>
-    <string name="connections_knock_host_blank">L\'hôte est vide</string>
-    <string name="connections_knock_success">%1$d knocks envoyés en %2$d ms</string>
-    <string name="connections_knock_failed">Échec après %1$d ms : %2$s</string>
     <string name="connections_dialog_new">Nouvelle connexion</string>
     <string name="connections_dialog_edit">Modifier la connexion</string>
     <string name="connections_field_transport">Transport</string>
@@ -294,7 +212,6 @@
     <string name="connections_helper_post_login">Envoyée après la connexion.</string>
     <string name="connections_dropdown_none_direct">Aucun (direct)</string>
     <string name="connections_dropdown_cloudflare_tunnel">Cloudflare Tunnel</string>
-    <string name="connections_dropdown_default_none">Par défaut (Aucun)</string>
     <string name="connections_dropdown_none">Aucun</string>
     <string name="connections_section_file_transport">Transfert de fichiers</string>
     <string name="connections_helper_file_transport">Comment l\'onglet Fichiers déplace les données vers/depuis ce serveur.</string>
@@ -308,13 +225,11 @@
     <string name="connections_identity_hint">Une identité fournit le nom d’utilisateur, le mot de passe et la clé au moment de la connexion. Gérez les identités dans l’onglet Clés.</string>
     <string name="connections_menu_group_identity">Définir l’identité</string>
     <string name="connections_group_identity_title">Identité pour « %1$s »</string>
-    <string name="connections_field_provider">Fournisseur</string>
     <string name="connections_field_tunnel_through_ssh">Tunnel via SSH</string>
     <string name="connections_field_ssh_connection">Connexion SSH</string>
     <string name="connections_field_username_vnc">Nom d\'utilisateur (facultatif — VeNCrypt uniquement)</string>
     <string name="connections_field_password_optional">Mot de passe (facultatif)</string>
     <string name="connections_field_domain_optional">Domaine (facultatif)</string>
-    <string name="connections_field_share_name">Nom du partage</string>
     <string name="connections_field_colour_depth">Profondeur de couleur</string>
     <string name="connections_field_proxy_host">Hôte du proxy</string>
     <string name="connections_field_proxy_username">Nom d\'utilisateur du proxy</string>
@@ -335,38 +250,16 @@
     <string name="connections_field_bind_address">Adresse locale de liaison</string>
     <string name="connections_helper_bind_address">Lier la connexion sortante à cette adresse locale (ssh -b). Connexions directes uniquement.</string>
     <string name="connections_section_general">Général</string>
-    <string name="connections_section_local_shell">Shell local</string>
-    <string name="connections_section_guest">Invité Linux</string>
-    <string name="connections_guest_desc">Démarre un vrai noyau Linux sur cet appareil, avec son propre système de fichiers racine et son réseau. Le rootfs est décompressé (~512 Mo) à la première utilisation. Aucun hôte ni identifiants requis.</string>
-    <string name="connections_section_cloud_storage">Stockage cloud</string>
     <string name="connections_section_vnc">Paramètres VNC</string>
     <string name="connections_section_rdp">Paramètres RDP</string>
-    <string name="connections_section_smb">Paramètres SMB</string>
     <string name="connections_section_connection">Connexion</string>
     <string name="connections_section_terminal">Terminal</string>
     <string name="connections_section_authentication">Authentification</string>
     <string name="connections_section_embedded_vnc">VNC intégré</string>
-    <string name="connections_section_reticulum">Reticulum</string>
     <string name="connections_section_routing">Routage</string>
-    <string name="connections_toggle_mcp_tunnel">Exposer le serveur MCP de Haven</string>
-    <string name="connections_helper_mcp_tunnel">Expose le MCP de Haven à chaque session de cette connexion — elles atteignent http://127.0.0.1:8730/mcp et (via loopback) ignorent l\'appairage et le consentement. Appliqué à la connexion. Pour un accès permanent sans session ouverte, définissez-la comme Connexion MCP permanente dans Paramètres → Point de terminaison de l\'agent.</string>
     <string name="connections_section_reconnect">Reconnexion</string>
-    <string name="connections_local_shell_android_desc">Exécute le shell natif d\'Android (/system/bin/sh). Accès aux commandes Android, au système de fichiers et au root (si disponible).</string>
-    <string name="connections_local_shell_proot_desc">Exécute un shell Alpine Linux localement via PRoot. Télécharge un rootfs minimal (~4 Mo) à la première utilisation. Aucun root ni connexion réseau requis.</string>
-    <string name="connections_dropdown_select_provider">Sélectionner un fournisseur…</string>
-    <string name="connections_helper_rclone_signin">Connectez-vous via votre navigateur lors de la première connexion.</string>
-    <string name="connections_helper_rclone_credentials">Saisissez les identifiants de ce fournisseur, puis appuyez sur Configurer pour enregistrer et vérifier le dépôt distant.</string>
-    <string name="connections_rclone_configure">Configurer et vérifier</string>
-    <string name="connections_rclone_configured_ok">Dépôt distant configuré et vérifié.</string>
     <string name="connections_dropdown_select_ssh">Sélectionner une connexion SSH</string>
     <string name="connections_helper_add_ssh_first">Ajoutez d\'abord une connexion SSH</string>
-    <string name="connections_ai_route_section">Porteur de route IA</string>
-    <string name="connections_ai_route_via_ssh">Via SSH</string>
-    <string name="connections_ai_route_via_reticulum">Via Reticulum</string>
-    <string name="connections_field_ai_route_carrier">Connexion porteuse</string>
-    <string name="connections_dropdown_select_carrier">Sélectionner une connexion</string>
-    <string name="connections_helper_ai_route">Achemine le point de terminaison via un porteur : SSH ouvre un transfert local par la session du porteur, Reticulum établit un pont sur le maillage. Le porteur doit être connecté pour les routes Reticulum.</string>
-    <string name="connections_helper_add_reticulum_first">Ajoutez d\'abord une connexion Reticulum</string>
     <string name="connections_toggle_rdp_nla">Authentification au niveau réseau (NLA)</string>
     <string name="connections_helper_run_before_session_manager">S\'exécute avant le démarrage du gestionnaire de sessions.</string>
     <string name="connections_toggle_tunnel_only">Tunnel uniquement (sans terminal)</string>
@@ -374,8 +267,6 @@
     <string name="connections_toggle_auto_reconnect">Reconnexion automatique en cas de déconnexion</string>
     <string name="connections_field_reconnect_max_attempts">Tentatives maximales (0 = illimité)</string>
     <string name="connections_toggle_reconnect_on_network_change">Reconnecter lors d\'un changement de réseau</string>
-    <string name="connections_field_passphrase">Phrase secrète</string>
-    <string name="connections_hint_ifac_passphrase">Phrase secrète IFAC (facultative)</string>
     <string name="connections_helper_vnc_host_via_ssh">Où le serveur VNC est accessible depuis le serveur SSH — généralement 127.0.0.1 s\'il s\'agit de la même machine (wayvnc, etc. ne se lient qu\'au loopback).</string>
     <string name="connections_helper_vnc_auth">Laissez le nom d\'utilisateur vide pour le VncAuth classique (mot de passe de 8 caractères). Renseignez le nom d\'utilisateur pour VeNCrypt (wayvnc, TigerVNC) — prend en charge des mots de passe plus longs et le chiffrement TLS.</string>
     <string name="connections_helper_rdp_host_via_ssh">Où le serveur RDP est accessible depuis le serveur SSH — généralement 127.0.0.1 s\'il s\'agit de la même machine.</string>
@@ -393,33 +284,8 @@
     <string name="connections_forget_password">Oublier le mot de passe enregistré</string>
     <string name="connections_forget_password_title">Oublier le mot de passe enregistré ?</string>
     <string name="connections_forget_password_message">Effacer le mot de passe SSH enregistré pour \"%1$s\" ? Les prochaines connexions le demanderont à nouveau.</string>
-    <string name="connections_desktop_installing">Installation du bureau…</string>
     <string name="connections_toggle_password_only">Utiliser le mot de passe uniquement</string>
     <string name="connections_helper_password_only">Ne jamais proposer les clés SSH enregistrées à ce serveur — s\'authentifier avec le mot de passe (et le clavier interactif) uniquement. À utiliser pour un serveur sans clé afin d\'être invité à saisir le mot de passe plutôt que d\'échouer silencieusement.</string>
-    <string name="connections_ssh_key_none_hint">Aucune clé SSH — ajoutez ou générez-en une dans l\'onglet Clés, puis joignez-la ici.</string>
-    <string name="connections_section_spa">Autorisation par paquet unique (fwknop)</string>
-    <string name="connections_field_spa_key">Clé SPA (Rijndael/AES)</string>
-    <string name="connections_field_spa_hmac_key">Clé HMAC (facultative)</string>
-    <string name="connections_toggle_spa_key_base64">La clé est en base64</string>
-    <string name="connections_toggle_spa_hmac_key_base64">La clé HMAC est en base64</string>
-    <string name="connections_field_spa_access_spec">Accès (proto/port)</string>
-    <string name="connections_hint_spa_access_spec">ex. tcp/22 ou tcp/22,udp/53</string>
-    <string name="connections_field_spa_allow_mode">IP autorisée</string>
-    <string name="connections_spa_allow_source">IP source</string>
-    <string name="connections_spa_allow_resolve">Résoudre l\'IP publique</string>
-    <string name="connections_spa_allow_explicit">IP explicite</string>
-    <string name="connections_field_spa_explicit_ip">IP / CIDR autorisé</string>
-    <string name="connections_field_spa_port">Port UDP SPA</string>
-    <string name="connections_helper_spa_active">Envoyé avant chaque connexion directe. Ignoré sur les chemins tunnelés SSH/SOCKS.</string>
-    <string name="connections_helper_spa_blank">Laissez la clé ou l\'accès vide pour désactiver.</string>
-    <string name="connections_button_test_spa">Tester SPA</string>
-    <string name="connections_button_test_spa_running">Envoi…</string>
-    <string name="connections_spa_invalid">Config SPA invalide : %1$s</string>
-    <string name="connections_spa_host_blank">L\'hôte est vide</string>
-    <string name="connections_spa_success">Paquet SPA de %1$d octets envoyé en %2$d ms</string>
-    <string name="connections_spa_failed">Échec après %1$d ms : %2$s</string>
-    <string name="connections_agent_active">Agent actif</string>
-    <string name="connections_agent_activity">Activité de l\'agent</string>
     <string name="connections_pf_type_local">LOCAL</string>
     <string name="connections_pf_type_remote">REMOTE</string>
     <string name="connections_pf_type_dynamic">DYNAMIC (SOCKS5)</string>
@@ -447,7 +313,6 @@
     <string name="connections_pf_dynamic_explanation">Les clients SOCKS5 sur votre appareil peuvent se connecter à %1$s:%2$s et demander n\'importe quelle destination. Chaque requête ouvre un nouveau canal direct-tcpip via le serveur SSH.</string>
     <string name="connections_pf_dynamic_port_fallback">&lt;port&gt;</string>
     <string name="connections_hosts_discovered">%1$d hôtes découverts</string>
-    <string name="connections_rclone_provider_cloud">Cloud</string>
     <string name="connections_list_via">via %1$s</string>
     <string name="connections_auth_methods_title">Méthodes d\'authentification</string>
     <string name="connections_auth_methods_description">Tentées dans l\'ordre en une seule connexion — pour les serveurs qui en requièrent plusieurs (ex. clé + mot de passe, ou chaînes PAM/OTP).</string>
@@ -464,50 +329,11 @@
     <string name="connections_auth_add_method">Ajouter une méthode</string>
     <string name="connections_auth_confirm_otp">Confirmer l\'OTP avant envoi</string>
     <string name="connections_auth_confirm_otp_desc">Afficher le code généré pour confirmer en un geste au lieu de l\'envoyer automatiquement.</string>
-    <string name="connections_vm_copied_short">Copié</string>
-    <string name="connections_vm_terminal_not_found">Application Terminal introuvable</string>
-    <string name="connections_mcp_badge">MCP</string>
-    <string name="connections_local_distro_label">Ouvrir dans l\'OS</string>
-    <string name="connections_local_distro_active_default">Distribution active (par défaut)</string>
 
-    <string name="connections_section_openai">Point de terminaison IA</string>
-    <string name="connections_field_openai_host">Adresse du serveur</string>
-    <string name="connections_field_openai_host_hint">IP, nom d\'hôte ou URL http:// complète</string>
-    <string name="connections_field_openai_api_key">Clé API (facultatif)</string>
-    <string name="connections_field_openai_api_key_hint">Envoyée comme jeton Bearer. Laissez vide pour les serveurs sans clé.</string>
-    <string name="connections_field_openai_path_prefix">Préfixe de chemin (facultatif)</string>
-    <string name="connections_field_openai_path_prefix_hint">Inséré avant /v1 — ex. /api</string>    <string name="connections_field_openai_protocol">Protocole</string>
-    <string name="connections_field_openai_protocol_hint">Compatible OpenAI par défaut ; Ollama, Anthropic et Gemini changent les chemins et l\'authentification.</string>
-
-    <string name="connections_openai_url_preview">URL du point de terminaison : %1$s</string>
     <!-- Email account -->
-    <string name="connections_section_email">Compte e-mail</string>
     <string name="connections_auth_method_proton_srp">ProtonMail SRP</string>
-    <string name="connections_email_provider_proton">Fournisseur : ProtonMail</string>
-    <string name="connections_email_proton_unofficial_warning">Utilise l\'API non officielle de Proton. Elle est issue de rétro-ingénierie et contraire aux conditions de Proton — votre compte pourrait être limité en débit ou bloqué. Continuez à vos risques et périls.</string>
-    <string name="connections_field_email_address">Adresse e-mail</string>
-    <string name="connections_field_email_password">Mot de passe</string>
-    <string name="connections_field_email_mailbox_password">Mot de passe de la boîte (mode à deux mots de passe uniquement)</string>
-    <string name="connections_email_mailbox_password_hint">Laissez vide sauf si votre compte Proton possède un mot de passe de boîte distinct.</string>
-    <string name="connections_email_2fa_hint">Si votre compte utilise l\'authentification à deux facteurs, liez son secret TOTP dans le gestionnaire de clés SSH / TOTP et il sera appliqué automatiquement.</string>
-    <string name="connections_email_provider_proton_short">ProtonMail</string>
-    <string name="connections_email_provider_imap_short">IMAP/SMTP</string>
-    <string name="connections_email_app_password_hint">Utilisez votre mot de passe, ou un mot de passe d\'application si votre fournisseur l\'exige (Fastmail, iCloud, Yahoo, Gmail/2FA).</string>
-    <string name="connections_email_preset_label">Préréglage du fournisseur</string>
-    <string name="connections_email_app_password_link">Créer un mot de passe d\'application pour %1$s</string>
-    <string name="connections_field_imap_server">Serveur IMAP</string>
-    <string name="connections_field_smtp_server">Serveur SMTP</string>
-    <string name="connections_field_smtp_server_help">Laissez vide pour utiliser le serveur IMAP.</string>
-    <string name="connections_field_imap_port">Port IMAP</string>
-    <string name="connections_field_smtp_port">Port SMTP</string>
-    <string name="connections_toggle_imap_tls">Utiliser TLS (SSL implicite)</string>
 
     <!-- USB forwarding, deploy password, FIDO auth, MCP toggle (#250) -->
-    <string name="connections_section_usb_forward">Transfert de périphérique USB</string>
-    <string name="connections_helper_usb_forward">Exporte vers cet hôte un périphérique USB connecté au téléphone via USB/IP lors de la connexion. Une YubiKey apparaît sur l\'hôte pour ssh-keygen -t ed25519-sk, l\'appui se faisant sur le téléphone. L\'attachement automatique nécessite usbip et un sudo sans mot de passe sur l\'hôte ; sinon, l\'export et le tunnel sont établis et vous exécutez la commande d\'attachement affichée.</string>
-    <string name="connections_field_usb_forward">Transférer le périphérique USB</string>
-    <string name="connections_usb_forward_none">Aucun</string>
-    <string name="connections_usb_forward_unattached">%1$s (non attaché)</string>
     <string name="connections_deploy_field_password_optional">Mot de passe (facultatif)</string>
     <string name="connections_deploy_password_hint">Laissez vide pour déployer avec la clé enregistrée de ce profil. Un mot de passe n\'est nécessaire que si le serveur s\'authentifie par mot de passe (ou pour déverrouiller la phrase secrète d\'une clé / un hôte de rebond).</string>
     <string name="connections_fido_key_label">Clé : %1$s</string>
@@ -515,83 +341,23 @@
     <string name="connections_fido_wrong_body">Cette clé ne contient pas l\'identifiant demandé par le serveur. Présentez la clé demandée et touchez-la.</string>
     <string name="connections_auth_key_picker">Clé : %1$s ▾</string>
     <string name="connections_auth_key_only">✓ Utiliser uniquement cette clé</string>
-    <string name="connections_mcp_active">L\'agent opère sur cette connexion — appuyez pour y désactiver MCP</string>
-    <string name="connections_mcp_disabled">MCP désactivé pour cette connexion — appuyez pour activer</string>
-    <string name="connections_toggle_mcp_enabled">Autoriser l\'agent MCP sur cette connexion</string>
-    <string name="connections_helper_mcp_enabled">Lorsque c\'est désactivé, les outils de l\'agent IA (MCP) ciblant cette connexion sont refusés. La connexion continue de fonctionner normalement pour vous.</string>
 
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
-    <string name="connections_android_shell_label">Shell Android natif</string>
     <string name="connections_field_background_opacity">Remplacer l\'opacité de l\'arrière-plan</string>
     <string name="connections_helper_background_opacity" formatted="false">En dessous de 100%, le terminal devient translucide et affiche le fond d\'écran de l\'appareil derrière le texte pour ce profil. Désactivé = utiliser le réglage global.</string>
     <string name="connections_background_opacity_value">Opacité : %1$d%%</string>
     <string name="connections_reveal_password_title">Afficher le mot de passe enregistré</string>
     <string name="connections_reveal_password_subtitle">Confirmez votre identité pour afficher le mot de passe enregistré</string>
-    <string name="rclone_import_title">Importer des dépôts distants rclone</string>
-    <string name="rclone_import_intro">Collez votre rclone.conf Linux ou choisissez le fichier. Les dépôts distants (y compris les jetons OAuth) sont importés tels quels, sans reconfiguration.</string>
-    <string name="rclone_import_pick_file">Choisir rclone.conf…</string>
-    <string name="rclone_import_paste_label">Contenu de rclone.conf</string>
-    <string name="rclone_import_parse">Rechercher les dépôts distants</string>
-    <string name="rclone_import_encrypted">Ce fichier est une configuration rclone chiffrée par mot de passe. Exécutez \"rclone config show\" sur l\'ordinateur et collez plutôt la sortie déchiffrée.</string>
-    <string name="rclone_import_already_added">déjà ajouté</string>
-    <string name="rclone_import_no_type">aucun type</string>
-    <string name="rclone_import_select_count">Importer %1$d dépôt(s) distant(s)</string>
-    <string name="rclone_import_done">%1$d importé(s), %2$d ignoré(s), %3$d en échec.</string>
-    <string name="rclone_import_menu">Importer la configuration rclone…</string>
-    <string name="connections_section_spice">Paramètres SPICE</string>
-    <string name="connections_section_mcp">Agent IA (MCP)</string>
-    <string name="connections_rclone_configure_first">Touchez « Configurer et vérifier » pour enregistrer ce dépôt distant avant de pouvoir enregistrer la connexion.</string>
-    <string name="connections_helper_spice_auth">SPICE utilise un seul ticket/mot de passe facultatif. Laissez vide pour un serveur sans ticket.</string>
     <string name="connections_auth_any_hardware_key">N\'importe quelle clé matérielle (FIDO)</string>
     <string name="connections_deeplink_confirm_title">Se connecter ?</string>
     <string name="connections_deeplink_confirm_message">Un lien souhaite se connecter à %1$s.</string>
     <string name="connections_deeplink_confirm_session">Un lien souhaite se connecter à %1$s et attacher la session « %2$s ».</string>
     <string name="connections_deeplink_confirm_connect">Se connecter</string>
     <!-- Serial-connection strings (#406 BTSERIAL, #408 USBSERIAL) -->
-    <string name="connections_section_btserial">Série Bluetooth</string>
-    <string name="connections_btserial_desc">Se connecter à un adaptateur Bluetooth-vers-série appairé (p. ex. le port console d\'un switch ou d\'un routeur).</string>
-    <string name="connections_btserial_device">Appareil appairé</string>
-    <string name="connections_btserial_no_devices">Aucun appareil Bluetooth appairé. Appairez d\'abord l\'adaptateur dans Paramètres Android → Bluetooth, puis rouvrez ceci.</string>
-    <string name="connections_btserial_permission">Accorder l\'autorisation Bluetooth pour lister les appareils appairés</string>
-    <string name="connections_section_usbserial">Série USB</string>
-    <string name="connections_usbserial_desc">Se connecter à un adaptateur USB-série branché — un Arduino, une carte G-code Duet3D, un ESP32 ou un câble USB-vers-TTL.</string>
-    <string name="connections_usbserial_device">Appareil USB</string>
-    <string name="connections_usbserial_no_devices">Aucun adaptateur USB-série détecté. Branchez-en un, puis rouvrez ceci.</string>
-    <string name="connections_usbserial_baud">Débit en bauds</string>
-    <string name="connections_section_bleserial">Série Bluetooth LE</string>
-    <string name="connections_bleserial_desc">Se connecter à un périphérique UART Bluetooth-LE — un appareil Nordic UART Service, un module HM-10 ou un adaptateur RS232 BLE. Il n\'a pas besoin d\'être appairé.</string>
-    <string name="connections_bleserial_device">Appareil BLE</string>
-    <string name="connections_bleserial_no_devices">Aucun appareil BLE trouvé. Assurez-vous que le périphérique est allumé et émet un signal, puis relancez la recherche.</string>
-    <string name="connections_bleserial_permission">Accorder l\'autorisation Bluetooth (recherche) pour trouver des appareils BLE</string>
-    <string name="connections_bleserial_scan">Rechercher des appareils BLE</string>
-    <string name="connections_bleserial_scanning">Recherche en cours…</string>
-    <string name="connections_usbserial_databits">Bits de données</string>
-    <string name="connections_usbserial_parity">Parité</string>
-    <string name="connections_usbserial_stopbits">Bits d\'arrêt</string>
-    <string name="connections_usbserial_flowcontrol">Contrôle de flux</string>
-    <string name="connections_usbserial_none">Aucun</string>
-    <string name="connections_usbserial_parity_odd">Impair</string>
-    <string name="connections_usbserial_parity_even">Pair</string>
-    <string name="connections_usbserial_parity_mark">Marque</string>
-    <string name="connections_usbserial_parity_space">Espace</string>
-    <string name="connections_usbserial_flow_rtscts">RTS/CTS</string>
-    <string name="connections_usbserial_flow_xonxoff">XON/XOFF</string>
     <string name="connections_section_ssh_engine">Moteur SSH</string>
     <string name="connections_helper_ssh_engine">Quelle implémentation SSH cette connexion utilise. sshlib est expérimental : il gère désormais toute la connexion — terminal, transfert de fichiers et tunnels — pas seulement SFTP.</string>
     <string name="connections_ssh_engine_jsch_label">Par défaut (JSch)</string>
     <string name="connections_ssh_engine_jsch_desc">Le moteur éprouvé. Toutes les fonctionnalités.</string>
     <string name="connections_ssh_engine_sshlib_label">sshlib (expérimental)</string>
     <string name="connections_ssh_engine_sshlib_desc">Moteur Kotlin : terminal, SFTP et redirection de ports sur une seule connexion. Nécessite une connexion directe — sans rebond, proxy, clé matérielle, certificat ni authentification multifacteur.</string>
-    <string name="connections_identity_label">Identité de cet appareil</string>
-    <string name="connections_identity_none">Aucune pour le moment — une première connexion en créera une</string>
-    <string name="connections_identity_help">Partagée par toutes les connexions Reticulum. Un serveur qui vous autorise se fonde sur cette empreinte.</string>
-    <string name="connections_identity_import">Importer un fichier d\'identité…</string>
-    <string name="connections_identity_imported">Identité importée : %1$s</string>
-    <string name="connections_identity_imported_restart">Identité importée : %1$s. Redémarrez Haven pour que les connexions l\'utilisent.</string>
-    <string name="connections_identity_not_an_identity">Ce fichier n\'est pas une identité Reticulum. Rien n\'a été modifié.</string>
-    <string name="connections_identity_install_failed">Impossible d\'installer l\'identité : %1$s. La précédente est toujours en place.</string>
-    <string name="connections_identity_unreadable">Impossible de lire ce fichier.</string>
-    <string name="connections_section_glkvm">Réglages GLKVM</string>
-    <string name="connections_field_glkvm_layout">Disposition du clavier de la cible</string>
-    <string name="connections_helper_glkvm">GLKVM (KVM style PiKVM via HTTPS) — pilote la souris et le clavier physiques de la cible. TLS utilise une confiance au premier usage ; la disposition du clavier de la cible détermine les caractères tapés. Passez par un tunnel SSH ou un profil WireGuard/Tailscale pour l\'atteindre hors LAN.</string>
 </resources>

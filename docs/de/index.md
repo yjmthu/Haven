@@ -72,15 +72,7 @@ Sideloads folgen dem GitHub-Releases-Schlüssel.
 
 - **[Terminal](../features/terminal.md)** — Mosh / Eternal Terminal / SSH, serielle USB- / Bluetooth- / BLE-Konsolen mit einer Seriell↔TCP-Brücke, tmux-Sitzungswiederherstellung, konfigurierbare Tastatur-Werkzeugleiste, OSC 7/8/9/52/133/777-Integration.
 - **[Desktops](../features/desktops.md)** — VNC (RFB 3.8 / VeNCrypt), RDP (IronRDP + EGFX), SPICE (QEMU/KVM, GLZ/QUIC), ein GPU-beschleunigter nativer Wayland-Compositor und ein Multi-Distro-Manager für lokale Desktops.
-- **[Dateien & Cloud](../features/files-and-cloud.md)** — SFTP/SCP, SMB, 60+ Cloud-Anbieter (rclone), dateisystemübergreifendes Kopieren/Verschieben; dazu FFmpeg-Transcodierung, HLS und DLNA.
 - **[Verbindungen](../features/connections.md)** — Portweiterleitung (-L/-R/-D/-J), SOCKS/HTTP/Tor-Proxys, App-spezifische WireGuard- & Tailscale-Tunnel, Port-Knocking + fwknop SPA, SSH-Schlüssel & FIDO2.
-- **[E-Mail](../features/email.md)** — ProtonMail + IMAP/SMTP, Verfassen/Antworten/Weiterleiten, mehrere Konten, Automatisierung mit Mail-Regeln.
-- **[Lokales Linux](../features/local-linux.md)** — Alpine / Debian / Ubuntu / Arch / Void über PRoot, nebeneinander, kein Root erforderlich.
-- **[Linux-Gast (UML)](../features/uml-guest.md)** — ein vollständiger Linux-Kernel (User-Mode Linux), der als App-Prozess auf jedem arm64-Gerät ohne Root startet: Alpine mit `apk`, eigenem ext4-Laufwerk und Netzwerk-Stack, wenn die Syscall-Emulation von PRoot nicht ausreicht.
-- **[USB-Karten-Rettungskonsole](../features/usb-recovery-live.md)** — das Rohgerät einer ausfallenden SD-Karte erreicht in Sekunden einen Linux-Gast, bereit für `ddrescue`.
-- **[USB-Weiterleitung](../features/usb.md)** — vermittle ein USB-Gerät an den Agenten, das Linux-Gastsystem oder einen entfernten Host über USB/IP.
-- **[Reticulum](../features/reticulum.md)** — rnsh-Shell, Dateiübertragung und `-L`/`-D`-Weiterleitung über Mesh. Der eine Transportweg, der ganz ohne Internet weiter funktioniert.
-- **[Agent-Transport (MCP)](../mcp-tools.md)** — ~230 zustimmungspflichtige Werkzeuge; der Agent kann sogar Havens eigene Oberfläche bedienen.
 - **[Sicherheit](../features/security.md)** — biometrische Sperre, keine Telemetrie, verschlüsselte Sicherung/Wiederherstellung (AES-256-GCM).
 
 Durchstöbere den [vollständigen Funktionsindex](../FEATURES.md).

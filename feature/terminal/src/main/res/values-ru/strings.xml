@@ -10,10 +10,7 @@
     <string name="common_edit">Изменить</string>
     <string name="common_rename">Переименовать</string>
     <string name="common_create">Создать</string>
-    <string name="common_connect">Подключить</string>
-    <string name="common_disconnect">Отключить</string>
     <string name="common_copy">Копировать</string>
-    <string name="common_paste">Вставить</string>
     <string name="common_label">Метка</string>
     <string name="common_password">Пароль</string>
     <string name="common_port">Порт</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">Сбросить</string>
     <string name="common_allow">Разрешить</string>
     <string name="common_not_now">Не сейчас</string>
-    <string name="common_import">Импорт</string>
-    <string name="common_add">Добавить</string>
-    <string name="common_download">Скачать</string>
     <string name="common_unlock">Разблокировать</string>
 
     <!-- Tab bar -->
@@ -68,7 +62,6 @@
     <string name="terminal_new_tab_host_key_changed">Ключ хоста для %s изменился — подключение отклонено из соображений безопасности</string>
     <string name="terminal_new_tab_connection_failed">Не удалось подключиться: %s</string>
     <string name="terminal_new_tab_shell_failed">Не удалось открыть оболочку: %s</string>
-    <string name="terminal_new_tab_reticulum_no_session">Нет активного сеанса Reticulum для клонирования</string>
     <string name="terminal_new_tab_connecting">Подключение…</string>
     <!-- Backfilled translations (i18n drift fix) -->
     <string name="terminal_no_contact">Нет ответа от сервера %1$dс — повторная попытка</string>
@@ -87,23 +80,11 @@
     <!-- #210 i18n sweep -->
     <string name="terminal_link_open_failed">Нет приложения для открытия этой ссылки</string>
     <string name="terminal_link_scheme_blocked">Заблокированная ссылка (неподдерживаемая схема)</string>
-    <string name="terminal_local_vnc_failed">Не удалось запустить локальный рабочий стол</string>
     <string name="terminal_attach_title">Прикрепить</string>
     <string name="terminal_attach_send_file">Отправить файл</string>
     <string name="terminal_attach_send_file_desc">Загрузить на удалённый сервер и вставить путь</string>
     <string name="terminal_attach_take_photo">Сделать фото</string>
     <string name="terminal_attach_take_photo_desc">Сделайте снимок и отправьте его как файл</string>
-    <string name="terminal_attach_scan_camera">Сканировать код (Камера)</string>
-    <string name="terminal_attach_scan_camera_desc">Сфотографировать QR-код или штрих-код и вставить его содержимое</string>
-    <string name="terminal_attach_scan_gallery">Сканировать код (Галерея)</string>
-    <string name="terminal_attach_scan_gallery_desc">Выбрать фото с QR-кодом или штрих-кодом и вставить его содержимое</string>
-    <string name="terminal_attach_ocr_camera">Распознать текст (Камера)</string>
-    <string name="terminal_attach_ocr_camera_desc">Сфотографировать печатный текст и вставить распознанное</string>
-    <string name="terminal_attach_ocr_gallery">Распознать текст (Галерея)</string>
-    <string name="terminal_attach_ocr_gallery_desc">Выбрать фото с печатным текстом и вставить распознанное</string>
-    <string name="terminal_scan_no_code">Код в изображении не обнаружен</string>
-    <string name="terminal_scan_no_text">Текст в изображении не обнаружен</string>
-    <string name="terminal_scan_failed">Ошибка сканирования: %s</string>
     <string name="terminal_scan_no_camera">Нет доступного приложения камеры</string>
     <string name="terminal_selection_copy">Копировать</string>
     <string name="terminal_selection_paste">Вставить</string>

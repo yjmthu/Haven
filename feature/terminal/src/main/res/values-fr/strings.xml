@@ -10,10 +10,7 @@
     <string name="common_edit">Modifier</string>
     <string name="common_rename">Renommer</string>
     <string name="common_create">Créer</string>
-    <string name="common_connect">Connecter</string>
-    <string name="common_disconnect">Déconnecter</string>
     <string name="common_copy">Copier</string>
-    <string name="common_paste">Coller</string>
     <string name="common_label">Libellé</string>
     <string name="common_password">Mot de passe</string>
     <string name="common_port">Port</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">Réinitialiser</string>
     <string name="common_allow">Autoriser</string>
     <string name="common_not_now">Pas maintenant</string>
-    <string name="common_import">Importer</string>
-    <string name="common_add">Ajouter</string>
-    <string name="common_download">Télécharger</string>
     <string name="common_unlock">Déverrouiller</string>
 
     <!-- Tab bar -->
@@ -68,7 +62,6 @@
     <string name="terminal_new_tab_host_key_changed">La clé d’hôte de %s a changé — connexion refusée par sécurité</string>
     <string name="terminal_new_tab_connection_failed">Connexion impossible : %s</string>
     <string name="terminal_new_tab_shell_failed">Impossible d’ouvrir le shell : %s</string>
-    <string name="terminal_new_tab_reticulum_no_session">Aucune session Reticulum active à cloner</string>
     <string name="terminal_new_tab_connecting">Connecting…</string>
     <!-- Backfilled translations (i18n drift fix) -->
     <string name="terminal_no_contact">Aucune réponse du serveur depuis %1$ds — nouvelle tentative</string>
@@ -87,23 +80,11 @@
     <!-- i18n sweep #210 -->
     <string name="terminal_link_open_failed">Aucune application ne peut ouvrir ce lien</string>
     <string name="terminal_link_scheme_blocked">Lien bloqué (schéma non pris en charge)</string>
-    <string name="terminal_local_vnc_failed">Impossible de démarrer le bureau local</string>
     <string name="terminal_attach_title">Joindre</string>
     <string name="terminal_attach_send_file">Envoyer un fichier</string>
     <string name="terminal_attach_send_file_desc">Téléverser sur le serveur distant et coller son chemin</string>
     <string name="terminal_attach_take_photo">Prendre une photo</string>
     <string name="terminal_attach_take_photo_desc">Capturez une photo et envoyez-la comme un fichier</string>
-    <string name="terminal_attach_scan_camera">Scanner un code (Appareil photo)</string>
-    <string name="terminal_attach_scan_camera_desc">Photographier un QR ou code-barres et coller son contenu</string>
-    <string name="terminal_attach_scan_gallery">Scanner un code (Photos)</string>
-    <string name="terminal_attach_scan_gallery_desc">Choisir une photo d\'un QR ou code-barres et coller son contenu</string>
-    <string name="terminal_attach_ocr_camera">Reconnaître le texte (Appareil photo)</string>
-    <string name="terminal_attach_ocr_camera_desc">Photographier du texte imprimé et coller ce qui est détecté</string>
-    <string name="terminal_attach_ocr_gallery">Reconnaître le texte (Photos)</string>
-    <string name="terminal_attach_ocr_gallery_desc">Choisir une photo de texte imprimé et coller ce qui est détecté</string>
-    <string name="terminal_scan_no_code">Aucun code détecté dans l\'image</string>
-    <string name="terminal_scan_no_text">Aucun texte détecté dans l\'image</string>
-    <string name="terminal_scan_failed">Échec du scan : %s</string>
     <string name="terminal_scan_no_camera">Aucune application appareil photo disponible</string>
     <string name="terminal_selection_copy">Copier</string>
     <string name="terminal_selection_paste">Coller</string>

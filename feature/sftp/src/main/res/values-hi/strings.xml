@@ -10,10 +10,7 @@
     <string name="common_edit">संपादित करें</string>
     <string name="common_rename">नाम बदलें</string>
     <string name="common_create">बनाएँ</string>
-    <string name="common_connect">कनेक्ट करें</string>
-    <string name="common_disconnect">डिस्कनेक्ट करें</string>
     <string name="common_copy">कॉपी करें</string>
-    <string name="common_paste">पेस्ट करें</string>
     <string name="common_label">लेबल</string>
     <string name="common_password">पासवर्ड</string>
     <string name="common_port">पोर्ट</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">रीसेट करें</string>
     <string name="common_allow">अनुमति दें</string>
     <string name="common_not_now">अभी नहीं</string>
-    <string name="common_import">आयात करें</string>
-    <string name="common_add">जोड़ें</string>
-    <string name="common_download">डाउनलोड करें</string>
     <string name="common_unlock">अनलॉक करें</string>
 
     <!-- SftpScreen navigation -->
@@ -113,16 +107,12 @@
     <string name="sftp_bandwidth_limit">बैंडविड्थ सीमा</string>
     <string name="sftp_dry_run">ड्राई रन (केवल पूर्वावलोकन)</string>
     <string name="sftp_start_sync">शुरू करें</string>
-    <string name="sftp_dry_run_results">ड्राई रन परिणाम</string>
-    <string name="sftp_start_for_real">वास्तव में शुरू करें</string>
-    <string name="sftp_sync_cancelled">सिंक रद्द किया गया</string>
     <!-- Rename dialog -->
     <string name="sftp_rename_title">नाम बदलें</string>
     <string name="sftp_new_name">नया नाम</string>
 
     <!-- Share link -->
     <string name="sftp_share_link">लिंक साझा करें</string>
-    <string name="sftp_link_copied">लिंक कॉपी हुआ</string>
 
     <!-- Folder size -->
     <string name="sftp_folder_size">फ़ोल्डर आकार</string>
@@ -186,13 +176,10 @@
     <string name="sftp_attach_pick_profile">उपयोग के लिए कनेक्टेड profile चुनें</string>
     <string name="sftp_attach_local_no_upload">रिमोट profile चुनें — local uploads नहीं ले सकता</string>
     <string name="sftp_attach_will_upload_into">इसमें upload होगा: %1$s</string>
-    <string name="sftp_chat_attach_pick_file">चैट में फ़ाइल संलग्न करें</string>
-    <string name="sftp_chat_attach_will_pick_from">इनमें से चुनें: %1$s</string>
     <string name="sftp_attach_sending">%1$s भेजा जा रहा है…</string>
     <string name="sftp_storage_permission_title">Storage access आवश्यक</string>
     <string name="sftp_storage_permission_body">Local files तक पहुँच देने के लिए टैप करें — media features, browsing, और transfers के लिए यह अनुमति ज़रूरी है।</string>
     <string name="sftp_paste_unfinished">अधूरा paste</string>
-    <string name="sftp_agent_chip">Agent</string>
     <string name="sftp_convert_dest_same_folder_cloud">Cloud पर वापस (समान फ़ोल्डर)</string>
     <string name="sftp_convert_download_first">पहले download करें</string>
     <string name="sftp_convert_download_first_on">Transcode से पहले पूरी फ़ाइल download होती है</string>
@@ -208,15 +195,12 @@
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
     <string name="sftp_new_sync">नया rclone सिंक</string>
     <string name="sftp_encrypt">एन्क्रिप्ट करें (age)</string>
-    <string name="sftp_encrypt_sub">किसी age कुंजी के लिए एन्क्रिप्ट करें — age टूल से कहीं भी पढ़ा जा सकता है</string>
     <string name="sftp_decrypt">डिक्रिप्ट करें (age)</string>
-    <string name="sftp_decrypt_sub">संग्रहीत age पहचान से डिक्रिप्ट करें</string>
     <string name="sftp_encrypt_title">age से एन्क्रिप्ट करें</string>
     <string name="sftp_encrypt_recipient_hint">या कोई प्राप्तकर्ता पेस्ट करें (age1…)</string>
     <string name="sftp_encrypt_action">एन्क्रिप्ट करें</string>
     <string name="sftp_age_no_identity">कोई age पहचान नहीं। कुंजियाँ टैब में एक बनाएँ, या कोई प्राप्तकर्ता पेस्ट करें।</string>
     <string name="sftp_age_failed">age ऑपरेशन विफल — गलत कुंजी या खराब फ़ाइल</string>
-    <string name="sftp_open_usb_drive">USB ड्राइव खोलें…</string>
     <string name="sftp_add_folder_location">फ़ोल्डर स्थान जोड़ें</string>
     <string name="sftp_saf_grant_failed">उस फ़ोल्डर तक पहुँच बनाए नहीं रखी जा सकी</string>
     <string name="sftp_remove_folder_location">फ़ोल्डर स्थान हटाएँ</string>

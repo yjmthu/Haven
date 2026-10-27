@@ -5,8 +5,8 @@
 <h1 align="center">Haven</h1>
 
 <p align="center">
-  Free, open-source remote access &amp; mobile workspace for Android —<br/>
-  SSH · Mosh · VNC · RDP · SFTP · SMB · email · cloud storage, a local Linux shell and a full Linux kernel (UML), mesh networking, and a consent-gated AI-agent endpoint
+  Free, open-source remote access for Android —<br/>
+  SSH terminal · VNC &amp; RDP desktops · SFTP file browser · SSH keys
 </p>
 
 > *"Haven is an interesting vibe coding experiment. Let's see what comes out of it."* — DBP
@@ -56,19 +56,21 @@
 
 ## At a glance
 
-- **[Terminal](docs/features/terminal.md)** — Mosh / Eternal Terminal / SSH, USB / Bluetooth / BLE serial consoles with a serial↔TCP bridge, tmux-aware session restore, configurable keyboard toolbar, OSC 7/8/9/52/133/777 integration.
-- **[Desktops](docs/features/desktops.md)** — VNC (RFB 3.8 / VeNCrypt), RDP (IronRDP + EGFX), SPICE (QEMU/KVM, GLZ/QUIC), a GPU-accelerated native Wayland compositor, and a multi-distro local-desktop manager.
-- **[Files & cloud](docs/features/files-and-cloud.md)** — unified browser for SFTP/SCP, SMB, and 60+ cloud providers; cross-filesystem copy/move, editor and image tools; plus on-device FFmpeg transcode, HLS streaming, and DLNA.
-- **[Connections](docs/features/connections.md)** — port forwarding (-L/-R/-D/-J), SOCKS/HTTP/Tor proxies, per-app WireGuard, Tailscale, NetBird & Cisco AnyConnect tunnels, port knocking and fwknop SPA, and SSH keys (incl. FIDO2/SK).
-- **[Email](docs/features/email.md)** — ProtonMail (bridge protocol) and any IMAP/SMTP mailbox; compose / reply / forward, multi-account, attachments; plus **Mail Rules** inbound automation.
-- **[AI chat](docs/features/chat.md)** — chat with self-hosted or API models (OpenAI-compatible, Ollama, Anthropic, Gemini) over per-profile tunnel routing; image attach for vision models, clipboard copy/paste both ways, opt-in encrypted saved transcripts.
-- **[Local Linux](docs/features/local-linux.md)** — a Linux userland via PRoot (no root, any Android 8+ device): Alpine, Debian, Ubuntu, Arch, or Void, side-by-side.
-- **[Linux Guest (UML)](docs/features/uml-guest.md)** — a whole Linux kernel (user-mode Linux) booted as an app process on any arm64 device, no root: Alpine with `apk`, its own ext4 disk and network stack, for when PRoot's syscall emulation isn't enough.
-- **[USB card rescue console](docs/features/usb-recovery-live.md)** — plug in a failing SD card and the raw device reaches a Linux guest in seconds, ready for `ddrescue`; the rescued image lands in app storage.
-- **[USB forwarding](docs/features/usb.md)** — broker an attached USB device through Android and re-expose it to the agent, into the Linux guest, or over USB/IP to a **remote host** (e.g. a phone-hosted YubiKey, touch on the phone).
-- **[Reticulum](docs/features/reticulum.md)** — rnsh shell, file transfer, and `-L`/`-D` port forwarding over Reticulum mesh, pure Kotlin. The one transport that keeps working with no internet at all.
-- **[Agent transport (MCP)](docs/mcp-tools.md)** — an optional MCP server exposing ~230 consent-gated, audited tools; the agent can even **see and operate Haven itself** for a self-hosting build → install → verify loop.
-- **[Security](docs/features/security.md)** — biometric lock, no telemetry, encrypted backup/restore (AES-256-GCM).
+- **Terminal** — SSH with a configurable keyboard toolbar, per-tab session
+  handling, OSC 7/8/9/52/133/777 integration, and a paperclip attach flow that
+  uploads a file (or a photo) and pastes the remote path at the cursor.
+- **Desktops** — VNC (RFB 3.8 / VeNCrypt) and RDP (IronRDP + EGFX) viewers in a
+  multi-session tabbed workspace, both able to ride an SSH tunnel.
+- **Files** — a unified browser for SFTP/SCP and the device's own storage, with
+  cross-profile copy/move, permissions and ownership editing, folder upload, and
+  age encryption/decryption.
+- **Keys** — SSH key management (import, generate, export, hardware/security-key
+  and FIDO2 authenticators), TOTP secrets, and OpenSSH certificate handling.
+- **[Connections](docs/features/connections.md)** — host-key TOFU, port
+  forwarding (-L/-R/-D/-J), SOCKS/HTTP/Tor proxies, per-app WireGuard &
+  Tailscale tunnels, and `haven://connect` deep links.
+- **[Security](docs/features/security.md)** — biometric lock, no telemetry,
+  encrypted backup/restore (AES-256-GCM).
 
 See [docs/FEATURES.md](docs/FEATURES.md) for the full feature index.
 
@@ -77,24 +79,14 @@ See [docs/FEATURES.md](docs/FEATURES.md) for the full feature index.
 The list above is the parts; the point is how they compose. Each of these is one
 flow inside Haven — no second app, no `curl | ssh` incantation:
 
-- Tap a 4K MKV in Google Drive → FFmpeg transcodes it over HTTP and the result
-  lands back in the same Drive folder, never touching local disk.
 - SSH to a box, forward its port, tap the VNC profile that targets `localhost` —
   the desktop opens in the same app, keyboard and clipboard shared.
-- Cut a log directory from an S3 bucket, switch tabs, paste it onto an SFTP
-  server — rclone does the server-side copy when it can, otherwise Haven streams
-  it through.
-- Run your agent CLI in the on-device Linux shell; it pushes over the SSH agent
-  you forwarded from your laptop while you watch on the same screen.
-- Hit something PRoot can't do — a tracer, a mount, a script you don't trust —
-  and boot the UML guest instead: a real kernel as an app process, which an
-  agent can drive over the same MCP tools.
-- Cast a cloud video to the TV across the room over HLS, copy the LAN URL from
-  the snackbar, send it to a friend so they can watch too.
+- Copy a log directory from one server to another over SFTP, resuming across a
+  dropped connection.
+- Unlock hardware-backed SSH keys with the phone's biometric prompt instead of
+  typing a passphrase.
 
-The phone is the thin client, Haven is the thin-client OS, and the cloud, your
-servers, and your agents are the computer. Width is sufficient; composition is
-the point. ([Vision](VISION.md).)
+The phone is the thin client; your servers are the computer.
 
 ## Languages
 
@@ -109,7 +101,10 @@ Available in 12 languages: English, Chinese (simplified), Spanish, Hindi, Arabic
 | [GitHub Releases](https://github.com/GlassHaven/Haven/releases/latest) | Signed APK, all features |
 | [F-Droid](https://f-droid.org/en/packages/sh.haven.app) | Built from source, all features |
 
-Both builds have the same features — SSH, Mosh, Eternal Terminal, VNC, RDP, SFTP, SMB, email, and cloud storage. IronRDP (Rust) is built from source via `cargo-ndk`. rclone (Go) is built from source via `gomobile`.
+Both builds have the same features — SSH terminal, VNC and RDP desktops, SFTP
+files and SSH keys. IronRDP (Rust) is built from source via `cargo-ndk`;
+rclone's Go modules are built via `gomobile` and provide the WireGuard/Tailscale
+/NetBird tunnel glue.
 
 > **Pick one channel and stay on it.** The two channels are signed with
 > **different keys** — GitHub Releases use Haven's own release key; F-Droid
@@ -133,7 +128,7 @@ Requires [Rust](https://rustup.rs/) with Android targets, `cargo-ndk`, [Go](http
 rustup target add aarch64-linux-android x86_64-linux-android
 cargo install cargo-ndk
 
-# Go (for rclone cloud storage)
+# Go (for the tunnel bridges shipped in the Go module)
 go install golang.org/x/mobile/cmd/gomobile@latest
 go install golang.org/x/mobile/cmd/gobind@latest
 
@@ -162,20 +157,9 @@ Output: `app/build/outputs/apk/debug/haven-*-debug.apk`
 
 | Library | Purpose | License |
 |---------|---------|---------|
-| [rclone](https://rclone.org) | Cloud storage engine (60+ providers) | MIT |
 | [IronRDP](https://github.com/Devolutions/IronRDP) | RDP protocol (Rust/UniFFI) | MIT / Apache-2.0 |
 | [JSch](https://github.com/mwiede/jsch) | SSH/SFTP protocol | BSD |
-| [smbj](https://github.com/hierynomus/smbj) | SMB/CIFS protocol | Apache-2.0 |
 | [ConnectBot termlib](https://github.com/connectbot/connectbot) | Terminal emulator | Apache-2.0 |
-| [reticulum-kt](https://github.com/GlassOnTin/reticulum-kt) | Reticulum mesh network transport (Kotlin) | MPL-2.0 |
-| [rnsh-kt](https://github.com/GlassOnTin/rnsh-kt) | Reticulum remote shell client (Kotlin) | AGPL-3.0 |
-| [FFmpeg](https://ffmpeg.org) | Media conversion and streaming | LGPL-2.1 / GPL-2.0 |
-| [PRoot](https://proot-me.github.io) | Local Linux shell (userspace chroot) | GPL-2.0 |
-| [Linux UML](https://user-mode-linux.sourceforge.net) | Linux Guest kernel (real kernel as an app process) | GPL-2.0 |
-| [passt](https://passt.top) | Guest networking (userspace TCP/IP for the UML guest) | GPL-2.0 |
-| [labwc](https://labwc.github.io) | Wayland compositor (native desktop) | GPL-2.0 |
-| [wlroots](https://gitlab.freedesktop.org/wlroots/wlroots) | Wayland compositor library | MIT |
-| [virglrenderer](https://gitlab.freedesktop.org/virgl/virglrenderer) | GPU virtualization (OpenGL passthrough to PRoot apps) | MIT |
 | [Jetpack Compose](https://developer.android.com/jetpack/compose) | UI toolkit | Apache-2.0 |
 
 ## Backing

@@ -1,33 +1,16 @@
-# Classes loaded reflectively by fully-qualified name — Class.forName, JavaMail
-# `mail.<proto>.class` properties, JNI lookups, etc. — and therefore MUST keep
-# their original name through R8/minification.
+# Classes loaded reflectively by fully-qualified name — Class.forName, JNI
+# lookups, etc. — and therefore MUST keep their original name through
+# R8/minification.
 #
 # scripts/check-r8-kept-classes.sh asserts each is identity-mapped in the
 # release build's mapping.txt. A rename (or removal) means a `-keep` rule in
 # app/proguard-rules.pro is missing or broke — which ships a feature 100%
-# broken in release builds while every *debug* test still passes (debug doesn't
-# run R8). That is exactly how the email feature shipped briefly broken:
-# getStore("imaps") threw NoSuchProviderException because R8 renamed
-# com.sun.mail.imap.IMAPSSLStore -> s4.c (fixed in v5.59.45).
+# broken in release builds while every *debug* test still passes (debug does
+# not run R8).
 #
 # Add a class here whenever you pull in a dependency that resolves classes by
 # string name. One fully-qualified class name per line; #-comments and blank
-# lines are ignored. (The JavaMail provider classes are *also* auto-derived from
-# ImapMailClient's mail.<proto>.class properties, so the mail path self-checks.)
-
-# JavaMail (com.sun.mail:android-mail) — IMAP/SMTP Store & Transport providers
-com.sun.mail.imap.IMAPStore
-com.sun.mail.imap.IMAPSSLStore
-com.sun.mail.smtp.SMTPTransport
-com.sun.mail.smtp.SMTPSSLTransport
-
-# Reticulum (rns-core) — link/transport methods resolved by name
-# (verified: Transport -> w4.q when the -keep rule is absent)
-network.reticulum.transport.Transport
-
-# Reflected by HavenUiBridge.dumpUi (dump_haven_ui) — see app/proguard-rules.pro (#355).
-androidx.compose.ui.platform.AndroidComposeView
-androidx.compose.ui.semantics.SemanticsOwner
+# lines are ignored.
 
 # SSH Authentication API — OpenKeychain and other external key providers (#487).
 # The binder matches the interface descriptor by name, and the error Parcelable

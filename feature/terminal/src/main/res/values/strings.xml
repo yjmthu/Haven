@@ -10,10 +10,7 @@
     <string name="common_edit">Edit</string>
     <string name="common_rename">Rename</string>
     <string name="common_create">Create</string>
-    <string name="common_connect">Connect</string>
-    <string name="common_disconnect">Disconnect</string>
     <string name="common_copy">Copy</string>
-    <string name="common_paste">Paste</string>
     <string name="common_label">Label</string>
     <string name="common_password">Password</string>
     <string name="common_port">Port</string>
@@ -24,9 +21,6 @@
     <string name="common_reset">Reset</string>
     <string name="common_allow">Allow</string>
     <string name="common_not_now">Not now</string>
-    <string name="common_import">Import</string>
-    <string name="common_add">Add</string>
-    <string name="common_download">Download</string>
     <string name="common_unlock">Unlock</string>
 
     <!-- Tab bar -->
@@ -46,7 +40,6 @@
     <string name="terminal_paste_no_active_tab">No active tab to paste into</string>
     <string name="terminal_link_open_failed">No app can open this link</string>
     <string name="terminal_link_scheme_blocked">Blocked link (unsupported scheme)</string>
-    <string name="terminal_local_vnc_failed">Couldn\'t start the local desktop</string>
     <string name="terminal_search">Search</string>
 
     <!-- New tab errors -->
@@ -56,7 +49,6 @@
     <string name="terminal_new_tab_host_key_unknown">Unknown host key for %s — open this connection first to verify and trust it</string>
     <string name="terminal_new_tab_connection_failed">Could not connect: %s</string>
     <string name="terminal_new_tab_shell_failed">Failed to open shell: %s</string>
-    <string name="terminal_new_tab_reticulum_no_session">No active Reticulum session to clone</string>
     <string name="terminal_new_tab_connecting">Connecting…</string>
 
     <!-- EmptyTerminalState -->
@@ -123,17 +115,6 @@
     <string name="terminal_attach_send_file_desc">Upload to the remote and paste its path</string>
     <string name="terminal_attach_take_photo">Take photo</string>
     <string name="terminal_attach_take_photo_desc">Capture a photo and send it like a file</string>
-    <string name="terminal_attach_scan_camera">Scan code (Camera)</string>
-    <string name="terminal_attach_scan_camera_desc">Photograph a QR or barcode and paste its contents</string>
-    <string name="terminal_attach_scan_gallery">Scan code (Photos)</string>
-    <string name="terminal_attach_scan_gallery_desc">Pick a photo of a QR or barcode and paste its contents</string>
-    <string name="terminal_attach_ocr_camera">Recognise text (Camera)</string>
-    <string name="terminal_attach_ocr_camera_desc">Photograph printed text and paste what is detected</string>
-    <string name="terminal_attach_ocr_gallery">Recognise text (Photos)</string>
-    <string name="terminal_attach_ocr_gallery_desc">Pick a photo of printed text and paste what is detected</string>
-    <string name="terminal_scan_no_code">No code detected in the image</string>
-    <string name="terminal_scan_no_text">No text detected in the image</string>
-    <string name="terminal_scan_failed">Scan failed: %s</string>
     <string name="terminal_scan_no_camera">No camera app available</string>
 
     <!-- FloatingTextInputDialog — floating text-entry key on the keyboard toolbar.

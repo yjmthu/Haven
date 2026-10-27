@@ -10,11 +10,8 @@
     <string name="common_edit">تعديل</string>
     <string name="common_rename">إعادة تسمية</string>
     <string name="common_create">إنشاء</string>
-    <string name="common_connect">اتصال</string>
     <string name="connections_connect_without_saving">الاتصال دون حفظ</string>
-    <string name="common_disconnect">قطع الاتصال</string>
     <string name="common_copy">نسخ</string>
-    <string name="common_paste">لصق</string>
     <string name="common_label">التسمية</string>
     <string name="common_password">كلمة المرور</string>
     <string name="common_port">المنفذ</string>
@@ -24,9 +21,6 @@
     <string name="common_reset">إعادة تعيين</string>
     <string name="common_allow">سماح</string>
     <string name="common_not_now">ليس الآن</string>
-    <string name="common_import">استيراد</string>
-    <string name="common_add">إضافة</string>
-    <string name="common_download">تنزيل</string>
     <string name="common_unlock">فتح القفل</string>
 
     <!-- Common strings (shared across features) -->
@@ -51,9 +45,6 @@
     <string name="connections_status_disconnected">غير متصل</string>
 
     <!-- Connection tree item -->
-    <string name="connections_proot_label">PRoot Alpine Linux</string>
-    <string name="connections_launch_desktop">تشغيل سطح المكتب</string>
-    <string name="connections_setup_desktop">إعداد سطح المكتب</string>
 
     <!-- Connection context menu -->
     <string name="connections_menu_port_forwards">إعادة توجيه المنافذ</string>
@@ -91,20 +82,8 @@
     <string name="connections_rename_title">إعادة تسمية الاتصال</string>
 
     <!-- Linux VM card -->
-    <string name="connections_linux_vm">آلة Linux افتراضية</string>
-    <string name="connections_vm_tap_to_setup">اضغط للإعداد</string>
-    <string name="connections_vm_status_active">نشط</string>
-    <string name="connections_vm_refresh">تحديث حالة VM</string>
 
     <!-- Desktop setup dialog -->
-    <string name="connections_desktop_setup_title">إعداد سطح المكتب</string>
-    <string name="connections_desktop_wayland_description">تثبيت مُركّب Wayland في بيئة PRoot. تجريبي — يستخدم العرض البرمجي.</string>
-    <string name="connections_desktop_openbox_description">تثبيت بيئة سطح مكتب وخادم VNC في بيئة PRoot. Openbox بسيط — انقر بزر الماوس الأيمن على سطح المكتب لقائمة التطبيقات.</string>
-    <string name="connections_desktop_vnc_description">تثبيت بيئة سطح مكتب وخادم VNC في بيئة PRoot.</string>
-    <string name="connections_desktop_vnc_password">كلمة مرور VNC</string>
-    <string name="connections_desktop_shell">Shell</string>
-    <string name="connections_desktop_installed">تم تثبيت سطح المكتب. جارٍ الاتصال بـ VNC\u2026</string>
-    <string name="connections_desktop_setup_failed">فشل الإعداد: %1$s</string>
 
     <!-- New group dialog -->
     <string name="connections_new_group_title">مجموعة جديدة</string>
@@ -117,15 +96,7 @@
     <string name="connections_menu_launch_all">تشغيل الكل</string>
     <string name="connections_menu_delete_group">حذف المجموعة</string>
     <string name="connections_new_group_action">مجموعة جديدة</string>
-    <string name="connections_desktop_addons_header">ميزات سطح المكتب (اختياري)</string>
     <string name="connections_menu_duplicate">تكرار</string>
-    <string name="connections_desktops_title">أسطح المكتب</string>
-    <string name="connections_desktop_start">بدء</string>
-    <string name="connections_desktop_stop">إيقاف</string>
-    <string name="connections_desktop_native_running">مُركِّب أصلي</string>
-    <string name="connections_desktop_uninstall_title">إلغاء تثبيت سطح المكتب؟</string>
-    <string name="connections_desktop_uninstall_message">إلغاء تثبيت %1$s؟ ستُزال الحزم من بيئة PRoot.</string>
-    <string name="connections_use_android_shell">استخدام صدفة Android الأصلية</string>
     <!-- Backfilled translations (i18n drift fix) -->
     <string name="connections_new_session_create">إنشاء</string>
 
@@ -137,26 +108,16 @@
     <string name="connections_helper_disable_alt_screen">يعمل سجل التمرير في screen/vim. يبقى خرج البرنامج في السجل بعد الخروج.</string>
     <string name="connections_toggle_forward_agent">إعادة توجيه وكيل SSH</string>
     <string name="connections_helper_forward_agent">يُتيح مفاتيح SSH المخزّنة غير المشفّرة للمضيف البعيد (لـ git push وغيره). تُتخطّى المفاتيح المشفّرة.</string>
-    <string name="connections_field_ssh_key">مفتاح SSH</string>
-    <string name="connections_ssh_key_any">أي مفتاح (تجربة كل المفاتيح)</string>
     <string name="connections_field_vnc_port">منفذ VNC</string>
     <string name="connections_field_vnc_password">كلمة مرور VNC</string>
     <string name="connections_field_vnc_color_depth">عمق ألوان VNC</string>
     <string name="connections_action_clear_vnc">مسح إعدادات VNC المحفوظة</string>
-    <string name="connections_toggle_local_sideband">Sideband محلي</string>
-    <string name="connections_field_gateway_host">مضيف البوابة</string>
-    <string name="connections_field_network_name">اسم الشبكة</string>
-    <string name="connections_helper_network_name">اسم شبكة IFAC (اختياري)</string>
-    <string name="connections_action_scan_rnsh">البحث عن عُقد rnsh</string>
-    <string name="connections_field_destination_hash">بصمة الوجهة</string>
-    <string name="connections_helper_destination_hash">32 خانة ست عشرية</string>
     <string name="connections_field_color_scheme">نظام ألوان الطرفية</string>
     <string name="connections_color_scheme_inherit">استخدام الافتراضي (الإعداد العام)</string>
 
     <string name="connections_tunnel_dropdown_label">النفق: %1$s</string>
     <string name="connections_session_default_with">الافتراضي (%1$s)</string>
     <string name="connections_discovered_count">المكتشَفة (%1$d)</string>
-    <string name="connections_discovered_count_filtered">المكتشَفة (%1$d من %2$d)</string>
 
     <!-- #135 third pass -->
 
@@ -192,26 +153,8 @@
 
     <string name="connections_ki_submit">إرسال</string>
 
-    <string name="connections_vm_title">Linux VM</string>
-    <string name="connections_vm_detected_services">الخدمات المكتشَفة</string>
-    <string name="connections_vm_quick_setup">إعداد سريع</string>
-    <string name="connections_vm_copy_install">نسخ أمر التثبيت</string>
-    <string name="connections_vm_view_script">عرض السكربت</string>
-    <string name="connections_vm_step_start">1. تشغيل جهاز Linux الافتراضي</string>
-    <string name="connections_vm_open_terminal">فتح تطبيق الطرفية</string>
-    <string name="connections_vm_step_open_port">2. فتح المنفذ 8022</string>
-    <string name="connections_vm_step_password">3. تعيين كلمة المرور وتثبيت SSH</string>
-    <string name="connections_vm_step_vnc">4. تثبيت خادم VNC (اختياري)</string>
-    <string name="connections_vm_step_desktop">5. تثبيت سطح مكتب (اختياري)</string>
-    <string name="connections_vm_step_apps">6. تثبيت تطبيقات سطح المكتب (اختياري)</string>
 
-    <string name="connections_section_desktops">أسطح المكتب</string>
-    <string name="connections_action_back">رجوع</string>
-    <string name="connections_vnc_password_title">كلمة مرور VNC</string>
-    <string name="connections_action_local_terminal">طرفية محلية</string>
     <string name="connections_action_tunnels">الأنفاق</string>
-    <string name="connections_action_reauthenticate">إعادة المصادقة</string>
-    <string name="connections_action_cancel_oauth">إلغاء OAuth</string>
 
     <string name="connections_hostkey_verify_hint">تأكّد من تطابق هذه البصمة مع مفتاح الخادم قبل الوثوق به.</string>
     <string name="connections_hostkey_changed_title">تغيّر مفتاح المضيف</string>
@@ -235,36 +178,11 @@
     <string name="connections_ki_response_fallback">الاستجابة</string>
     <string name="connections_ki_title_additional">مطلوب مصادقة إضافية</string>
     <string name="connections_ki_title_server">مطالبة الخادم</string>
-    <string name="connections_vm_install_blurb">يثبّت SSH وVNC وسطح مكتب Xfce4 وتطبيقات (متصفح، محرر، مدير ملفات):</string>
-    <string name="connections_vm_copied">نُسخ إلى الحافظة</string>
-    <string name="connections_vm_show_steps">إظهار خطوات الإعداد</string>
-    <string name="connections_vm_hide_steps">إخفاء خطوات الإعداد</string>
-    <string name="connections_vm_step_start_body">افتح تطبيق طرفية Android لإقلاع الجهاز الافتراضي.</string>
-    <string name="connections_vm_step_open_port_body">في إعدادات تطبيق الطرفية، أضف المنفذ 8022 إلى قائمة منافذ الاستماع.</string>
-    <string name="connections_vm_step_password_body">شغّله في تطبيق الطرفية. سيُطلب منك تعيين كلمة مرور للمستخدم droid.</string>
-    <string name="connections_vm_step_password_hint">ثم اتصل بـ: droid@localhost:8022</string>
-    <string name="connections_vm_step_vnc_body">للوصول إلى سطح المكتب البعيد عبر تبويب Desktop في Haven.</string>
-    <string name="connections_vm_step_desktop_body">Xfce4 خفيف ويعمل جيدًا عبر VNC.</string>
-    <string name="connections_vm_step_apps_body">مدير ملفات، محرر نصوص، عارض صور، متصفح، آلة حاسبة.</string>
 
     <!-- #133 phase 2b: cert renewal status banner (en fallback) -->
-    <string name="connections_renewing_cert">جارٍ تجديد شهادة %1$s عبر %2$s…</string>
     <string name="connections_open_plain_shell">فتح shell عادي</string>
 
     <!-- Port knocking -->
-    <string name="connections_section_port_knock">الطرق على المنافذ</string>
-    <string name="connections_field_port_knock_sequence">تسلسل الطرق (اختياري)</string>
-    <string name="connections_hint_port_knock_sequence">مثال: 7000 8000 9000 أو 7000/tcp 8000/udp</string>
-    <string name="connections_helper_port_knock_active">يُرسل قبل كل اتصال مباشر. يُتجاوز على المسارات النفقية SSH/SOCKS.</string>
-    <string name="connections_helper_port_knock_blank">اتركه فارغًا للتعطيل.</string>
-    <string name="connections_field_port_knock_delay">التأخير بين الطرقات (مللي ثانية)</string>
-    <string name="connections_button_test_knock">اختبار الطرق</string>
-    <string name="connections_button_test_knock_running">جارٍ الطرق…</string>
-    <string name="connections_knock_invalid_sequence">تسلسل غير صالح: %1$s</string>
-    <string name="connections_knock_empty">تسلسل الطرق فارغ</string>
-    <string name="connections_knock_host_blank">المضيف فارغ</string>
-    <string name="connections_knock_success">تم إرسال %1$d طرقات في %2$d مللي ثانية</string>
-    <string name="connections_knock_failed">فشل بعد %1$d مللي ثانية: %2$s</string>
     <string name="connections_dialog_new">اتصال جديد</string>
     <string name="connections_dialog_edit">تعديل الاتصال</string>
     <string name="connections_field_transport">النقل</string>
@@ -294,7 +212,6 @@
     <string name="connections_helper_post_login">يُرسَل بعد تسجيل الدخول.</string>
     <string name="connections_dropdown_none_direct">بلا (مباشر)</string>
     <string name="connections_dropdown_cloudflare_tunnel">Cloudflare Tunnel</string>
-    <string name="connections_dropdown_default_none">الافتراضي (بلا)</string>
     <string name="connections_dropdown_none">بلا</string>
     <string name="connections_section_file_transport">نقل الملفات</string>
     <string name="connections_helper_file_transport">كيف ينقل تبويب الملفات البيانات من/إلى هذا الخادم.</string>
@@ -308,13 +225,11 @@
     <string name="connections_identity_hint">توفّر الهوية اسم المستخدم وكلمة المرور والمفتاح عند الاتصال. تُدار الهويات من تبويب المفاتيح.</string>
     <string name="connections_menu_group_identity">تعيين الهوية</string>
     <string name="connections_group_identity_title">هوية "%1$s"</string>
-    <string name="connections_field_provider">المزوّد</string>
     <string name="connections_field_tunnel_through_ssh">نفق عبر SSH</string>
     <string name="connections_field_ssh_connection">اتصال SSH</string>
     <string name="connections_field_username_vnc">اسم المستخدم (اختياري — VeNCrypt فقط)</string>
     <string name="connections_field_password_optional">كلمة المرور (اختيارية)</string>
     <string name="connections_field_domain_optional">النطاق (اختياري)</string>
-    <string name="connections_field_share_name">اسم المشاركة</string>
     <string name="connections_field_colour_depth">عمق الألوان</string>
     <string name="connections_field_proxy_host">مضيف الوكيل</string>
     <string name="connections_field_proxy_username">اسم مستخدم الوكيل</string>
@@ -335,38 +250,16 @@
     <string name="connections_field_bind_address">عنوان الربط المحلي</string>
     <string name="connections_helper_bind_address">اربط الاتصال الصادر بهذا العنوان المحلي (ssh -b). الاتصالات المباشرة فقط.</string>
     <string name="connections_section_general">عام</string>
-    <string name="connections_section_local_shell">الصدفة المحلية</string>
-    <string name="connections_section_guest">ضيف لينكس</string>
-    <string name="connections_guest_desc">يُقلِع نواة لينكس حقيقية على هذا الجهاز، بنظام ملفات خاص وشبكة مستقلة. يُفكّ نظام الملفات (~512 ميغابايت) عند أول استخدام. لا حاجة لمضيف أو بيانات دخول.</string>
-    <string name="connections_section_cloud_storage">التخزين السحابي</string>
     <string name="connections_section_vnc">إعدادات VNC</string>
     <string name="connections_section_rdp">إعدادات RDP</string>
-    <string name="connections_section_smb">إعدادات SMB</string>
     <string name="connections_section_connection">الاتصال</string>
     <string name="connections_section_terminal">الطرفية</string>
     <string name="connections_section_authentication">المصادقة</string>
     <string name="connections_section_embedded_vnc">VNC المضمّن</string>
-    <string name="connections_section_reticulum">Reticulum</string>
     <string name="connections_section_routing">التوجيه</string>
-    <string name="connections_toggle_mcp_tunnel">إتاحة خادم MCP الخاص بـ Haven</string>
-    <string name="connections_helper_mcp_tunnel">يتيح MCP الخاص بـ Haven لكل جلسة على هذا الاتصال — تصل إلى http://127.0.0.1:8730/mcp وتتخطى (عبر الاسترجاع) الإقران والموافقة. يُطبَّق عند الاتصال. للوصول الدائم دون جلسة مفتوحة، عيّنه كاتصال MCP دائم التشغيل في الإعدادات → نقطة نهاية الوكيل.</string>
     <string name="connections_section_reconnect">إعادة الاتصال</string>
-    <string name="connections_local_shell_android_desc">يشغّل صدفة أندرويد الأصلية (/system/bin/sh). الوصول إلى أوامر أندرويد ونظام الملفات والجذر (إن توفّر).</string>
-    <string name="connections_local_shell_proot_desc">يشغّل صدفة Alpine Linux محليًا عبر PRoot. ينزّل نظام جذر أدنى (~4 ميجابايت) عند أول استخدام. لا حاجة إلى الجذر أو اتصال بالشبكة.</string>
-    <string name="connections_dropdown_select_provider">اختر مزوّدًا…</string>
-    <string name="connections_helper_rclone_signin">سجّل الدخول عبر متصفحك عند أول اتصال.</string>
-    <string name="connections_helper_rclone_credentials">أدخل تفاصيل حساب هذا المزوّد، ثم اضغط تهيئة لحفظ السجل البعيد والتحقق منه.</string>
-    <string name="connections_rclone_configure">تهيئة والتحقق</string>
-    <string name="connections_rclone_configured_ok">تمت تهيئة السجل البعيد والتحقق منه.</string>
     <string name="connections_dropdown_select_ssh">اختر اتصال SSH</string>
     <string name="connections_helper_add_ssh_first">أضِف اتصال SSH أولًا</string>
-    <string name="connections_ai_route_section">ناقل مسار الذكاء الاصطناعي</string>
-    <string name="connections_ai_route_via_ssh">عبر SSH</string>
-    <string name="connections_ai_route_via_reticulum">عبر Reticulum</string>
-    <string name="connections_field_ai_route_carrier">الوصلة الناقلة</string>
-    <string name="connections_dropdown_select_carrier">اختر وصلة</string>
-    <string name="connections_helper_ai_route">وجّه نقطة النهاية عبر ناقل: يفتح SSH تحويلاً محلياً من خلال جلسة الناقل، ويجسر Reticulum عبر الشبكة. يجب أن يكون الناقل متصلاً لمسارات Reticulum.</string>
-    <string name="connections_helper_add_reticulum_first">أضف وصلة Reticulum أولاً</string>
     <string name="connections_toggle_rdp_nla">مصادقة على مستوى الشبكة (NLA)</string>
     <string name="connections_helper_run_before_session_manager">يُشغَّل قبل بدء مدير الجلسات.</string>
     <string name="connections_toggle_tunnel_only">نفق فقط (بدون طرفية)</string>
@@ -374,8 +267,6 @@
     <string name="connections_toggle_auto_reconnect">إعادة الاتصال تلقائيًا عند الانقطاع</string>
     <string name="connections_field_reconnect_max_attempts">الحد الأقصى للمحاولات (0 = غير محدود)</string>
     <string name="connections_toggle_reconnect_on_network_change">إعادة الاتصال عند تغيّر الشبكة</string>
-    <string name="connections_field_passphrase">عبارة المرور</string>
-    <string name="connections_hint_ifac_passphrase">عبارة مرور IFAC (اختيارية)</string>
     <string name="connections_helper_vnc_host_via_ssh">أين يمكن الوصول إلى خادم VNC من خادم SSH — عادةً 127.0.0.1 إذا كانا نفس الجهاز (wayvnc وغيره يرتبط بالاسترجاع فقط).</string>
     <string name="connections_helper_vnc_auth">اترك اسم المستخدم فارغًا لـ VncAuth الكلاسيكي (كلمة مرور من 8 أحرف). املأ اسم المستخدم لـ VeNCrypt (wayvnc وTigerVNC) — يدعم كلمات مرور أطول وتشفير TLS.</string>
     <string name="connections_helper_rdp_host_via_ssh">أين يمكن الوصول إلى خادم RDP من خادم SSH — عادةً 127.0.0.1 إذا كانا نفس الجهاز.</string>
@@ -393,33 +284,8 @@
     <string name="connections_forget_password">نسيان كلمة المرور المحفوظة</string>
     <string name="connections_forget_password_title">نسيان كلمة المرور المحفوظة؟</string>
     <string name="connections_forget_password_message">مسح كلمة مرور SSH المحفوظة لـ \"%1$s\"؟ ستطلبها الاتصالات المستقبلية مجددًا.</string>
-    <string name="connections_desktop_installing">جارٍ تثبيت سطح المكتب…</string>
     <string name="connections_toggle_password_only">استخدام كلمة المرور فقط</string>
     <string name="connections_helper_password_only">لا تُعرض مفاتيح SSH المحفوظة على هذا الخادم — المصادقة بكلمة المرور (والتفاعل عبر لوحة المفاتيح) فقط. استخدم هذا لخادم يقبل كلمة المرور فقط حتى لا تفشل محاولات المفاتيح بصمت.</string>
-    <string name="connections_ssh_key_none_hint">لا توجد مفاتيح SSH بعد — أضِف أو أنشئ واحدًا في تبويب المفاتيح، ثم أرفقه هنا.</string>
-    <string name="connections_section_spa">تفويض الحزمة الواحدة (fwknop)</string>
-    <string name="connections_field_spa_key">مفتاح SPA (Rijndael/AES)</string>
-    <string name="connections_field_spa_hmac_key">مفتاح HMAC (اختياري)</string>
-    <string name="connections_toggle_spa_key_base64">المفتاح بصيغة base64</string>
-    <string name="connections_toggle_spa_hmac_key_base64">مفتاح HMAC بصيغة base64</string>
-    <string name="connections_field_spa_access_spec">الوصول (بروتوكول/منفذ)</string>
-    <string name="connections_hint_spa_access_spec">مثال: tcp/22 أو tcp/22,udp/53</string>
-    <string name="connections_field_spa_allow_mode">عنوان IP المسموح به</string>
-    <string name="connections_spa_allow_source">عنوان IP المصدر</string>
-    <string name="connections_spa_allow_resolve">تحليل عنوان IP العام</string>
-    <string name="connections_spa_allow_explicit">عنوان IP صريح</string>
-    <string name="connections_field_spa_explicit_ip">عنوان IP / CIDR المسموح به</string>
-    <string name="connections_field_spa_port">منفذ UDP لـ SPA</string>
-    <string name="connections_helper_spa_active">يُرسل قبل كل اتصال مباشر. يُتجاوز على مسارات SSH/SOCKS النفقية.</string>
-    <string name="connections_helper_spa_blank">اتركه فارغًا للتعطيل.</string>
-    <string name="connections_button_test_spa">اختبار SPA</string>
-    <string name="connections_button_test_spa_running">جارٍ الإرسال…</string>
-    <string name="connections_spa_invalid">إعداد SPA غير صالح: %1$s</string>
-    <string name="connections_spa_host_blank">المضيف فارغ</string>
-    <string name="connections_spa_success">تم إرسال حزمة SPA بحجم %1$d بايت في %2$d مللي ثانية</string>
-    <string name="connections_spa_failed">فشل بعد %1$d مللي ثانية: %2$s</string>
-    <string name="connections_agent_active">الوكيل نشط</string>
-    <string name="connections_agent_activity">نشاط الوكيل</string>
     <string name="connections_pf_type_local">محلي</string>
     <string name="connections_pf_type_remote">بعيد</string>
     <string name="connections_pf_type_dynamic">ديناميكي (SOCKS5)</string>
@@ -447,7 +313,6 @@
     <string name="connections_pf_dynamic_explanation">يمكن لعملاء SOCKS5 على جهازك الاتصال بـ %1$s:%2$s وطلب أي وجهة. كل طلب يفتح قناة tcpip مباشرة جديدة عبر خادم SSH.</string>
     <string name="connections_pf_dynamic_port_fallback">&lt;port&gt;</string>
     <string name="connections_hosts_discovered">تم اكتشاف %1$d مضيف</string>
-    <string name="connections_rclone_provider_cloud">سحابي</string>
     <string name="connections_list_via">عبر %1$s</string>
     <string name="connections_auth_methods_title">طرق المصادقة</string>
     <string name="connections_auth_methods_description">تُجرَّب بالترتيب في اتصال واحد — للخوادم التي تتطلب أكثر من طريقة (مثل مفتاح + كلمة مرور، أو سلاسل PAM/OTP).</string>
@@ -464,50 +329,11 @@
     <string name="connections_auth_add_method">إضافة طريقة</string>
     <string name="connections_auth_confirm_otp">تأكيد OTP قبل الإرسال</string>
     <string name="connections_auth_confirm_otp_desc">عرض الرمز المُنشأ لتأكيد بنقرة واحدة بدلًا من إرساله تلقائيًا.</string>
-    <string name="connections_vm_copied_short">تم النسخ</string>
-    <string name="connections_vm_terminal_not_found">تطبيق الطرفية غير موجود</string>
-    <string name="connections_mcp_badge">MCP</string>
-    <string name="connections_local_distro_label">فتح في نظام التشغيل</string>
-    <string name="connections_local_distro_active_default">التوزيعة النشطة (افتراضي)</string>
 
-    <string name="connections_section_openai">نقطة نهاية الذكاء الاصطناعي</string>
-    <string name="connections_field_openai_host">عنوان الخادم</string>
-    <string name="connections_field_openai_host_hint">عنوان IP أو اسم مضيف أو رابط http:// كامل</string>
-    <string name="connections_field_openai_api_key">مفتاح API (اختياري)</string>
-    <string name="connections_field_openai_api_key_hint">يُرسَل كرمز Bearer. اتركه فارغًا للخوادم بدون مفتاح.</string>
-    <string name="connections_field_openai_path_prefix">بادئة المسار (اختيارية)</string>
-    <string name="connections_field_openai_path_prefix_hint">تُدرَج قبل /v1 — مثل /api</string>    <string name="connections_field_openai_protocol">بروتوكول الاتصال</string>
-    <string name="connections_field_openai_protocol_hint">متوافق مع OpenAI افتراضيًا؛ Ollama وAnthropic وGemini تغيّر المسارات والمصادقة.</string>
-
-    <string name="connections_openai_url_preview">عنوان نقطة النهاية: %1$s</string>
     <!-- Email account -->
-    <string name="connections_section_email">حساب البريد الإلكتروني</string>
     <string name="connections_auth_method_proton_srp">ProtonMail SRP</string>
-    <string name="connections_email_provider_proton">المزوّد: ProtonMail</string>
-    <string name="connections_email_proton_unofficial_warning">يستخدم واجهة Proton غير الرسمية. هذه الواجهة عُكست هندسيًا وتخالف شروط Proton — قد يُقيَّد حسابك أو يُقفل. تابع على مسؤوليتك الخاصة.</string>
-    <string name="connections_field_email_address">عنوان البريد الإلكتروني</string>
-    <string name="connections_field_email_password">كلمة المرور</string>
-    <string name="connections_field_email_mailbox_password">كلمة مرور صندوق البريد (وضع كلمتَي المرور فقط)</string>
-    <string name="connections_email_mailbox_password_hint">اتركه فارغًا ما لم يكن لحساب Proton الخاص بك كلمة مرور منفصلة لصندوق البريد.</string>
-    <string name="connections_email_2fa_hint">إذا كان لحسابك تحقق بخطوتين، فاربط سرّ TOTP الخاص به في مدير مفاتيح SSH / TOTP وسيُطبَّق تلقائيًا.</string>
-    <string name="connections_email_provider_proton_short">ProtonMail</string>
-    <string name="connections_email_provider_imap_short">IMAP/SMTP</string>
-    <string name="connections_email_app_password_hint">استخدم كلمة مرورك، أو كلمة مرور التطبيق إذا كان مزوّدك يتطلبها (Fastmail، iCloud، Yahoo، Gmail/تحقق بخطوتين).</string>
-    <string name="connections_email_preset_label">إعداد مسبق للمزوّد</string>
-    <string name="connections_email_app_password_link">إنشاء كلمة مرور تطبيق لـ %1$s</string>
-    <string name="connections_field_imap_server">خادم IMAP</string>
-    <string name="connections_field_smtp_server">خادم SMTP</string>
-    <string name="connections_field_smtp_server_help">اتركه فارغًا لاستخدام خادم IMAP.</string>
-    <string name="connections_field_imap_port">منفذ IMAP</string>
-    <string name="connections_field_smtp_port">منفذ SMTP</string>
-    <string name="connections_toggle_imap_tls">استخدام TLS (SSL ضمني)</string>
 
     <!-- USB forwarding, deploy password, FIDO auth, MCP toggle (#250) -->
-    <string name="connections_section_usb_forward">إعادة توجيه جهاز USB</string>
-    <string name="connections_helper_usb_forward">يصدّر جهاز USB المتصل بالهاتف إلى هذا المضيف عبر USB/IP عند الاتصال. يظهر YubiKey على المضيف من أجل ssh-keygen -t ed25519-sk، مع إجراء اللمس على الهاتف. يتطلب الإرفاق التلقائي وجود usbip وsudo بدون كلمة مرور على المضيف؛ وإلا فسيُنشأ التصدير والنفق وتُنفّذ أنت أمر الإرفاق المعروض.</string>
-    <string name="connections_field_usb_forward">إعادة توجيه جهاز USB</string>
-    <string name="connections_usb_forward_none">بلا</string>
-    <string name="connections_usb_forward_unattached">%1$s (غير مرفق)</string>
     <string name="connections_deploy_field_password_optional">كلمة المرور (اختياري)</string>
     <string name="connections_deploy_password_hint">اتركها فارغة للنشر باستخدام المفتاح المحفوظ لهذا الملف الشخصي. لا تلزم كلمة المرور إلا إذا كان الخادم يصادق بكلمة مرور (أو لفتح عبارة مرور المفتاح / مضيف وسيط).</string>
     <string name="connections_fido_key_label">المفتاح: %1$s</string>
@@ -515,83 +341,23 @@
     <string name="connections_fido_wrong_body">لا يحتوي هذا المفتاح على بيانات الاعتماد التي طلبها الخادم. قدّم المفتاح المطلوب والمسه.</string>
     <string name="connections_auth_key_picker">المفتاح: %1$s ▾</string>
     <string name="connections_auth_key_only">✓ استخدام هذا المفتاح فقط</string>
-    <string name="connections_mcp_active">الوكيل يعمل على هذا الاتصال — انقر لتعطيل MCP له</string>
-    <string name="connections_mcp_disabled">MCP معطّل لهذا الاتصال — انقر للتفعيل</string>
-    <string name="connections_toggle_mcp_enabled">السماح لوكيل MCP على هذا الاتصال</string>
-    <string name="connections_helper_mcp_enabled">عند الإيقاف، تُرفض أدوات وكيل الذكاء الاصطناعي (MCP) الموجّهة إلى هذا الاتصال. يستمر الاتصال في العمل كالمعتاد بالنسبة لك.</string>
 
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
-    <string name="connections_android_shell_label">‏shell الأصلي لنظام Android</string>
     <string name="connections_field_background_opacity">تجاوز عتامة الخلفية</string>
     <string name="connections_helper_background_opacity" formatted="false">أقل من 100% تصبح الطرفية شبه شفافة وتُظهر خلفية الجهاز خلف النص لهذا الملف الشخصي. معطّل = استخدام الإعداد العام.</string>
     <string name="connections_background_opacity_value">العتامة: %1$d%%</string>
     <string name="connections_reveal_password_title">إظهار كلمة المرور المحفوظة</string>
     <string name="connections_reveal_password_subtitle">أكّد هويتك لعرض كلمة المرور المحفوظة</string>
-    <string name="rclone_import_title">استيراد سجلات rclone البعيدة</string>
-    <string name="rclone_import_intro">الصق ملف rclone.conf من Linux أو اختر الملف. تُستورد السجلات البعيدة (بما فيها رموز OAuth) كما هي، فلا تحتاج إلى إعادة تهيئتها.</string>
-    <string name="rclone_import_pick_file">اختيار rclone.conf…</string>
-    <string name="rclone_import_paste_label">محتوى rclone.conf</string>
-    <string name="rclone_import_parse">البحث عن السجلات البعيدة</string>
-    <string name="rclone_import_encrypted">هذا الملف هو تهيئة rclone مشفّرة بكلمة مرور. نفّذ \"rclone config show\" على الحاسوب والصق المخرجات المفكوكة التشفير بدلًا منه.</string>
-    <string name="rclone_import_already_added">أُضيف بالفعل</string>
-    <string name="rclone_import_no_type">بدون نوع</string>
-    <string name="rclone_import_select_count">استيراد %1$d من السجلات البعيدة</string>
-    <string name="rclone_import_done">تم استيراد %1$d، وتخطي %2$d، وفشل %3$d.</string>
-    <string name="rclone_import_menu">استيراد تهيئة rclone…</string>
-    <string name="connections_section_spice">إعدادات SPICE</string>
-    <string name="connections_section_mcp">وكيل الذكاء الاصطناعي (MCP)</string>
-    <string name="connections_rclone_configure_first">اضغط “تهيئة والتحقق” لحفظ هذا السجل البعيد قبل أن تتمكن من حفظ الاتصال.</string>
-    <string name="connections_helper_spice_auth">يستخدم SPICE تذكرة/كلمة مرور واحدة اختيارية. اتركها فارغة لخادم بدون تذكرة.</string>
     <string name="connections_auth_any_hardware_key">أي مفتاح أمان (FIDO)</string>
     <string name="connections_deeplink_confirm_title">هل تريد الاتصال؟</string>
     <string name="connections_deeplink_confirm_message">يطلب رابط الاتصال بـ %1$s.</string>
     <string name="connections_deeplink_confirm_session">يطلب رابط الاتصال بـ %1$s وإرفاق الجلسة “%2$s”.</string>
     <string name="connections_deeplink_confirm_connect">اتصال</string>
     <!-- Serial-connection strings (#406 BTSERIAL, #408 USBSERIAL) -->
-    <string name="connections_section_btserial">تسلسلي بلوتوث</string>
-    <string name="connections_btserial_desc">الاتصال بمحوّل بلوتوث-إلى-تسلسلي مقترن (مثل منفذ وحدة تحكم مبدّل أو موجّه).</string>
-    <string name="connections_btserial_device">جهاز مقترن</string>
-    <string name="connections_btserial_no_devices">لا توجد أجهزة بلوتوث مقترنة. اقترن المحوّل أولاً من إعدادات Android ثم بلوتوث، ثم أعد فتح هذا.</string>
-    <string name="connections_btserial_permission">امنح إذن بلوتوث لعرض الأجهزة المقترنة</string>
-    <string name="connections_section_usbserial">تسلسلي USB</string>
-    <string name="connections_usbserial_desc">الاتصال بمحوّل USB تسلسلي موصَّل — جهاز Arduino أو لوحة Duet3D لـ G-code أو ESP32 أو كبل USB إلى TTL.</string>
-    <string name="connections_usbserial_device">جهاز USB</string>
-    <string name="connections_usbserial_no_devices">لم يتم اكتشاف محوّل USB تسلسلي. وصّل واحدًا ثم أعد فتح هذا.</string>
-    <string name="connections_usbserial_baud">معدل الباود</string>
-    <string name="connections_section_bleserial">منفذ Bluetooth LE التسلسلي</string>
-    <string name="connections_bleserial_desc">الاتصال بجهاز طرفي UART عبر Bluetooth-LE — جهاز Nordic UART Service أو وحدة HM-10 أو محوّل BLE RS232. لا حاجة إلى إقرانه.</string>
-    <string name="connections_bleserial_device">جهاز BLE</string>
-    <string name="connections_bleserial_no_devices">لم يتم العثور على أجهزة BLE. تأكد من تشغيل الجهاز الطرفي وأنه يبثّ الإعلانات، ثم أعد الفحص.</string>
-    <string name="connections_bleserial_permission">امنح إذن Bluetooth (الفحص) للعثور على أجهزة BLE</string>
-    <string name="connections_bleserial_scan">فحص أجهزة BLE</string>
-    <string name="connections_bleserial_scanning">جارٍ الفحص…</string>
-    <string name="connections_usbserial_databits">بتات البيانات</string>
-    <string name="connections_usbserial_parity">التكافؤ</string>
-    <string name="connections_usbserial_stopbits">بتات التوقف</string>
-    <string name="connections_usbserial_flowcontrol">التحكم في التدفق</string>
-    <string name="connections_usbserial_none">بلا</string>
-    <string name="connections_usbserial_parity_odd">فردي</string>
-    <string name="connections_usbserial_parity_even">زوجي</string>
-    <string name="connections_usbserial_parity_mark">علامة</string>
-    <string name="connections_usbserial_parity_space">فراغ</string>
-    <string name="connections_usbserial_flow_rtscts">RTS/CTS</string>
-    <string name="connections_usbserial_flow_xonxoff">XON/XOFF</string>
     <string name="connections_section_ssh_engine">محرك SSH</string>
     <string name="connections_helper_ssh_engine">تنفيذ SSH الذي يستخدمه هذا الاتصال. ‏sshlib تجريبي: أصبح الآن يتولى الاتصال بأكمله — الطرفية ونقل الملفات والأنفاق — وليس SFTP فقط.</string>
     <string name="connections_ssh_engine_jsch_label">افتراضي (JSch)</string>
     <string name="connections_ssh_engine_jsch_desc">المحرك المُجرَّب. جميع الميزات.</string>
     <string name="connections_ssh_engine_sshlib_label">sshlib (تجريبي)</string>
     <string name="connections_ssh_engine_sshlib_desc">محرك Kotlin: الطرفية وSFTP وإعادة توجيه المنافذ على اتصال واحد. يتطلب اتصالًا مباشرًا — دون مضيف وسيط أو وكيل أو مفتاح أجهزة أو شهادة أو تسجيل دخول متعدد العوامل.</string>
-    <string name="connections_identity_label">هوية هذا الجهاز</string>
-    <string name="connections_identity_none">لا توجد بعد — سيتم إنشاؤها عند أول اتصال</string>
-    <string name="connections_identity_help">مشتركة بين جميع اتصالات Reticulum. الخادم الذي يسمح لك يعتمد على هذه البصمة.</string>
-    <string name="connections_identity_import">استيراد ملف الهوية…</string>
-    <string name="connections_identity_imported">تم استيراد الهوية: %1$s</string>
-    <string name="connections_identity_imported_restart">تم استيراد الهوية: %1$s. أعد تشغيل Haven لكي تستخدمها الاتصالات.</string>
-    <string name="connections_identity_not_an_identity">هذا الملف ليس هوية Reticulum. لم يتم تغيير أي شيء.</string>
-    <string name="connections_identity_install_failed">تعذّر تثبيت الهوية: %1$s. الهوية السابقة ما زالت في مكانها.</string>
-    <string name="connections_identity_unreadable">تعذّرت قراءة هذا الملف.</string>
-    <string name="connections_section_glkvm">إعدادات GLKVM</string>
-    <string name="connections_field_glkvm_layout">أهداف تخطيط لوحة المفاتيح</string>
-    <string name="connections_helper_glkvm">GLKVM (نظام PiKVM-style عبر HTTPS) — يعمل على لوحة مفاتيح الجهاز وفأرته الماديّتين مباشرة. يستخدم TLS بثقة أول استخدام، وتخطيط لوحة مفاتيح الجهاز هو ما يحدد الأحرف عند الكتابة. مرر عبر نفق SSH أو ملف تعريف WireGuard/Tailscale للوصول إليه من خارج الشبكة المحلية.</string>
 </resources>

@@ -15,10 +15,7 @@
     <string name="common_edit">Изменить</string>
     <string name="common_rename">Переименовать</string>
     <string name="common_create">Создать</string>
-    <string name="common_connect">Подключить</string>
-    <string name="common_disconnect">Отключить</string>
     <string name="common_copy">Копировать</string>
-    <string name="common_paste">Вставить</string>
     <string name="common_label">Метка</string>
     <string name="common_password">Пароль</string>
     <string name="common_port">Порт</string>
@@ -28,18 +25,7 @@
     <string name="common_reset">Сбросить</string>
     <string name="common_allow">Разрешить</string>
     <string name="common_not_now">Не сейчас</string>
-    <string name="common_import">Импорт</string>
-    <string name="common_add">Добавить</string>
-    <string name="common_download">Скачать</string>
     <string name="common_github">GitHub</string>
     <string name="common_support">Поддержка</string>
     <string name="common_unlock">Разблокировать</string>
-    <string name="nav_mail">Почта</string>
-    <string name="nav_chat">Чат</string>
-    <string name="wayland_cd_session_menu">Меню сеанса</string>
-    <string name="wayland_cd_reset_zoom">Сбросить масштаб</string>
-    <string name="wayland_cd_exit_fullscreen">Выйти из полноэкранного режима</string>
-    <string name="wayland_cd_toggle_keyboard">Показать/скрыть клавиатуру</string>
-    <string name="wayland_cd_fullscreen">Полный экран</string>
-    <string name="wayland_cd_desktop_resolution">Разрешение рабочего стола</string>
 </resources>

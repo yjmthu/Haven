@@ -6,8 +6,6 @@
     <string name="nav_keys">密钥</string>
     <string name="nav_sftp">文件</string>
     <string name="nav_settings">设置</string>
-    <string name="nav_mail">邮件</string>
-    <string name="nav_chat">聊天</string>
     <string name="common_cancel">取消</string>
     <string name="common_save">保存</string>
     <string name="common_done">完成</string>
@@ -17,10 +15,7 @@
     <string name="common_edit">编辑</string>
     <string name="common_rename">重命名</string>
     <string name="common_create">创建</string>
-    <string name="common_connect">连接</string>
-    <string name="common_disconnect">断开</string>
     <string name="common_copy">复制</string>
-    <string name="common_paste">粘贴</string>
     <string name="common_label">标签</string>
     <string name="common_password">密码</string>
     <string name="common_port">端口</string>
@@ -30,16 +25,7 @@
     <string name="common_reset">重置</string>
     <string name="common_allow">允许</string>
     <string name="common_not_now">暂不</string>
-    <string name="common_import">导入</string>
-    <string name="common_add">添加</string>
-    <string name="common_download">下载</string>
     <string name="common_github">GitHub</string>
     <string name="common_support">支持</string>
     <string name="common_unlock">解锁</string>
-    <string name="wayland_cd_session_menu">会话菜单</string>
-    <string name="wayland_cd_reset_zoom">重置缩放</string>
-    <string name="wayland_cd_exit_fullscreen">退出全屏</string>
-    <string name="wayland_cd_toggle_keyboard">显示/隐藏键盘</string>
-    <string name="wayland_cd_fullscreen">全屏</string>
-    <string name="wayland_cd_desktop_resolution">桌面分辨率</string>
 </resources>

@@ -6,8 +6,6 @@
     <string name="nav_keys">Claves</string>
     <string name="nav_sftp">Archivos</string>
     <string name="nav_settings">Ajustes</string>
-    <string name="nav_mail">Correo</string>
-    <string name="nav_chat">Chat</string>
     <string name="common_cancel">Cancelar</string>
     <string name="common_save">Guardar</string>
     <string name="common_done">Listo</string>
@@ -17,10 +15,7 @@
     <string name="common_edit">Editar</string>
     <string name="common_rename">Renombrar</string>
     <string name="common_create">Crear</string>
-    <string name="common_connect">Conectar</string>
-    <string name="common_disconnect">Desconectar</string>
     <string name="common_copy">Copiar</string>
-    <string name="common_paste">Pegar</string>
     <string name="common_label">Etiqueta</string>
     <string name="common_password">Contraseña</string>
     <string name="common_port">Puerto</string>
@@ -30,16 +25,7 @@
     <string name="common_reset">Restablecer</string>
     <string name="common_allow">Permitir</string>
     <string name="common_not_now">Ahora no</string>
-    <string name="common_import">Importar</string>
-    <string name="common_add">Agregar</string>
-    <string name="common_download">Descargar</string>
     <string name="common_github">GitHub</string>
     <string name="common_support">Soporte</string>
     <string name="common_unlock">Desbloquear</string>
-    <string name="wayland_cd_session_menu">Menú de sesión</string>
-    <string name="wayland_cd_reset_zoom">Restablecer zoom</string>
-    <string name="wayland_cd_exit_fullscreen">Salir de pantalla completa</string>
-    <string name="wayland_cd_toggle_keyboard">Mostrar u ocultar el teclado</string>
-    <string name="wayland_cd_fullscreen">Pantalla completa</string>
-    <string name="wayland_cd_desktop_resolution">Resolución del escritorio</string>
 </resources>

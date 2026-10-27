@@ -11,12 +11,9 @@ jsch = "2.28.8"
 # ssh-proto (ConnectBot sshlib) — the second SSH engine (#58). Kotlin
 # coroutines SSH client; Haven contributed exec/subsystem/SFTP/SK upstream.
 sshlib = "0.5.1"
-smbj = "0.15.0"
 termlib = "0.0.22"
-sora-editor = "0.23.6"
 bouncycastle = "1.84"
-# 5.19.1 to match prns/prns-host/bindings/jvm (JNA enforces jar↔jnidispatch
-# version pairing at load, so the AAR's native must match the strictest jar).
+# JNA, used by the RDP transport's JNI-free FFI bindings.
 jna = "5.19.1"
 coroutines = "1.10.1"
 lifecycle = "2.11.0"
@@ -25,36 +22,18 @@ core-ktx = "1.17.0"
 activity-compose = "1.13.0"
 shizuku-api = "13.1.5"
 ksp = "2.3.10"
-androidx-browser = "1.10.0"
 androidx-work = "2.9.0"
 androidx-hilt-work = "1.4.0"
 okhttp = "5.5.0"
-# Real org.json for JVM unit tests: the mockable android.jar stub (returnDefaultValues)
-# makes JSONObject every method return defaults — clients parsing server JSON in tests
-# need the real artifact. Runtime code keeps android.jar's org.json.
-orgjson = "20240303"
-# QR / barcode + on-device OCR for the terminal's Scan/Recognize attach options.
-# ZXing core is pure Java (Apache 2.0). Tesseract4Android is the adaptech-cz
-# maintained fork that wraps Tesseract 5.x via JNI (Apache 2.0).
-zxing = "3.5.4"
-# adaptech-cz Tesseract4Android is shipped via JitPack (no Maven Central
-# artifact). 4.8.0 wraps Tesseract 5.x + leptonica, JitPack build "ok".
-# Check https://jitpack.io/#adaptech-cz/Tesseract4Android before bumping —
-# some upstream tags fail JitPack's build and never get an AAR.
-tesseract4android = "4.8.0"
-# USB serial driver library (mik3y). MIT-licensed, no transitive deps — pure
-# Android USB host API. Drives CDC-ACM + CH34x/FTDI/CP21xx/Prolific adapters
-# for the USB-serial terminal connection type. JitPack, like jsch/tesseract.
-usbSerial = "3.11.0"
-# Pure-Java XZ decoder, BSD-licensed. Needed to extract tar.xz rootfs
-# tarballs (Debian / Ubuntu / Arch from proot-distro). Tiny (~110KB).
-xz = "1.12"
+# Real org.json for JVM unit tests: the mockable android.jar stub
+# (returnDefaultValues) makes every JSONObject method return defaults, so
+# tests parsing server JSON need the real artifact. Runtime code keeps
+# android.jar's org.json. Build files pin the version directly.
 
 [libraries]
 # Compose BOM
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
 compose-ui = { group = "androidx.compose.ui", name = "ui" }
-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 compose-material3 = { group = "androidx.compose.material3", name = "material3" }
@@ -71,7 +50,6 @@ lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime-co
 lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycle" }
 navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
-androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "androidx-browser" }
 androidx-work-runtime = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "androidx-work" }
 androidx-hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "androidx-hilt-work" }
 androidx-hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "androidx-hilt-work" }
@@ -101,12 +79,10 @@ jsch = { group = "com.github.mwiede", name = "jsch", version.ref = "jsch" }
 bouncycastle = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncycastle" }
 
 # SMB
-smbj = { group = "com.hierynomus", name = "smbj", version.ref = "smbj" }
 
 # OkHttp — WebSocket client for the Cloudflare Access SSH gateway (#154)
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 okhttp-mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "okhttp" }
-orgjson = { group = "org.json", name = "json", version.ref = "orgjson" }
 
 # Terminal
 termlib = { group = "org.connectbot", name = "termlib", version.ref = "termlib" }
@@ -115,12 +91,6 @@ termlib = { group = "org.connectbot", name = "termlib", version.ref = "termlib" 
 # stays pure Java (no Android dep), so the recognizer can be unit-tested on
 # the JVM. Tesseract4Android ships native libs per ABI and is the F-Droid-
 # friendly alternative to Google ML Kit.
-zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
-tesseract4android = { group = "com.github.adaptech-cz", name = "Tesseract4Android", version.ref = "tesseract4android" }
-usbserial = { group = "com.github.mik3y", name = "usb-serial-for-android", version.ref = "usbSerial" }
-
-# XZ decoder for tar.xz rootfs tarballs (Debian / Ubuntu via proot-distro).
-xz = { group = "org.tukaani", name = "xz", version.ref = "xz" }
 
 # JNA (for UniFFI-generated bindings — keep in sync with rdp-kotlin/build.gradle.kts)
 jna = { group = "net.java.dev.jna", name = "jna", version.ref = "jna" }
@@ -129,8 +99,6 @@ jna = { group = "net.java.dev.jna", name = "jna", version.ref = "jna" }
 desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version = "2.1.5" }
 
 # Editor
-sora-editor = { group = "io.github.Rosemoe.sora-editor", name = "editor", version.ref = "sora-editor" }
-sora-editor-textmate = { group = "io.github.Rosemoe.sora-editor", name = "language-textmate", version.ref = "sora-editor" }
 
 # Coroutines
 coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -140,7 +108,6 @@ coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutin
 junit = { group = "junit", name = "junit", version = "4.13.2" }
 mockk = { group = "io.mockk", name = "mockk", version = "1.14.11" }
 coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
-turbine = { group = "app.cash.turbine", name = "turbine", version = "1.2.1" }
 robolectric = { group = "org.robolectric", name = "robolectric", version = "4.16.1" }
 androidx-test-core = { group = "androidx.test", name = "core-ktx", version = "1.7.0" }
 compose-ui-test = { group = "androidx.compose.ui", name = "ui-test-junit4" }

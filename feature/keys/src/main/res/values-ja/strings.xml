@@ -10,10 +10,7 @@
     <string name="common_edit">編集</string>
     <string name="common_rename">名前変更</string>
     <string name="common_create">作成</string>
-    <string name="common_connect">接続</string>
-    <string name="common_disconnect">切断</string>
     <string name="common_copy">コピー</string>
-    <string name="common_paste">貼り付け</string>
     <string name="common_label">ラベル</string>
     <string name="common_password">パスワード</string>
     <string name="common_port">ポート</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">リセット</string>
     <string name="common_allow">許可</string>
     <string name="common_not_now">後で</string>
-    <string name="common_import">インポート</string>
-    <string name="common_add">追加</string>
-    <string name="common_download">ダウンロード</string>
     <string name="common_unlock">ロック解除</string>
 
     <!-- KeysScreen -->
@@ -75,57 +69,11 @@
     <string name="keys_ssh_public_key_clip_label">SSH公開鍵</string>
 
     <!-- #133 phase 2: step-ca generate-via-OIDC (en fallback) -->
-    <string name="keys_generate_via_stepca">step-ca で生成</string>
-    <string name="keys_generate_via_stepca_hint">OIDC サインインで新しい鍵ペアと署名済み証明書を発行します</string>
-    <string name="keys_generate_via_stepca_no_ca">追加するには上の「証明機関」をタップしてください</string>
-    <string name="keys_stepca_dialog_title">step-ca で生成</string>
-    <string name="keys_stepca_pick_ca">証明機関</string>
-    <string name="keys_stepca_principals_override_label">プリンシパルを上書き (任意、カンマ区切り)</string>
-    <string name="keys_stepca_label">鍵のラベル</string>
-    <string name="keys_stepca_generate">生成</string>
     <string name="keys_chip_certificate_minted">%1$s に発行</string>
 
     <!-- #133 phase 2b: regenerate menu (en fallback) -->
-    <string name="keys_regenerate_via_stepca">step-ca で再生成</string>
 
     <!-- #133 phase 2b: step-ca CA registration (moved from Settings) -->
-    <string name="stepca_add_title">証明機関を追加</string>
-    <string name="stepca_edit_title">証明機関を編集</string>
-    <string name="stepca_add">Add</string>
-    <string name="stepca_save">保存</string>
-    <string name="stepca_cancel">キャンセル</string>
-    <string name="stepca_delete">削除</string>
-    <string name="stepca_test_connection">接続をテスト</string>
-    <string name="stepca_field_name">表示名</string>
-    <string name="stepca_field_ca_url">CA の URL</string>
-    <string name="stepca_field_ca_url_hint">https://ca.example.com</string>
-    <string name="stepca_field_oidc_issuer">OIDC 発行者 URL</string>
-    <string name="stepca_field_oidc_auth_url">OIDC 認可 URL</string>
-    <string name="stepca_field_oidc_token_url">OIDC トークン URL</string>
-    <string name="stepca_field_oidc_client_id">OIDC クライアント ID</string>
-    <string name="stepca_field_provisioner">step-ca プロビジョナー</string>
-    <string name="stepca_field_principals">既定のプリンシパル (カンマ区切り)</string>
-    <string name="stepca_field_root_cert">ルート証明書 (PEM)</string>
-    <string name="stepca_field_root_cert_hint">-----BEGIN CERTIFICATE-----…</string>
-    <string name="stepca_test_ok">到達可能</string>
-    <string name="stepca_test_bad_root_cert">ルート証明書が無効です: %1$s</string>
-    <string name="stepca_test_http_error">HTTP %1$d: %2$s</string>
-    <string name="stepca_test_network_error">ネットワーク エラー: %1$s</string>
-    <string name="stepca_empty_state">証明機関が設定されていません。\n+ をタップして追加してください。</string>
-    <string name="stepca_validation_required">%1$s は必須です</string>
-    <string name="stepca_validation_url">%1$s は https:// で始まる必要があります</string>
-    <string name="stepca_validation_pem">ルート証明書は PEM 形式である必要があります</string>
-    <string name="stepca_validation_host_ca_or_signing">ホスト CA 公開鍵を入力するか、署名フィールドを入力してください。</string>
-    <string name="stepca_validation_host_ca">有効な SSH ホスト CA 公開鍵ではありません。</string>
-    <string name="stepca_delete_confirm_title">%1$s を削除しますか？</string>
-    <string name="stepca_delete_confirm_body">この CA で発行済みの鍵は証明書の有効期限まで動作しますが、更新や新規発行はできなくなります。</string>
-    <string name="stepca_field_ssh_host_ca">SSH ホスト CA 公開鍵 (任意)</string>
-    <string name="stepca_field_ssh_host_ca_hint">ssh-ed25519 AAAAC3…</string>
-    <string name="stepca_discover_host_ca">/1.0/ssh/config から検出</string>
-    <string name="stepca_discovering">検出中…</string>
-    <string name="stepca_import_from_file">ファイルからインポート</string>
-    <string name="stepca_import_failed">インポートに失敗しました: %1$s</string>
-    <string name="keys_section_certificate_authorities">証明機関 (%1$d)</string>
     <string name="keys_section_ssh">SSH鍵 (%1$d)</string>
     <string name="keys_section_drive">USBドライブの鍵 (%1$d)</string>
     <string name="keys_section_passwords">保存済みパスワード (%1$d)</string>
@@ -141,17 +89,6 @@
     <string name="keys_attach_certificate">証明書を添付</string>
     <string name="keys_remove_certificate">証明書を削除</string>
     <string name="keys_chip_certificate">証明書が添付されています</string>
-    <string name="stepca_bootstrap_intro">CAのURLとSHA-256フィンガープリントからブートストラップします。残り（ルート証明書、プロビジョナー、OIDCのURLとシークレット）はCAから取得されます。</string>
-    <string name="stepca_field_fingerprint">ルート証明書のフィンガープリント (SHA-256)</string>
-    <string name="stepca_field_fingerprint_hint">`step certificate fingerprint` から貼り付け</string>
-    <string name="stepca_bootstrap_action">CAからブートストラップ</string>
-    <string name="stepca_bootstrapping">CAと通信中…</string>
-    <string name="stepca_bootstrap_pick_provisioner">OIDCプロビジョナーを選択:</string>
-    <string name="stepca_manual_entry">手動入力…</string>
-    <string name="stepca_field_oidc_client_secret">OIDCクライアントシークレット（任意）</string>
-    <string name="stepca_field_oidc_client_secret_hint">公開のPKCEのみのクライアントの場合は空欄のまま</string>
-    <string name="keys_discover_from_security_key">セキュリティキーから検出</string>
-    <string name="keys_discover_from_security_key_hint">挿入またはタップしたセキュリティキーから常駐SSH-SK認証情報を列挙します。ssh-keygen -K をスキップします。</string>
     <string name="keys_discover_picker_title">常駐SSH鍵</string>
     <string name="keys_discover_picker_body">インポートする常駐認証情報を選択してください。それぞれが新しいSSH鍵エントリになります。秘密鍵の素材はセキュリティキー自体に残ります。</string>
     <string name="keys_discover_import_selected">選択したものをインポート</string>
@@ -171,8 +108,6 @@
     <string name="keys_export_certificate">証明書をエクスポート</string>
     <string name="keys_totp_section_header">認証アプリ (TOTP) · %1$d</string>
     <string name="keys_totp_delete_desc">認証アプリを削除</string>
-    <string name="keys_totp_scan_qr">認証アプリの QR をスキャン (TOTP)</string>
-    <string name="keys_totp_scan_qr_hint">otpauth:// QR コードが含まれた画像を選択</string>
     <string name="keys_totp_paste">クリップボードから認証アプリを追加 (TOTP)</string>
     <string name="keys_totp_paste_hint">otpauth:// URI または base32 シークレットを貼り付け</string>
     <!-- RenameKeyDialog (#231) -->
@@ -191,7 +126,6 @@
     <string name="keys_register_on_security_key">セキュリティキーに SSH キーを作成</string>
     <string name="keys_register_on_security_key_body">セキュリティキー上に常駐 sk-ssh-ed25519 認証情報を作成します。次に、USB で接続して押すか、NFC の場合は端末の背面にかざしてください。</string>
     <string name="keys_register_verify_required">サインインのたびに PIN を要求</string>
-    <string name="keys_register_verify_required_hint">オン: SSH ログインに署名するたびにキーが PIN を要求します（verify-required — より安全）。オフ: タッチのみ。</string>
     <string name="keys_register_pin">セキュリティキーの PIN</string>
     <string name="keys_register_pin_confirm">PIN を確認</string>
     <string name="keys_register_pin_hint">キーが新品なら PIN を選び、そうでなければ既存の PIN を入力します。4 文字以上。</string>

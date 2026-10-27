@@ -6,8 +6,6 @@
     <string name="nav_desktop">Desktop</string>
     <string name="nav_keys">Keys</string>
     <string name="nav_sftp">Files</string>
-    <string name="nav_mail">Mail</string>
-    <string name="nav_chat">Chat</string>
     <string name="nav_settings">Settings</string>
 
     <!-- Common strings shared across all feature modules -->
@@ -20,10 +18,7 @@
     <string name="common_edit">Edit</string>
     <string name="common_rename">Rename</string>
     <string name="common_create">Create</string>
-    <string name="common_connect">Connect</string>
-    <string name="common_disconnect">Disconnect</string>
     <string name="common_copy">Copy</string>
-    <string name="common_paste">Paste</string>
     <string name="common_label">Label</string>
     <string name="common_password">Password</string>
     <string name="common_port">Port</string>
@@ -33,16 +28,7 @@
     <string name="common_reset">Reset</string>
     <string name="common_allow">Allow</string>
     <string name="common_not_now">Not now</string>
-    <string name="common_import">Import</string>
-    <string name="common_add">Add</string>
-    <string name="common_download">Download</string>
     <string name="common_github">GitHub</string>
     <string name="common_support">Support</string>
     <string name="common_unlock">Unlock</string>
-    <string name="wayland_cd_session_menu">Session menu</string>
-    <string name="wayland_cd_reset_zoom">Reset zoom</string>
-    <string name="wayland_cd_exit_fullscreen">Exit fullscreen</string>
-    <string name="wayland_cd_toggle_keyboard">Toggle keyboard</string>
-    <string name="wayland_cd_fullscreen">Fullscreen</string>
-    <string name="wayland_cd_desktop_resolution">Desktop resolution</string>
 </resources>

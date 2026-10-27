@@ -10,11 +10,8 @@
     <string name="common_edit">সম্পাদনা</string>
     <string name="common_rename">নাম পরিবর্তন</string>
     <string name="common_create">তৈরি</string>
-    <string name="common_connect">সংযোগ</string>
     <string name="connections_connect_without_saving">সংরক্ষণ না করে সংযোগ করুন</string>
-    <string name="common_disconnect">সংযোগ বিচ্ছিন্ন</string>
     <string name="common_copy">কপি</string>
-    <string name="common_paste">পেস্ট</string>
     <string name="common_label">লেবেল</string>
     <string name="common_password">পাসওয়ার্ড</string>
     <string name="common_port">পোর্ট</string>
@@ -24,9 +21,6 @@
     <string name="common_reset">রিসেট</string>
     <string name="common_allow">অনুমতি</string>
     <string name="common_not_now">এখন নয়</string>
-    <string name="common_import">ইমপোর্ট</string>
-    <string name="common_add">যোগ</string>
-    <string name="common_download">ডাউনলোড</string>
     <string name="common_unlock">আনলক</string>
 
     <!-- Common strings (shared across features) -->
@@ -51,9 +45,6 @@
     <string name="connections_status_disconnected">সংযোগ বিচ্ছিন্ন</string>
 
     <!-- Connection tree item -->
-    <string name="connections_proot_label">PRoot Alpine Linux</string>
-    <string name="connections_launch_desktop">ডেস্কটপ চালু</string>
-    <string name="connections_setup_desktop">ডেস্কটপ সেটআপ</string>
 
     <!-- Connection context menu -->
     <string name="connections_menu_port_forwards">পোর্ট ফরওয়ার্ড</string>
@@ -91,20 +82,8 @@
     <string name="connections_rename_title">সংযোগের নাম পরিবর্তন</string>
 
     <!-- Linux VM card -->
-    <string name="connections_linux_vm">Linux VM</string>
-    <string name="connections_vm_tap_to_setup">সেটআপ করতে ট্যাপ করুন</string>
-    <string name="connections_vm_status_active">সক্রিয়</string>
-    <string name="connections_vm_refresh">VM স্থিতি রিফ্রেশ</string>
 
     <!-- Desktop setup dialog -->
-    <string name="connections_desktop_setup_title">ডেস্কটপ সেটআপ</string>
-    <string name="connections_desktop_wayland_description">PRoot পরিবেশে Wayland কম্পোজিটর ইনস্টল করুন। পরীক্ষামূলক — সফটওয়্যার রেন্ডারিং ব্যবহার করে।</string>
-    <string name="connections_desktop_openbox_description">PRoot পরিবেশে ডেস্কটপ ও VNC সার্ভার ইনস্টল করুন। Openbox ন্যূনতম — অ্যাপ মেনুর জন্য ডেস্কটপে ডান-ক্লিক করুন।</string>
-    <string name="connections_desktop_vnc_description">PRoot পরিবেশে ডেস্কটপ ও VNC সার্ভার ইনস্টল করুন।</string>
-    <string name="connections_desktop_vnc_password">VNC পাসওয়ার্ড</string>
-    <string name="connections_desktop_shell">শেল</string>
-    <string name="connections_desktop_installed">ডেস্কটপ ইনস্টল হয়েছে। VNC-তে সংযোগ হচ্ছে\u2026</string>
-    <string name="connections_desktop_setup_failed">সেটআপ ব্যর্থ: %1$s</string>
 
     <!-- New group dialog -->
     <string name="connections_new_group_title">নতুন গ্রুপ</string>
@@ -117,15 +96,7 @@
     <string name="connections_menu_launch_all">সব চালু</string>
     <string name="connections_menu_delete_group">গ্রুপ মুছুন</string>
     <string name="connections_new_group_action">নতুন গ্রুপ</string>
-    <string name="connections_desktop_addons_header">ডেস্কটপ বৈশিষ্ট্য (ঐচ্ছিক)</string>
     <string name="connections_menu_duplicate">নকল করুন</string>
-    <string name="connections_desktops_title">ডেস্কটপ</string>
-    <string name="connections_desktop_start">শুরু করুন</string>
-    <string name="connections_desktop_stop">বন্ধ করুন</string>
-    <string name="connections_desktop_native_running">নেটিভ কম্পোজিটর</string>
-    <string name="connections_desktop_uninstall_title">ডেস্কটপ আনইনস্টল করবেন?</string>
-    <string name="connections_desktop_uninstall_message">%1$s আনইনস্টল করবেন? PRoot পরিবেশ থেকে প্যাকেজগুলি সরানো হবে।</string>
-    <string name="connections_use_android_shell">নেটিভ Android শেল ব্যবহার করুন</string>
     <!-- Backfilled translations (i18n drift fix) -->
     <string name="connections_new_session_create">তৈরি করুন</string>
 
@@ -137,26 +108,16 @@
     <string name="connections_helper_disable_alt_screen">screen/vim-এ স্ক্রলব্যাক কাজ করে। প্রোগ্রাম বন্ধ হলেও আউটপুট স্ক্রলব্যাকে থাকে।</string>
     <string name="connections_toggle_forward_agent">SSH এজেন্ট ফরওয়ার্ড করুন</string>
     <string name="connections_helper_forward_agent">সংরক্ষিত এনক্রিপ্ট-না-করা SSH কী রিমোট হোস্টে উন্মুক্ত করে (git push ইত্যাদির জন্য)। এনক্রিপ্ট করা কী বাদ যায়।</string>
-    <string name="connections_field_ssh_key">SSH কী</string>
-    <string name="connections_ssh_key_any">যেকোনো (সব কী চেষ্টা করুন)</string>
     <string name="connections_field_vnc_port">VNC পোর্ট</string>
     <string name="connections_field_vnc_password">VNC পাসওয়ার্ড</string>
     <string name="connections_field_vnc_color_depth">VNC রঙের গভীরতা</string>
     <string name="connections_action_clear_vnc">সংরক্ষিত VNC সেটিংস মুছুন</string>
-    <string name="connections_toggle_local_sideband">লোকাল Sideband</string>
-    <string name="connections_field_gateway_host">গেটওয়ে হোস্ট</string>
-    <string name="connections_field_network_name">নেটওয়ার্কের নাম</string>
-    <string name="connections_helper_network_name">IFAC নেটওয়ার্কের নাম (ঐচ্ছিক)</string>
-    <string name="connections_action_scan_rnsh">rnsh নোড খুঁজুন</string>
-    <string name="connections_field_destination_hash">গন্তব্য হ্যাশ</string>
-    <string name="connections_helper_destination_hash">৩২-অক্ষরের হেক্স</string>
     <string name="connections_field_color_scheme">টার্মিনালের রঙের স্কিম</string>
     <string name="connections_color_scheme_inherit">ডিফল্ট ব্যবহার করুন (গ্লোবাল সেটিং)</string>
 
     <string name="connections_tunnel_dropdown_label">টানেল: %1$s</string>
     <string name="connections_session_default_with">ডিফল্ট (%1$s)</string>
     <string name="connections_discovered_count">আবিষ্কৃত (%1$d)</string>
-    <string name="connections_discovered_count_filtered">আবিষ্কৃত (%2$d এর মধ্যে %1$d)</string>
 
     <!-- #135 third pass -->
 
@@ -192,26 +153,8 @@
 
     <string name="connections_ki_submit">জমা দিন</string>
 
-    <string name="connections_vm_title">Linux VM</string>
-    <string name="connections_vm_detected_services">শনাক্ত হওয়া সার্ভিস</string>
-    <string name="connections_vm_quick_setup">দ্রুত সেটআপ</string>
-    <string name="connections_vm_copy_install">ইনস্টল কমান্ড কপি করুন</string>
-    <string name="connections_vm_view_script">স্ক্রিপ্ট দেখুন</string>
-    <string name="connections_vm_step_start">১. Linux VM চালু করুন</string>
-    <string name="connections_vm_open_terminal">টার্মিনাল অ্যাপ খুলুন</string>
-    <string name="connections_vm_step_open_port">২. পোর্ট 8022 খুলুন</string>
-    <string name="connections_vm_step_password">৩. পাসওয়ার্ড সেট করুন ও SSH ইনস্টল করুন</string>
-    <string name="connections_vm_step_vnc">৪. VNC সার্ভার ইনস্টল করুন (ঐচ্ছিক)</string>
-    <string name="connections_vm_step_desktop">৫. একটি ডেস্কটপ ইনস্টল করুন (ঐচ্ছিক)</string>
-    <string name="connections_vm_step_apps">৬. ডেস্কটপ অ্যাপ ইনস্টল করুন (ঐচ্ছিক)</string>
 
-    <string name="connections_section_desktops">ডেস্কটপ</string>
-    <string name="connections_action_back">পেছনে</string>
-    <string name="connections_vnc_password_title">VNC পাসওয়ার্ড</string>
-    <string name="connections_action_local_terminal">লোকাল টার্মিনাল</string>
     <string name="connections_action_tunnels">টানেল</string>
-    <string name="connections_action_reauthenticate">পুনরায় প্রমাণীকরণ</string>
-    <string name="connections_action_cancel_oauth">OAuth বাতিল করুন</string>
 
     <string name="connections_hostkey_verify_hint">বিশ্বাস করার আগে যাচাই করুন এই ফিঙ্গারপ্রিন্ট সার্ভারের কী-এর সঙ্গে মেলে।</string>
     <string name="connections_hostkey_changed_title">হোস্ট কী পরিবর্তিত</string>
@@ -235,36 +178,11 @@
     <string name="connections_ki_response_fallback">প্রতিক্রিয়া</string>
     <string name="connections_ki_title_additional">অতিরিক্ত প্রমাণীকরণ প্রয়োজন</string>
     <string name="connections_ki_title_server">সার্ভারের প্রম্পট</string>
-    <string name="connections_vm_install_blurb">SSH, VNC, Xfce4 ডেস্কটপ ও অ্যাপ (ব্রাউজার, এডিটর, ফাইল ম্যানেজার) ইনস্টল করে:</string>
-    <string name="connections_vm_copied">ক্লিপবোর্ডে কপি হয়েছে</string>
-    <string name="connections_vm_show_steps">সেটআপ ধাপ দেখান</string>
-    <string name="connections_vm_hide_steps">সেটআপ ধাপ লুকান</string>
-    <string name="connections_vm_step_start_body">VM চালু করতে Android টার্মিনাল অ্যাপ খুলুন।</string>
-    <string name="connections_vm_step_open_port_body">টার্মিনাল অ্যাপের সেটিংসে, লিসনিং পোর্ট তালিকায় 8022 যোগ করুন।</string>
-    <string name="connections_vm_step_password_body">টার্মিনাল অ্যাপে চালান। droid ব্যবহারকারীর জন্য পাসওয়ার্ড সেট করতে বলা হবে।</string>
-    <string name="connections_vm_step_password_hint">তারপর সংযোগ করুন: droid@localhost:8022</string>
-    <string name="connections_vm_step_vnc_body">Haven-এর Desktop ট্যাব দিয়ে রিমোট ডেস্কটপ অ্যাক্সেসের জন্য।</string>
-    <string name="connections_vm_step_desktop_body">Xfce4 হালকা এবং VNC-এর মাধ্যমে ভালো কাজ করে।</string>
-    <string name="connections_vm_step_apps_body">ফাইল ম্যানেজার, টেক্সট এডিটর, ইমেজ ভিউয়ার, ব্রাউজার, ক্যালকুলেটর।</string>
 
     <!-- #133 phase 2b: cert renewal status banner (en fallback) -->
-    <string name="connections_renewing_cert">%2$s দিয়ে %1$s এর সার্টিফিকেট নবায়ন হচ্ছে…</string>
     <string name="connections_open_plain_shell">সাধারণ শেল খুলুন</string>
 
     <!-- Port knocking -->
-    <string name="connections_section_port_knock">পোর্ট নকিং</string>
-    <string name="connections_field_port_knock_sequence">নক ক্রম (ঐচ্ছিক)</string>
-    <string name="connections_hint_port_knock_sequence">উদাহরণ: 7000 8000 9000 অথবা 7000/tcp 8000/udp</string>
-    <string name="connections_helper_port_knock_active">প্রতিটি সরাসরি সংযোগের আগে পাঠানো হয়। SSH/SOCKS টানেল পথে এড়িয়ে যাওয়া হয়।</string>
-    <string name="connections_helper_port_knock_blank">অক্ষম করতে ফাঁকা রাখুন।</string>
-    <string name="connections_field_port_knock_delay">নকের মধ্যে বিলম্ব (মিলিসেকেন্ড)</string>
-    <string name="connections_button_test_knock">নক পরীক্ষা করুন</string>
-    <string name="connections_button_test_knock_running">নক করছে…</string>
-    <string name="connections_knock_invalid_sequence">অবৈধ ক্রম: %1$s</string>
-    <string name="connections_knock_empty">নক ক্রম খালি</string>
-    <string name="connections_knock_host_blank">হোস্ট খালি</string>
-    <string name="connections_knock_success">%2$d ms-এ %1$d নক পাঠানো হয়েছে</string>
-    <string name="connections_knock_failed">%1$d ms পরে ব্যর্থ: %2$s</string>
     <string name="connections_dialog_new">নতুন সংযোগ</string>
     <string name="connections_dialog_edit">সংযোগ সম্পাদনা করুন</string>
     <string name="connections_field_transport">ট্রান্সপোর্ট</string>
@@ -294,7 +212,6 @@
     <string name="connections_helper_post_login">লগইনের পরে পাঠানো হয়।</string>
     <string name="connections_dropdown_none_direct">কোনোটি নয় (সরাসরি)</string>
     <string name="connections_dropdown_cloudflare_tunnel">Cloudflare Tunnel</string>
-    <string name="connections_dropdown_default_none">ডিফল্ট (কোনোটি নয়)</string>
     <string name="connections_dropdown_none">কোনোটি নয়</string>
     <string name="connections_section_file_transport">ফাইল ট্রান্সপোর্ট</string>
     <string name="connections_helper_file_transport">ফাইল ট্যাব কীভাবে এই সার্ভারে/থেকে ডেটা সরায়।</string>
@@ -308,13 +225,11 @@
     <string name="connections_identity_hint">পরিচয় সংযোগের সময় ইউজারনেম, পাসওয়ার্ড ও কী সরবরাহ করে। পরিচয় কী ট্যাবে পরিচালনা করুন।</string>
     <string name="connections_menu_group_identity">পরিচয় সেট করুন</string>
     <string name="connections_group_identity_title">"%1$s"-এর পরিচয়</string>
-    <string name="connections_field_provider">প্রদানকারী</string>
     <string name="connections_field_tunnel_through_ssh">SSH-এর মাধ্যমে টানেল</string>
     <string name="connections_field_ssh_connection">SSH সংযোগ</string>
     <string name="connections_field_username_vnc">ব্যবহারকারীর নাম (ঐচ্ছিক — শুধু VeNCrypt)</string>
     <string name="connections_field_password_optional">পাসওয়ার্ড (ঐচ্ছিক)</string>
     <string name="connections_field_domain_optional">ডোমেইন (ঐচ্ছিক)</string>
-    <string name="connections_field_share_name">শেয়ারের নাম</string>
     <string name="connections_field_colour_depth">রঙের গভীরতা</string>
     <string name="connections_field_proxy_host">প্রক্সি হোস্ট</string>
     <string name="connections_field_proxy_username">প্রক্সি ব্যবহারকারীর নাম</string>
@@ -335,38 +250,16 @@
     <string name="connections_field_bind_address">লোকাল বাইন্ড ঠিকানা</string>
     <string name="connections_helper_bind_address">আউটগোয়িং সংযোগ এই লোকাল ঠিকানায় বাইন্ড করুন (ssh -b)। শুধু সরাসরি সংযোগ।</string>
     <string name="connections_section_general">সাধারণ</string>
-    <string name="connections_section_local_shell">স্থানীয় শেল</string>
-    <string name="connections_section_guest">লিনাক্স গেস্ট</string>
-    <string name="connections_guest_desc">এই ডিভাইসে আসল লিনাক্স কার্নেল চালু করে, নিজস্ব রুট ফাইলসিস্টেম ও নেটওয়ার্ক সহ. প্রথম ব্যবহারে রুটফস আনপ্যাক হয় (~৫১২ মেগাবাইট). কোনো হোস্ট বা লগইন দরকার নেই.</string>
-    <string name="connections_section_cloud_storage">ক্লাউড স্টোরেজ</string>
     <string name="connections_section_vnc">VNC সেটিংস</string>
     <string name="connections_section_rdp">RDP সেটিংস</string>
-    <string name="connections_section_smb">SMB সেটিংস</string>
     <string name="connections_section_connection">সংযোগ</string>
     <string name="connections_section_terminal">টার্মিনাল</string>
     <string name="connections_section_authentication">প্রমাণীকরণ</string>
     <string name="connections_section_embedded_vnc">এমবেডেড VNC</string>
-    <string name="connections_section_reticulum">Reticulum</string>
     <string name="connections_section_routing">রাউটিং</string>
-    <string name="connections_toggle_mcp_tunnel">Haven-এর MCP সার্ভার প্রকাশ করুন</string>
-    <string name="connections_helper_mcp_tunnel">এই সংযোগের প্রতিটি সেশনে Haven-এর MCP উন্মুক্ত করে — তারা http://127.0.0.1:8730/mcp-এ পৌঁছায় এবং (লুপব্যাকের মাধ্যমে) পেয়ারিং ও সম্মতি এড়িয়ে যায়। সংযোগের সময় প্রয়োগ হয়। কোনো সেশন খোলা ছাড়াই সর্বদা অ্যাক্সেসের জন্য, সেটিংস → এজেন্ট এন্ডপয়েন্ট-এ এটিকে সর্বদা-চালু MCP সংযোগ হিসেবে সেট করুন।</string>
     <string name="connections_section_reconnect">পুনঃসংযোগ</string>
-    <string name="connections_local_shell_android_desc">নেটিভ Android শেল (/system/bin/sh) চালায়। Android কমান্ড, ফাইল সিস্টেম এবং root (উপলব্ধ থাকলে) অ্যাক্সেস।</string>
-    <string name="connections_local_shell_proot_desc">PRoot-এর মাধ্যমে স্থানীয়ভাবে একটি Alpine Linux শেল চালায়। প্রথম ব্যবহারে একটি ন্যূনতম rootfs (~4MB) ডাউনলোড করে। root বা নেটওয়ার্ক সংযোগের প্রয়োজন নেই।</string>
-    <string name="connections_dropdown_select_provider">প্রদানকারী নির্বাচন করুন…</string>
-    <string name="connections_helper_rclone_signin">প্রথমবার সংযোগ করার সময় আপনার ব্রাউজারের মাধ্যমে সাইন ইন করুন।</string>
-    <string name="connections_helper_rclone_credentials">এই প্রোভাইডারের অ্যাকাউন্টের তথ্য দিন, তারপর রিমোট সংরক্ষণ ও যাচাই করতে কনফিগার ট্যাপ করুন।</string>
-    <string name="connections_rclone_configure">কনফিগার ও যাচাই</string>
-    <string name="connections_rclone_configured_ok">রিমোট কনফিগার ও যাচাই করা হয়েছে।</string>
     <string name="connections_dropdown_select_ssh">SSH সংযোগ নির্বাচন করুন</string>
     <string name="connections_helper_add_ssh_first">প্রথমে একটি SSH সংযোগ যোগ করুন</string>
-    <string name="connections_ai_route_section">AI রুট ক্যারিয়ার</string>
-    <string name="connections_ai_route_via_ssh">SSH-এর মাধ্যমে</string>
-    <string name="connections_ai_route_via_reticulum">Reticulum-এর মাধ্যমে</string>
-    <string name="connections_field_ai_route_carrier">ক্যারিয়ার সংযোগ</string>
-    <string name="connections_dropdown_select_carrier">সংযোগ নির্বাচন করুন</string>
-    <string name="connections_helper_ai_route">একটি ক্যারিয়ারের মাধ্যমে এন্ডপয়েন্ট রাউট করুন: SSH ক্যারিয়ার সেশনের মাধ্যমে একটি লোকাল ফরওয়ার্ড খোলে, Reticulum মেশের উপর দিয়ে সেতু তৈরি করে। Reticulum রুটের জন্য ক্যারিয়ারটি সংযুক্ত থাকতে হবে।</string>
-    <string name="connections_helper_add_reticulum_first">প্রথমে একটি Reticulum সংযোগ যোগ করুন</string>
     <string name="connections_toggle_rdp_nla">নেটওয়ার্ক লেভেল প্রমাণীকরণ (NLA)</string>
     <string name="connections_helper_run_before_session_manager">সেশন ম্যানেজার শুরু হওয়ার আগে চলে।</string>
     <string name="connections_toggle_tunnel_only">শুধু টানেল (টার্মিনাল নেই)</string>
@@ -374,8 +267,6 @@
     <string name="connections_toggle_auto_reconnect">সংযোগ বিচ্ছিন্ন হলে স্বয়ংক্রিয় পুনঃসংযোগ</string>
     <string name="connections_field_reconnect_max_attempts">সর্বোচ্চ চেষ্টা (0 = সীমাহীন)</string>
     <string name="connections_toggle_reconnect_on_network_change">নেটওয়ার্ক পরিবর্তনে পুনঃসংযোগ</string>
-    <string name="connections_field_passphrase">পাসফ্রেজ</string>
-    <string name="connections_hint_ifac_passphrase">IFAC পাসফ্রেজ (ঐচ্ছিক)</string>
     <string name="connections_helper_vnc_host_via_ssh">SSH সার্ভার থেকে VNC সার্ভার কোথায় পৌঁছানো যায় — একই মেশিন হলে সাধারণত 127.0.0.1 (wayvnc ইত্যাদি শুধু লুপব্যাকে বাইন্ড করে)।</string>
     <string name="connections_helper_vnc_auth">ক্লাসিক VncAuth (৮-অক্ষরের পাসওয়ার্ড) এর জন্য ব্যবহারকারীর নাম খালি রাখুন। VeNCrypt (wayvnc, TigerVNC) এর জন্য ব্যবহারকারীর নাম পূরণ করুন — দীর্ঘ পাসওয়ার্ড এবং TLS এনক্রিপশন সমর্থন করে।</string>
     <string name="connections_helper_rdp_host_via_ssh">SSH সার্ভার থেকে RDP সার্ভার কোথায় পৌঁছানো যায় — একই মেশিন হলে সাধারণত 127.0.0.1।</string>
@@ -393,33 +284,8 @@
     <string name="connections_forget_password">সংরক্ষিত পাসওয়ার্ড ভুলে যান</string>
     <string name="connections_forget_password_title">সংরক্ষিত পাসওয়ার্ড ভুলে যাবেন?</string>
     <string name="connections_forget_password_message">\"%1$s\"-এর সংরক্ষিত SSH পাসওয়ার্ড মুছবেন? পরবর্তী সংযোগে আবার জিজ্ঞাসা করা হবে।</string>
-    <string name="connections_desktop_installing">ডেস্কটপ ইনস্টল হচ্ছে…</string>
     <string name="connections_toggle_password_only">শুধু পাসওয়ার্ড ব্যবহার করুন</string>
     <string name="connections_helper_password_only">এই সার্ভারে কখনো সংরক্ষিত SSH কী দেওয়া হবে না — পাসওয়ার্ড (এবং keyboard-interactive) দিয়ে প্রমাণীকরণ করুন। পাসওয়ার্ড-কেবল সার্ভারের জন্য ব্যবহার করুন যাতে নীরবে কী চেষ্টা ব্যর্থ না হয়ে পাসওয়ার্ড চাওয়া হয়।</string>
-    <string name="connections_ssh_key_none_hint">এখনো কোনো SSH কী নেই — Keys ট্যাবে একটি যোগ বা তৈরি করুন, তারপর এখানে সংযুক্ত করুন।</string>
-    <string name="connections_section_spa">Single Packet Authorization (fwknop)</string>
-    <string name="connections_field_spa_key">SPA কী (Rijndael/AES)</string>
-    <string name="connections_field_spa_hmac_key">HMAC কী (ঐচ্ছিক)</string>
-    <string name="connections_toggle_spa_key_base64">কী base64-এ আছে</string>
-    <string name="connections_toggle_spa_hmac_key_base64">HMAC কী base64-এ আছে</string>
-    <string name="connections_field_spa_access_spec">অ্যাক্সেস (proto/port)</string>
-    <string name="connections_hint_spa_access_spec">যেমন tcp/22 বা tcp/22,udp/53</string>
-    <string name="connections_field_spa_allow_mode">Allow IP</string>
-    <string name="connections_spa_allow_source">Source IP</string>
-    <string name="connections_spa_allow_resolve">পাবলিক IP নির্ণয়</string>
-    <string name="connections_spa_allow_explicit">সুনির্দিষ্ট IP</string>
-    <string name="connections_field_spa_explicit_ip">অনুমোদিত IP / CIDR</string>
-    <string name="connections_field_spa_port">SPA UDP পোর্ট</string>
-    <string name="connections_helper_spa_active">প্রতিটি সরাসরি সংযোগের আগে পাঠানো হয়। SSH/SOCKS টানেল পথে বাদ দেওয়া হয়।</string>
-    <string name="connections_helper_spa_blank">অক্ষম করতে কী বা অ্যাক্সেস খালি রাখুন।</string>
-    <string name="connections_button_test_spa">SPA পরীক্ষা</string>
-    <string name="connections_button_test_spa_running">পাঠানো হচ্ছে…</string>
-    <string name="connections_spa_invalid">অবৈধ SPA কনফিগ: %1$s</string>
-    <string name="connections_spa_host_blank">হোস্ট খালি</string>
-    <string name="connections_spa_success">%2$d ms-এ %1$d-byte SPA প্যাকেট পাঠানো হয়েছে</string>
-    <string name="connections_spa_failed">%1$d ms পরে ব্যর্থ: %2$s</string>
-    <string name="connections_agent_active">Agent সক্রিয়</string>
-    <string name="connections_agent_activity">Agent কার্যকলাপ</string>
     <string name="connections_pf_type_local">LOCAL</string>
     <string name="connections_pf_type_remote">REMOTE</string>
     <string name="connections_pf_type_dynamic">DYNAMIC (SOCKS5)</string>
@@ -447,7 +313,6 @@
     <string name="connections_pf_dynamic_explanation">আপনার ডিভাইসের SOCKS5 ক্লায়েন্টগুলি %1$s:%2$s-এ সংযুক্ত হয়ে যেকোনো গন্তব্য অনুরোধ করতে পারে। প্রতিটি অনুরোধ SSH সার্ভারের মাধ্যমে একটি নতুন direct-tcpip চ্যানেল খোলে।</string>
     <string name="connections_pf_dynamic_port_fallback">&lt;port&gt;</string>
     <string name="connections_hosts_discovered">%1$d টি হোস্ট আবিষ্কৃত</string>
-    <string name="connections_rclone_provider_cloud">ক্লাউড</string>
     <string name="connections_list_via">%1$s-এর মাধ্যমে</string>
     <string name="connections_auth_methods_title">প্রমাণীকরণ পদ্ধতি</string>
     <string name="connections_auth_methods_description">একটি সংযোগে ক্রমানুসারে চেষ্টা — যেসব সার্ভারে একাধিক প্রয়োজন (যেমন কী + পাসওয়ার্ড, বা PAM/OTP চেইন)।</string>
@@ -464,50 +329,11 @@
     <string name="connections_auth_add_method">পদ্ধতি যোগ</string>
     <string name="connections_auth_confirm_otp">পাঠানোর আগে OTP নিশ্চিত করুন</string>
     <string name="connections_auth_confirm_otp_desc">স্বয়ংক্রিয়ভাবে জমা না দিয়ে এক-ট্যাপ নিশ্চিতের জন্য তৈরি কোড দেখান।</string>
-    <string name="connections_vm_copied_short">কপি হয়েছে</string>
-    <string name="connections_vm_terminal_not_found">Terminal অ্যাপ পাওয়া যায়নি</string>
-    <string name="connections_mcp_badge">MCP</string>
-    <string name="connections_local_distro_label">ওএস-এ খুলুন</string>
-    <string name="connections_local_distro_active_default">সক্রিয় ডিস্ট্রো (ডিফল্ট)</string>
 
-    <string name="connections_section_openai">AI এন্ডপয়েন্ট</string>
-    <string name="connections_field_openai_host">সার্ভার ঠিকানা</string>
-    <string name="connections_field_openai_host_hint">IP, হোস্টনাম, বা সম্পূর্ণ http:// URL</string>
-    <string name="connections_field_openai_api_key">API কী (ঐচ্ছিক)</string>
-    <string name="connections_field_openai_api_key_hint">Bearer টোকেন হিসেবে পাঠানো হয়। কী-বিহীন সার্ভারে ফাঁকা রাখুন।</string>
-    <string name="connections_field_openai_path_prefix">পাথ প্রিফিক্স (ঐচ্ছিক)</string>
-    <string name="connections_field_openai_path_prefix_hint">/v1-এর আগে যোগ হয় — যেমন /api</string>    <string name="connections_field_openai_protocol">ওয়্যার প্রোটোকল</string>
-    <string name="connections_field_openai_protocol_hint">ডিফল্টে OpenAI-সামঞ্জস্যপূর্ণ; Ollama, Anthropic ও Gemini পথ ও প্রমাণীকরণ বদলায়।</string>
-
-    <string name="connections_openai_url_preview">এন্ডপয়েন্ট URL: %1$s</string>
     <!-- Email account -->
-    <string name="connections_section_email">ইমেইল অ্যাকাউন্ট</string>
     <string name="connections_auth_method_proton_srp">ProtonMail SRP</string>
-    <string name="connections_email_provider_proton">প্রদানকারী: ProtonMail</string>
-    <string name="connections_email_proton_unofficial_warning">Proton-এর অনানুষ্ঠানিক API ব্যবহার করে। এটি রিভার্স-ইঞ্জিনিয়ার করা এবং Proton-এর শর্তের বিরুদ্ধে — আপনার অ্যাকাউন্ট রেট-সীমিত বা লক হতে পারে। নিজ দায়িত্বে এগিয়ে যান।</string>
-    <string name="connections_field_email_address">ইমেইল ঠিকানা</string>
-    <string name="connections_field_email_password">পাসওয়ার্ড</string>
-    <string name="connections_field_email_mailbox_password">মেইলবক্স পাসওয়ার্ড (শুধু দুই-পাসওয়ার্ড মোড)</string>
-    <string name="connections_email_mailbox_password_hint">আপনার Proton অ্যাকাউন্টে আলাদা মেইলবক্স পাসওয়ার্ড না থাকলে খালি রাখুন।</string>
-    <string name="connections_email_2fa_hint">আপনার অ্যাকাউন্টে 2FA থাকলে, SSH কী / TOTP ম্যানেজারে এর TOTP সিক্রেট সংযুক্ত করুন এবং তা স্বয়ংক্রিয়ভাবে প্রয়োগ হবে।</string>
-    <string name="connections_email_provider_proton_short">ProtonMail</string>
-    <string name="connections_email_provider_imap_short">IMAP/SMTP</string>
-    <string name="connections_email_app_password_hint">আপনার পাসওয়ার্ড ব্যবহার করুন, অথবা আপনার প্রদানকারীর প্রয়োজন হলে একটি অ্যাপ-পাসওয়ার্ড (Fastmail, iCloud, Yahoo, Gmail/2FA)।</string>
-    <string name="connections_email_preset_label">প্রদানকারী প্রিসেট</string>
-    <string name="connections_email_app_password_link">%1$s-এর জন্য একটি অ্যাপ-পাসওয়ার্ড তৈরি করুন</string>
-    <string name="connections_field_imap_server">IMAP সার্ভার</string>
-    <string name="connections_field_smtp_server">SMTP সার্ভার</string>
-    <string name="connections_field_smtp_server_help">IMAP সার্ভার ব্যবহার করতে খালি রাখুন।</string>
-    <string name="connections_field_imap_port">IMAP পোর্ট</string>
-    <string name="connections_field_smtp_port">SMTP পোর্ট</string>
-    <string name="connections_toggle_imap_tls">TLS ব্যবহার করুন (implicit SSL)</string>
 
     <!-- USB forwarding, deploy password, FIDO auth, MCP toggle (#250) -->
-    <string name="connections_section_usb_forward">USB ডিভাইস ফরোয়ার্ডিং</string>
-    <string name="connections_helper_usb_forward">সংযোগের সময় ফোনের সাথে যুক্ত একটি USB ডিভাইস USB/IP-এর মাধ্যমে এই হোস্টে এক্সপোর্ট করে। YubiKey ssh-keygen -t ed25519-sk-এর জন্য হোস্টে দেখা যায়, আর টাচ ফোনে হয়। স্বয়ংক্রিয় সংযুক্তির জন্য হোস্টে usbip ও পাসওয়ার্ড-বিহীন sudo দরকার; নইলে এক্সপোর্ট ও টানেল তৈরি হয় এবং আপনি প্রদর্শিত সংযুক্তি কমান্ড চালান।</string>
-    <string name="connections_field_usb_forward">USB ডিভাইস ফরোয়ার্ড করুন</string>
-    <string name="connections_usb_forward_none">কোনোটি নয়</string>
-    <string name="connections_usb_forward_unattached">%1$s (সংযুক্ত নয়)</string>
     <string name="connections_deploy_field_password_optional">পাসওয়ার্ড (ঐচ্ছিক)</string>
     <string name="connections_deploy_password_hint">এই প্রোফাইলের সংরক্ষিত কী দিয়ে ডিপ্লয় করতে ফাঁকা রাখুন। পাসওয়ার্ড কেবল তখনই দরকার যখন সার্ভার পাসওয়ার্ড দিয়ে যাচাই করে (অথবা কোনো কী পাসফ্রেজ / জাম্প হোস্ট আনলক করতে)।</string>
     <string name="connections_fido_key_label">কী: %1$s</string>
@@ -515,83 +341,23 @@
     <string name="connections_fido_wrong_body">এই কী-তে সার্ভারের চাওয়া শংসাপত্র নেই। অনুরোধ করা কী উপস্থাপন করে এটি টাচ করুন।</string>
     <string name="connections_auth_key_picker">কী: %1$s ▾</string>
     <string name="connections_auth_key_only">✓ শুধু এই কী ব্যবহার করুন</string>
-    <string name="connections_mcp_active">এজেন্ট এই সংযোগে কাজ করছে — এর জন্য MCP নিষ্ক্রিয় করতে ট্যাপ করুন</string>
-    <string name="connections_mcp_disabled">এই সংযোগের জন্য MCP নিষ্ক্রিয় — সক্রিয় করতে ট্যাপ করুন</string>
-    <string name="connections_toggle_mcp_enabled">এই সংযোগে MCP এজেন্ট অনুমতি দিন</string>
-    <string name="connections_helper_mcp_enabled">বন্ধ থাকলে, এই সংযোগকে লক্ষ্য করা AI এজেন্ট (MCP) টুল প্রত্যাখ্যান করা হয়। সংযোগটি আপনার জন্য স্বাভাবিকভাবে কাজ করতে থাকে।</string>
 
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
-    <string name="connections_android_shell_label">নেটিভ Android শেল</string>
     <string name="connections_field_background_opacity">ব্যাকগ্রাউন্ড অস্বচ্ছতা ওভাররাইড করুন</string>
     <string name="connections_helper_background_opacity" formatted="false">100%-এর নিচে টার্মিনাল স্বচ্ছপ্রায় হয়ে যায় এবং এই প্রোফাইলে টেক্সটের পিছনে ডিভাইসের ওয়ালপেপার দেখায়। বন্ধ = গ্লোবাল সেটিং ব্যবহার।</string>
     <string name="connections_background_opacity_value">অস্বচ্ছতা: %1$d%%</string>
     <string name="connections_reveal_password_title">সংরক্ষিত পাসওয়ার্ড দেখান</string>
     <string name="connections_reveal_password_subtitle">সংরক্ষিত পাসওয়ার্ড দেখাতে নিশ্চিত করুন যে এটি আপনিই</string>
-    <string name="rclone_import_title">rclone রিমোট ইমপোর্ট করুন</string>
-    <string name="rclone_import_intro">আপনার Linux rclone.conf পেস্ট করুন, বা ফাইলটি বেছে নিন। রিমোটগুলি (OAuth টোকেন সহ) যেমন আছে তেমনই ইমপোর্ট হয়, তাই আবার কনফিগার করতে হয় না।</string>
-    <string name="rclone_import_pick_file">rclone.conf বেছে নিন…</string>
-    <string name="rclone_import_paste_label">rclone.conf-এর বিষয়বস্তু</string>
-    <string name="rclone_import_parse">রিমোট খুঁজুন</string>
-    <string name="rclone_import_encrypted">ফাইলটি পাসওয়ার্ড-এনক্রিপ্টেড rclone কনফিগ। ডেস্কটপে \"rclone config show\" চালান এবং ডিক্রিপ্ট করা আউটপুট পেস্ট করুন।</string>
-    <string name="rclone_import_already_added">আগেই যোগ করা</string>
-    <string name="rclone_import_no_type">কোনো টাইপ নেই</string>
-    <string name="rclone_import_select_count">%1$d রিমোট ইমপোর্ট করুন</string>
-    <string name="rclone_import_done">%1$d ইমপোর্ট হয়েছে, %2$d বাদ, %3$d ব্যর্থ।</string>
-    <string name="rclone_import_menu">rclone কনফিগ ইমপোর্ট করুন…</string>
-    <string name="connections_section_spice">SPICE সেটিংস</string>
-    <string name="connections_section_mcp">AI এজেন্ট (MCP)</string>
-    <string name="connections_rclone_configure_first">সংযোগ সংরক্ষণের আগে এই রিমোট সংরক্ষণ করতে “কনফিগার ও যাচাই”-এ ট্যাপ করুন।</string>
-    <string name="connections_helper_spice_auth">SPICE একটিমাত্র ঐচ্ছিক টিকিট/পাসওয়ার্ড ব্যবহার করে। টিকিটবিহীন সার্ভারের জন্য ফাঁকা রাখুন।</string>
     <string name="connections_auth_any_hardware_key">যেকোনো হার্ডওয়্যার কী (FIDO)</string>
     <string name="connections_deeplink_confirm_title">সংযোগ করবেন?</string>
     <string name="connections_deeplink_confirm_message">একটি লিংক %1$s-এ সংযোগ করতে চায়।</string>
     <string name="connections_deeplink_confirm_session">একটি লিংক %1$s-এ সংযোগ করে সেশন “%2$s” সংযুক্ত করতে চায়।</string>
     <string name="connections_deeplink_confirm_connect">সংযোগ</string>
     <!-- Serial-connection strings (#406 BTSERIAL, #408 USBSERIAL) -->
-    <string name="connections_section_btserial">ব্লুটুথ সিরিয়াল</string>
-    <string name="connections_btserial_desc">একটি পেয়ার করা ব্লুটুথ-থেকে-সিরিয়াল অ্যাডাপ্টারে (যেমন কোনো সুইচ বা রাউটারের কনসোল পোর্ট) সংযোগ করুন।</string>
-    <string name="connections_btserial_device">পেয়ার করা ডিভাইস</string>
-    <string name="connections_btserial_no_devices">কোনো পেয়ার করা ব্লুটুথ ডিভাইস নেই। প্রথমে Android সেটিংস → ব্লুটুথ-এ অ্যাডাপ্টারটি পেয়ার করুন, তারপর এটি আবার খুলুন।</string>
-    <string name="connections_btserial_permission">পেয়ার করা ডিভাইস তালিকাভুক্ত করতে ব্লুটুথ অনুমতি দিন</string>
-    <string name="connections_section_usbserial">USB সিরিয়াল</string>
-    <string name="connections_usbserial_desc">একটি প্লাগ-ইন করা USB-সিরিয়াল অ্যাডাপ্টারে সংযোগ করুন — একটি Arduino, একটি Duet3D G-code বোর্ড, একটি ESP32 বা একটি USB-থেকে-TTL কেবল।</string>
-    <string name="connections_usbserial_device">USB ডিভাইস</string>
-    <string name="connections_usbserial_no_devices">কোনো USB-সিরিয়াল অ্যাডাপ্টার শনাক্ত হয়নি। একটি প্লাগ ইন করুন, তারপর এটি আবার খুলুন।</string>
-    <string name="connections_usbserial_baud">বড রেট</string>
-    <string name="connections_section_bleserial">Bluetooth LE সিরিয়াল</string>
-    <string name="connections_bleserial_desc">একটি Bluetooth-LE UART পেরিফেরালের সাথে সংযোগ করুন — একটি Nordic UART Service ডিভাইস, একটি HM-10 মডিউল, বা একটি BLE RS232 অ্যাডাপ্টার। এটি পেয়ার করার প্রয়োজন নেই।</string>
-    <string name="connections_bleserial_device">BLE ডিভাইস</string>
-    <string name="connections_bleserial_no_devices">কোনো BLE ডিভাইস পাওয়া যায়নি। নিশ্চিত করুন যে পেরিফেরালটি চালু আছে এবং অ্যাডভার্টাইজ করছে, তারপর আবার স্ক্যান করুন।</string>
-    <string name="connections_bleserial_permission">BLE ডিভাইস খুঁজতে Bluetooth (স্ক্যান) অনুমতি দিন</string>
-    <string name="connections_bleserial_scan">BLE ডিভাইস স্ক্যান করুন</string>
-    <string name="connections_bleserial_scanning">স্ক্যান করা হচ্ছে…</string>
-    <string name="connections_usbserial_databits">ডেটা বিট</string>
-    <string name="connections_usbserial_parity">প্যারিটি</string>
-    <string name="connections_usbserial_stopbits">স্টপ বিট</string>
-    <string name="connections_usbserial_flowcontrol">ফ্লো কন্ট্রোল</string>
-    <string name="connections_usbserial_none">কোনোটি নয়</string>
-    <string name="connections_usbserial_parity_odd">বিজোড়</string>
-    <string name="connections_usbserial_parity_even">জোড়</string>
-    <string name="connections_usbserial_parity_mark">মার্ক</string>
-    <string name="connections_usbserial_parity_space">স্পেস</string>
-    <string name="connections_usbserial_flow_rtscts">RTS/CTS</string>
-    <string name="connections_usbserial_flow_xonxoff">XON/XOFF</string>
     <string name="connections_section_ssh_engine">SSH ইঞ্জিন</string>
     <string name="connections_helper_ssh_engine">এই সংযোগটি কোন SSH বাস্তবায়ন ব্যবহার করে। sshlib পরীক্ষামূলক: এখন এটি শুধু SFTP নয়, পুরো সংযোগ পরিচালনা করে — টার্মিনাল, ফাইল স্থানান্তর এবং টানেল।</string>
     <string name="connections_ssh_engine_jsch_label">ডিফল্ট (JSch)</string>
     <string name="connections_ssh_engine_jsch_desc">প্রমাণিত ইঞ্জিন। সব বৈশিষ্ট্য।</string>
     <string name="connections_ssh_engine_sshlib_label">sshlib (পরীক্ষামূলক)</string>
     <string name="connections_ssh_engine_sshlib_desc">Kotlin ইঞ্জিন: একটি সংযোগে টার্মিনাল, SFTP এবং পোর্ট ফরওয়ার্ডিং। সরাসরি সংযোগ প্রয়োজন — জাম্প হোস্ট, প্রক্সি, হার্ডওয়্যার কী, সার্টিফিকেট বা বহু-স্তর লগইন নয়।</string>
-    <string name="connections_identity_label">এই ডিভাইসের পরিচয়</string>
-    <string name="connections_identity_none">এখনও নেই — একবার সংযোগ করলে তৈরি হবে</string>
-    <string name="connections_identity_help">সব Reticulum সংযোগ এটি ভাগ করে নেয়। যে সার্ভার আপনাকে অনুমোদন করে সে এই হ্যাশ দেখে।</string>
-    <string name="connections_identity_import">পরিচয় ফাইল আমদানি করুন…</string>
-    <string name="connections_identity_imported">পরিচয় আমদানি হয়েছে: %1$s</string>
-    <string name="connections_identity_imported_restart">পরিচয় আমদানি হয়েছে: %1$s। সংযোগে ব্যবহার করতে Haven পুনরায় চালু করুন।</string>
-    <string name="connections_identity_not_an_identity">এই ফাইলটি Reticulum পরিচয় নয়। কিছুই পরিবর্তন হয়নি।</string>
-    <string name="connections_identity_install_failed">পরিচয় ইনস্টল করা যায়নি: %1$s। আগেরটি বহাল আছে।</string>
-    <string name="connections_identity_unreadable">এই ফাইলটি পড়া যায়নি।</string>
-    <string name="connections_section_glkvm">GLKVM সেটিংস</string>
-    <string name="connections_field_glkvm_layout">লক্ষ্য কীবোর্ড লেআউট</string>
-    <string name="connections_helper_glkvm">GLKVM (PiKVM-স্টাইল HTTPS KVM) — লক্ষ্য মেশিনের ফিজিক্যাল মাউস ও কীবোর্ড নিয়ন্ত্রণ করে। TLS ব্যবহার করে trust-on-first-use, এবং টাইপ করা অক্ষর নির্ধারণ করে লক্ষ্য মেশিনের কীবোর্ড লেআউট। SSH টানেল বা WireGuard/Tailscale প্রোফাইলের মাধ্যমে LAN-এর বাইরে থেকে পৌঁছান।</string>
 </resources>

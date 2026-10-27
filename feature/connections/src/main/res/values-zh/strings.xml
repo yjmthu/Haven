@@ -10,11 +10,8 @@
     <string name="common_edit">编辑</string>
     <string name="common_rename">重命名</string>
     <string name="common_create">创建</string>
-    <string name="common_connect">连接</string>
     <string name="connections_connect_without_saving">不保存并连接</string>
-    <string name="common_disconnect">断开</string>
     <string name="common_copy">复制</string>
-    <string name="common_paste">粘贴</string>
     <string name="common_label">标签</string>
     <string name="common_password">密码</string>
     <string name="common_port">端口</string>
@@ -24,9 +21,6 @@
     <string name="common_reset">重置</string>
     <string name="common_allow">允许</string>
     <string name="common_not_now">暂不</string>
-    <string name="common_import">导入</string>
-    <string name="common_add">添加</string>
-    <string name="common_download">下载</string>
     <string name="common_unlock">解锁</string>
 
     <!-- Common strings (shared across features) -->
@@ -51,9 +45,6 @@
     <string name="connections_status_disconnected">已断开</string>
 
     <!-- Connection tree item -->
-    <string name="connections_proot_label">PRoot Alpine Linux</string>
-    <string name="connections_launch_desktop">启动桌面</string>
-    <string name="connections_setup_desktop">设置桌面</string>
 
     <!-- Connection context menu -->
     <string name="connections_menu_port_forwards">端口转发</string>
@@ -91,20 +82,8 @@
     <string name="connections_rename_title">重命名连接</string>
 
     <!-- Linux VM card -->
-    <string name="connections_linux_vm">Linux 虚拟机</string>
-    <string name="connections_vm_tap_to_setup">点击以设置</string>
-    <string name="connections_vm_status_active">活动中</string>
-    <string name="connections_vm_refresh">刷新虚拟机状态</string>
 
     <!-- Desktop setup dialog -->
-    <string name="connections_desktop_setup_title">设置桌面</string>
-    <string name="connections_desktop_wayland_description">在 PRoot 环境中安装 Wayland 合成器。实验性功能——使用软件渲染。</string>
-    <string name="connections_desktop_openbox_description">在 PRoot 环境中安装桌面环境和 VNC 服务器。Openbox 是最小化的——右键点击桌面打开应用菜单。</string>
-    <string name="connections_desktop_vnc_description">在 PRoot 环境中安装桌面环境和 VNC 服务器。</string>
-    <string name="connections_desktop_vnc_password">VNC 密码</string>
-    <string name="connections_desktop_shell">终端</string>
-    <string name="connections_desktop_installed">桌面已安装。正在连接 VNC\u2026</string>
-    <string name="connections_desktop_setup_failed">设置失败：%1$s</string>
 
     <!-- New group dialog -->
     <string name="connections_new_group_title">新建分组</string>
@@ -117,15 +96,7 @@
     <string name="connections_menu_launch_all">全部启动</string>
     <string name="connections_menu_delete_group">删除分组</string>
     <string name="connections_new_group_action">新建分组</string>
-    <string name="connections_desktop_addons_header">桌面功能（可选）</string>
     <string name="connections_menu_duplicate">复制连接</string>
-    <string name="connections_desktops_title">桌面</string>
-    <string name="connections_desktop_start">启动</string>
-    <string name="connections_desktop_stop">停止</string>
-    <string name="connections_desktop_native_running">原生合成器</string>
-    <string name="connections_desktop_uninstall_title">卸载桌面？</string>
-    <string name="connections_desktop_uninstall_message">卸载 %1$s？将从 PRoot 环境中移除相关包。</string>
-    <string name="connections_use_android_shell">使用原生 Android shell</string>
     <!-- Backfilled translations (i18n drift fix) -->
     <string name="connections_new_session_create">创建</string>
     <string name="connections_dialog_new">新建连接</string>
@@ -156,7 +127,6 @@
     <string name="connections_toggle_request_pty">请求终端（PTY）</string>
     <string name="connections_helper_post_login">登录后发送。</string>
     <string name="connections_dropdown_none_direct">无（直连）</string>
-    <string name="connections_dropdown_default_none">默认（无）</string>
     <string name="connections_dropdown_none">无</string>
     <string name="connections_section_file_transport">文件传输</string>
     <string name="connections_helper_file_transport">文件标签页传输该服务器数据的方式。</string>
@@ -170,13 +140,11 @@
     <string name="connections_identity_hint">身份会在连接时提供用户名、密码和密钥。请在密钥标签页管理身份。</string>
     <string name="connections_menu_group_identity">设置身份</string>
     <string name="connections_group_identity_title">“%1$s”的身份</string>
-    <string name="connections_field_provider">提供商</string>
     <string name="connections_field_tunnel_through_ssh">通过 SSH 隧道</string>
     <string name="connections_field_ssh_connection">SSH 连接</string>
     <string name="connections_field_username_vnc">用户名（可选 — 仅 VeNCrypt）</string>
     <string name="connections_field_password_optional">密码（可选）</string>
     <string name="connections_field_domain_optional">域（可选）</string>
-    <string name="connections_field_share_name">共享名称</string>
     <string name="connections_field_colour_depth">色深</string>
     <string name="connections_field_proxy_host">代理主机</string>
     <string name="connections_field_proxy_username">代理用户名</string>
@@ -205,25 +173,15 @@
     <string name="connections_helper_disable_alt_screen">在 screen/vim 中可滚动回看。程序退出后输出仍保留在回滚缓冲区中。</string>
     <string name="connections_toggle_forward_agent">转发 SSH 代理</string>
     <string name="connections_helper_forward_agent">将未加密的已存 SSH 密钥暴露给远程主机（用于 git push 等）。加密的密钥会被跳过。</string>
-    <string name="connections_field_ssh_key">SSH 密钥</string>
-    <string name="connections_ssh_key_any">任意（尝试所有密钥）</string>
     <string name="connections_field_vnc_port">VNC 端口</string>
     <string name="connections_field_vnc_password">VNC 密码</string>
     <string name="connections_field_vnc_color_depth">VNC 色深</string>
     <string name="connections_action_clear_vnc">清除已保存的 VNC 设置</string>
-    <string name="connections_toggle_local_sideband">本地 Sideband</string>
-    <string name="connections_field_gateway_host">网关主机</string>
-    <string name="connections_field_network_name">网络名称</string>
-    <string name="connections_helper_network_name">IFAC 网络名称（可选）</string>
-    <string name="connections_action_scan_rnsh">扫描 rnsh 节点</string>
-    <string name="connections_field_destination_hash">目标哈希</string>
-    <string name="connections_helper_destination_hash">32 位十六进制</string>
     <string name="connections_field_color_scheme">终端配色方案</string>
     <string name="connections_color_scheme_inherit">使用默认设置（全局）</string>
     <string name="connections_tunnel_dropdown_label">隧道: %1$s</string>
     <string name="connections_session_default_with">默认（%1$s）</string>
     <string name="connections_discovered_count">已发现（%1$d）</string>
-    <string name="connections_discovered_count_filtered">已发现（%1$d / %2$d）</string>
 
     <!-- #135 third pass -->
 
@@ -281,90 +239,25 @@
     <string name="connections_ki_title_additional">需要进一步的认证</string>
     <string name="connections_ki_title_server">服务器提示</string>
 
-    <string name="connections_vm_title">Linux 虚拟机</string>
-    <string name="connections_vm_detected_services">已检测到的服务</string>
-    <string name="connections_vm_quick_setup">快速设置</string>
-    <string name="connections_vm_copy_install">复制安装命令</string>
-    <string name="connections_vm_view_script">查看脚本</string>
-    <string name="connections_vm_step_start">1. 启动 Linux 虚拟机</string>
-    <string name="connections_vm_open_terminal">打开终端应用</string>
-    <string name="connections_vm_step_open_port">2. 开放 8022 端口</string>
-    <string name="connections_vm_step_password">3. 设置密码并安装 SSH</string>
-    <string name="connections_vm_step_vnc">4. 安装 VNC 服务器（可选）</string>
-    <string name="connections_vm_step_desktop">5. 安装桌面环境（可选）</string>
-    <string name="connections_vm_step_apps">6. 安装桌面应用（可选）</string>
-    <string name="connections_vm_install_blurb">一键安装 SSH、VNC、Xfce4 桌面以及常用应用（浏览器、编辑器、文件管理器）：</string>
-    <string name="connections_vm_copied">已复制到剪贴板</string>
-    <string name="connections_vm_show_steps">显示设置步骤</string>
-    <string name="connections_vm_hide_steps">隐藏设置步骤</string>
-    <string name="connections_vm_step_start_body">打开 Android 终端应用以启动虚拟机。</string>
-    <string name="connections_vm_step_open_port_body">在终端应用的设置中，将 8022 端口添加到监听端口列表。</string>
-    <string name="connections_vm_step_password_body">在终端应用中运行。系统会提示为 droid 用户设置密码。</string>
-    <string name="connections_vm_step_password_hint">然后通过 droid@localhost:8022 连接</string>
-    <string name="connections_vm_step_vnc_body">用于通过 Haven 的桌面标签页进行远程桌面访问。</string>
-    <string name="connections_vm_step_desktop_body">Xfce4 轻量且通过 VNC 表现良好。</string>
-    <string name="connections_vm_step_apps_body">文件管理器、文本编辑器、图片查看器、浏览器、计算器。</string>
 
-    <string name="connections_section_desktops">桌面</string>
-    <string name="connections_action_back">返回</string>
-    <string name="connections_vnc_password_title">VNC 密码</string>
-    <string name="connections_action_local_terminal">本地终端</string>
     <string name="connections_action_tunnels">隧道</string>
-    <string name="connections_action_reauthenticate">重新认证</string>
-    <string name="connections_action_cancel_oauth">取消 OAuth</string>
 
     <!-- #133 phase 2b: cert renewal status banner -->
-    <string name="connections_renewing_cert">正在通过 %2$s 续签 %1$s 的证书…</string>
     <string name="connections_open_plain_shell">打开纯 shell</string>
 
     <!-- Port knocking -->
-    <string name="connections_section_port_knock">端口敲门</string>
-    <string name="connections_field_port_knock_sequence">敲门序列（可选）</string>
-    <string name="connections_hint_port_knock_sequence">例如 7000 8000 9000 或 7000/tcp 8000/udp</string>
-    <string name="connections_helper_port_knock_active">在每次直接连接前发送。在 SSH/SOCKS 隧道路径上跳过。</string>
-    <string name="connections_helper_port_knock_blank">留空以停用。</string>
-    <string name="connections_field_port_knock_delay">敲门间隔（毫秒）</string>
-    <string name="connections_button_test_knock">测试敲门</string>
-    <string name="connections_button_test_knock_running">正在敲门…</string>
-    <string name="connections_knock_invalid_sequence">无效序列：%1$s</string>
-    <string name="connections_knock_empty">敲门序列为空</string>
-    <string name="connections_knock_host_blank">主机为空</string>
-    <string name="connections_knock_success">已在 %2$d 毫秒内发送 %1$d 次敲门</string>
-    <string name="connections_knock_failed">在 %1$d 毫秒后失败：%2$s</string>
     <string name="connections_dropdown_cloudflare_tunnel">Cloudflare Tunnel</string>
     <string name="connections_section_general">常规</string>
-    <string name="connections_section_local_shell">本地 Shell</string>
-    <string name="connections_section_guest">Linux 虚拟机</string>
-    <string name="connections_guest_desc">在此设备上引导真实的 Linux 内核，拥有独立的根文件系统和网络。首次使用时解压根文件系统（约 512 MB）。无需主机或登录凭据。</string>
-    <string name="connections_section_cloud_storage">云存储</string>
     <string name="connections_section_vnc">VNC 设置</string>
     <string name="connections_section_rdp">RDP 设置</string>
-    <string name="connections_section_smb">SMB 设置</string>
     <string name="connections_section_connection">连接</string>
     <string name="connections_section_terminal">终端</string>
     <string name="connections_section_authentication">身份验证</string>
     <string name="connections_section_embedded_vnc">嵌入式 VNC</string>
-    <string name="connections_section_reticulum">Reticulum</string>
     <string name="connections_section_routing">路由</string>
-    <string name="connections_toggle_mcp_tunnel">公开 Haven 的 MCP 服务器</string>
-    <string name="connections_helper_mcp_tunnel">将 Haven 的 MCP 开放给此连接的每个会话——它们可访问 http://127.0.0.1:8730/mcp，并（通过环回）跳过配对与同意。连接时生效。如需在不打开会话的情况下常驻访问，请在 设置 → 代理端点 中将其设为常驻 MCP 连接。</string>
     <string name="connections_section_reconnect">重新连接</string>
-    <string name="connections_local_shell_android_desc">运行原生 Android shell (/system/bin/sh)。可访问 Android 命令、文件系统和 root（如果可用）。</string>
-    <string name="connections_local_shell_proot_desc">通过 PRoot 在本地运行 Alpine Linux shell。首次使用时下载最小 rootfs（约 4MB）。无需 root 或网络连接。</string>
-    <string name="connections_dropdown_select_provider">选择提供商…</string>
-    <string name="connections_helper_rclone_signin">首次连接时通过浏览器登录。</string>
-    <string name="connections_helper_rclone_credentials">输入此提供商的账户信息，然后点按配置以保存并验证远程。</string>
-    <string name="connections_rclone_configure">配置并验证</string>
-    <string name="connections_rclone_configured_ok">远程已配置并验证。</string>
     <string name="connections_dropdown_select_ssh">选择 SSH 连接</string>
     <string name="connections_helper_add_ssh_first">请先添加一个 SSH 连接</string>
-    <string name="connections_ai_route_section">AI 路由载体</string>
-    <string name="connections_ai_route_via_ssh">经 SSH</string>
-    <string name="connections_ai_route_via_reticulum">经 Reticulum</string>
-    <string name="connections_field_ai_route_carrier">载体连接</string>
-    <string name="connections_dropdown_select_carrier">选择连接</string>
-    <string name="connections_helper_ai_route">通过载体路由端点：SSH 经载体会话打开本地转发，Reticulum 经网格搭建桥梁。Reticulum 路由要求载体已连接。</string>
-    <string name="connections_helper_add_reticulum_first">请先添加一个 Reticulum 连接</string>
     <string name="connections_toggle_rdp_nla">网络级身份验证 (NLA)</string>
     <string name="connections_helper_run_before_session_manager">在会话管理器启动前运行。</string>
     <string name="connections_toggle_tunnel_only">仅隧道（无终端）</string>
@@ -372,8 +265,6 @@
     <string name="connections_toggle_auto_reconnect">断开时自动重新连接</string>
     <string name="connections_field_reconnect_max_attempts">最大尝试次数（0 = 无限制）</string>
     <string name="connections_toggle_reconnect_on_network_change">网络变化时重新连接</string>
-    <string name="connections_field_passphrase">密码短语</string>
-    <string name="connections_hint_ifac_passphrase">IFAC 密码短语（可选）</string>
     <string name="connections_helper_vnc_host_via_ssh">VNC 服务器从 SSH 服务器可访问的位置 — 如果是同一台机器，通常为 127.0.0.1（wayvnc 等仅绑定回环地址）。</string>
     <string name="connections_helper_vnc_auth">经典 VncAuth（8 字符密码）请将用户名留空。VeNCrypt（wayvnc、TigerVNC）请填写用户名 — 支持更长的密码和 TLS 加密。</string>
     <string name="connections_helper_rdp_host_via_ssh">RDP 服务器从 SSH 服务器可访问的位置 — 如果是同一台机器，通常为 127.0.0.1。</string>
@@ -391,33 +282,8 @@
     <string name="connections_forget_password">忘记已保存的密码</string>
     <string name="connections_forget_password_title">忘记已保存的密码？</string>
     <string name="connections_forget_password_message">清除"%1$s"已保存的 SSH 密码？以后连接时将重新提示输入。</string>
-    <string name="connections_desktop_installing">正在安装桌面…</string>
     <string name="connections_toggle_password_only">仅使用密码</string>
     <string name="connections_helper_password_only">不向此服务器提供已保存的 SSH 密钥——仅使用密码（及键盘交互）进行身份验证。用于仅支持密码的服务器，避免静默失败的密钥尝试。</string>
-    <string name="connections_ssh_key_none_hint">暂无 SSH 密钥——请在密钥标签页添加或生成一个，然后在此处附加。</string>
-    <string name="connections_section_spa">单包授权（fwknop）</string>
-    <string name="connections_field_spa_key">SPA 密钥（Rijndael/AES）</string>
-    <string name="connections_field_spa_hmac_key">HMAC 密钥（可选）</string>
-    <string name="connections_toggle_spa_key_base64">密钥为 base64</string>
-    <string name="connections_toggle_spa_hmac_key_base64">HMAC 密钥为 base64</string>
-    <string name="connections_field_spa_access_spec">访问（协议/端口）</string>
-    <string name="connections_hint_spa_access_spec">例如 tcp/22 或 tcp/22,udp/53</string>
-    <string name="connections_field_spa_allow_mode">允许 IP</string>
-    <string name="connections_spa_allow_source">源 IP</string>
-    <string name="connections_spa_allow_resolve">解析公网 IP</string>
-    <string name="connections_spa_allow_explicit">指定 IP</string>
-    <string name="connections_field_spa_explicit_ip">允许 IP / CIDR</string>
-    <string name="connections_field_spa_port">SPA UDP 端口</string>
-    <string name="connections_helper_spa_active">每次直接连接前发送。SSH/SOCKS 隧道路径上跳过。</string>
-    <string name="connections_helper_spa_blank">留空密钥或访问字段以禁用。</string>
-    <string name="connections_button_test_spa">测试 SPA</string>
-    <string name="connections_button_test_spa_running">发送中…</string>
-    <string name="connections_spa_invalid">SPA 配置无效：%1$s</string>
-    <string name="connections_spa_host_blank">主机为空</string>
-    <string name="connections_spa_success">已在 %2$d 毫秒内发送 %1$d 字节 SPA 包</string>
-    <string name="connections_spa_failed">%1$d 毫秒后失败：%2$s</string>
-    <string name="connections_agent_active">代理活动中</string>
-    <string name="connections_agent_activity">代理活动</string>
     <string name="connections_pf_type_local">本地</string>
     <string name="connections_pf_type_remote">远程</string>
     <string name="connections_pf_type_dynamic">动态（SOCKS5）</string>
@@ -445,7 +311,6 @@
     <string name="connections_pf_dynamic_explanation">设备上的 SOCKS5 客户端可连接 %1$s:%2$s 并请求任意目标。每个请求通过 SSH 服务器开启一个新的 direct-tcpip 通道。</string>
     <string name="connections_pf_dynamic_port_fallback">&lt;port&gt;</string>
     <string name="connections_hosts_discovered">已发现 %1$d 台主机</string>
-    <string name="connections_rclone_provider_cloud">云</string>
     <string name="connections_list_via">经由 %1$s</string>
     <string name="connections_auth_methods_title">身份验证方式</string>
     <string name="connections_auth_methods_description">在一次连接中按顺序尝试——用于需要多种方式的服务器（如密钥+密码、PAM/OTP 链）。</string>
@@ -462,50 +327,11 @@
     <string name="connections_auth_add_method">添加方式</string>
     <string name="connections_auth_confirm_otp">发送前确认 OTP</string>
     <string name="connections_auth_confirm_otp_desc">显示生成的验证码供一键确认，而非自动提交。</string>
-    <string name="connections_vm_copied_short">已复制</string>
-    <string name="connections_vm_terminal_not_found">未找到终端应用</string>
-    <string name="connections_mcp_badge">MCP</string>
-    <string name="connections_local_distro_label">在系统中打开</string>
-    <string name="connections_local_distro_active_default">活动发行版（默认）</string>
 
-    <string name="connections_section_openai">AI 端点</string>
-    <string name="connections_field_openai_host">服务器地址</string>
-    <string name="connections_field_openai_host_hint">IP、主机名或完整的 http:// URL</string>
-    <string name="connections_field_openai_api_key">API 密钥（可选）</string>
-    <string name="connections_field_openai_api_key_hint">以 Bearer 令牌发送。无需密钥的服务器请留空。</string>
-    <string name="connections_field_openai_path_prefix">路径前缀（可选）</string>
-    <string name="connections_field_openai_path_prefix_hint">插入在 /v1 之前 — 例如 /api</string>    <string name="connections_field_openai_protocol">协议</string>
-    <string name="connections_field_openai_protocol_hint">默认兼容 OpenAI；Ollama、Anthropic 和 Gemini 会改变路径与鉴权方式。</string>
-
-    <string name="connections_openai_url_preview">端点 URL：%1$s</string>
     <!-- Email account (embedded mail) -->
-    <string name="connections_section_email">电子邮件账户</string>
     <string name="connections_auth_method_proton_srp">ProtonMail SRP</string>
-    <string name="connections_email_provider_proton">提供商：ProtonMail</string>
-    <string name="connections_email_proton_unofficial_warning">使用 Proton 的非官方 API。此接口为逆向工程所得，违反 Proton 的服务条款——您的账户可能被限速或锁定。继续即表示您自担风险。</string>
-    <string name="connections_field_email_address">电子邮件地址</string>
-    <string name="connections_field_email_password">密码</string>
-    <string name="connections_field_email_mailbox_password">邮箱密码（仅双密码模式）</string>
-    <string name="connections_email_mailbox_password_hint">除非您的 Proton 账户设有独立的邮箱密码，否则请留空。</string>
-    <string name="connections_email_2fa_hint">如果您的账户启用了双重验证，请在 SSH 密钥 / TOTP 管理器中关联其 TOTP 密钥，系统将自动应用。</string>
-    <string name="connections_email_provider_proton_short">ProtonMail</string>
-    <string name="connections_email_provider_imap_short">IMAP/SMTP</string>
-    <string name="connections_email_app_password_hint">使用您的密码；如果提供商要求（Fastmail、iCloud、Yahoo、Gmail/双重验证），请使用应用专用密码。</string>
-    <string name="connections_email_preset_label">提供商预设</string>
-    <string name="connections_email_app_password_link">为 %1$s 创建应用专用密码</string>
-    <string name="connections_field_imap_server">IMAP 服务器</string>
-    <string name="connections_field_smtp_server">SMTP 服务器</string>
-    <string name="connections_field_smtp_server_help">留空则使用 IMAP 服务器。</string>
-    <string name="connections_field_imap_port">IMAP 端口</string>
-    <string name="connections_field_smtp_port">SMTP 端口</string>
-    <string name="connections_toggle_imap_tls">使用 TLS（隐式 SSL）</string>
 
     <!-- USB forwarding, deploy password, FIDO auth, MCP toggle (#250) -->
-    <string name="connections_section_usb_forward">USB 设备转发</string>
-    <string name="connections_helper_usb_forward">连接时通过 USB/IP 将手机上连接的 USB 设备导出到此主机。YubiKey 会出现在主机上供 ssh-keygen -t ed25519-sk 使用，触摸在手机上完成。自动挂载需要主机上有 usbip 和免密码 sudo；否则会建立导出和隧道，由您运行所示的挂载命令。</string>
-    <string name="connections_field_usb_forward">转发 USB 设备</string>
-    <string name="connections_usb_forward_none">无</string>
-    <string name="connections_usb_forward_unattached">%1$s（未挂载）</string>
     <string name="connections_deploy_field_password_optional">密码（可选）</string>
     <string name="connections_deploy_password_hint">留空则使用此配置已保存的密钥进行部署。仅当服务器使用密码认证（或需要解锁密钥口令/跳板机）时才需要密码。</string>
     <string name="connections_fido_key_label">密钥：%1$s</string>
@@ -513,83 +339,23 @@
     <string name="connections_fido_wrong_body">该密钥未持有服务器请求的凭据。请出示所需的密钥并触摸它。</string>
     <string name="connections_auth_key_picker">密钥：%1$s ▾</string>
     <string name="connections_auth_key_only">✓ 仅使用此密钥</string>
-    <string name="connections_mcp_active">代理正在此连接上操作——点击可为其禁用 MCP</string>
-    <string name="connections_mcp_disabled">此连接已禁用 MCP——点击可启用</string>
-    <string name="connections_toggle_mcp_enabled">允许 MCP 代理使用此连接</string>
-    <string name="connections_helper_mcp_enabled">关闭时，针对此连接的 AI 代理（MCP）工具将被拒绝。该连接对您仍可正常使用。</string>
 
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
-    <string name="connections_android_shell_label">原生 Android shell</string>
     <string name="connections_field_background_opacity">覆盖背景不透明度</string>
     <string name="connections_helper_background_opacity" formatted="false">低于 100% 时，此配置的终端将变为半透明，在文字后面显示设备壁纸。关闭 = 使用全局设置。</string>
     <string name="connections_background_opacity_value">不透明度：%1$d%%</string>
     <string name="connections_reveal_password_title">显示已保存的密码</string>
     <string name="connections_reveal_password_subtitle">验证身份后显示已保存的密码</string>
-    <string name="rclone_import_title">导入 rclone 远程</string>
-    <string name="rclone_import_intro">粘贴 Linux 上的 rclone.conf，或选择该文件。远程（包括 OAuth 令牌）将按原样导入，无需重新配置。</string>
-    <string name="rclone_import_pick_file">选择 rclone.conf…</string>
-    <string name="rclone_import_paste_label">rclone.conf 内容</string>
-    <string name="rclone_import_parse">查找远程</string>
-    <string name="rclone_import_encrypted">该文件是使用密码加密的 rclone 配置。请在桌面端运行 “rclone config show”，然后粘贴解密后的输出。</string>
-    <string name="rclone_import_already_added">已添加</string>
-    <string name="rclone_import_no_type">无类型</string>
-    <string name="rclone_import_select_count">导入 %1$d 个远程</string>
-    <string name="rclone_import_done">已导入 %1$d 个，跳过 %2$d 个，失败 %3$d 个。</string>
-    <string name="rclone_import_menu">导入 rclone 配置…</string>
-    <string name="connections_section_spice">SPICE 设置</string>
-    <string name="connections_section_mcp">AI 代理（MCP）</string>
-    <string name="connections_rclone_configure_first">请先点按“配置并验证”保存此远程，然后才能保存连接。</string>
-    <string name="connections_helper_spice_auth">SPICE 使用单个可选的票据/密码。服务器未启用票据时请留空。</string>
     <string name="connections_auth_any_hardware_key">任意硬件密钥（FIDO）</string>
     <string name="connections_deeplink_confirm_title">要连接吗？</string>
     <string name="connections_deeplink_confirm_message">一个链接请求连接到 %1$s。</string>
     <string name="connections_deeplink_confirm_session">一个链接请求连接到 %1$s 并附加会话“%2$s”。</string>
     <string name="connections_deeplink_confirm_connect">连接</string>
     <!-- Serial-connection strings (#406 BTSERIAL, #408 USBSERIAL) -->
-    <string name="connections_section_btserial">蓝牙串口</string>
-    <string name="connections_btserial_desc">连接到已配对的蓝牙转串口适配器（例如交换机或路由器的控制台端口）。</string>
-    <string name="connections_btserial_device">已配对设备</string>
-    <string name="connections_btserial_no_devices">没有已配对的蓝牙设备。请先在 Android 设置 → 蓝牙中配对适配器，然后重新打开此界面。</string>
-    <string name="connections_btserial_permission">授予蓝牙权限以列出已配对设备</string>
-    <string name="connections_section_usbserial">USB 串口</string>
-    <string name="connections_usbserial_desc">连接到已插入的 USB 串口适配器——Arduino、Duet3D G-code 主板、ESP32 或 USB 转 TTL 线。</string>
-    <string name="connections_usbserial_device">USB 设备</string>
-    <string name="connections_usbserial_no_devices">未检测到 USB 串口适配器。请插入一个，然后重新打开此界面。</string>
-    <string name="connections_usbserial_baud">波特率</string>
-    <string name="connections_section_bleserial">Bluetooth LE 串口</string>
-    <string name="connections_bleserial_desc">连接到 Bluetooth-LE UART 外设——Nordic UART Service 设备、HM-10 模块或 BLE RS232 适配器。无需配对。</string>
-    <string name="connections_bleserial_device">BLE 设备</string>
-    <string name="connections_bleserial_no_devices">未找到 BLE 设备。请确认外设已开机并正在广播，然后重新扫描。</string>
-    <string name="connections_bleserial_permission">授予 Bluetooth（扫描）权限以查找 BLE 设备</string>
-    <string name="connections_bleserial_scan">扫描 BLE 设备</string>
-    <string name="connections_bleserial_scanning">正在扫描…</string>
-    <string name="connections_usbserial_databits">数据位</string>
-    <string name="connections_usbserial_parity">校验位</string>
-    <string name="connections_usbserial_stopbits">停止位</string>
-    <string name="connections_usbserial_flowcontrol">流控制</string>
-    <string name="connections_usbserial_none">无</string>
-    <string name="connections_usbserial_parity_odd">奇校验</string>
-    <string name="connections_usbserial_parity_even">偶校验</string>
-    <string name="connections_usbserial_parity_mark">标记</string>
-    <string name="connections_usbserial_parity_space">空格</string>
-    <string name="connections_usbserial_flow_rtscts">RTS/CTS</string>
-    <string name="connections_usbserial_flow_xonxoff">XON/XOFF</string>
     <string name="connections_section_ssh_engine">SSH 引擎</string>
     <string name="connections_helper_ssh_engine">此连接使用的 SSH 实现。sshlib 为实验性：现已支持整个连接 — 终端、文件传输和隧道 — 而不仅仅是 SFTP。</string>
     <string name="connections_ssh_engine_jsch_label">默认（JSch）</string>
     <string name="connections_ssh_engine_jsch_desc">成熟稳定的引擎。支持全部功能。</string>
     <string name="connections_ssh_engine_sshlib_label">sshlib（实验性）</string>
     <string name="connections_ssh_engine_sshlib_desc">Kotlin 引擎：在同一连接上提供终端、SFTP 和端口转发。需要直接连接 — 不支持跳板机、代理、硬件密钥、证书或多因素登录。</string>
-    <string name="connections_identity_label">本设备的身份</string>
-    <string name="connections_identity_none">尚未创建 — 首次连接时会自动创建</string>
-    <string name="connections_identity_help">所有 Reticulum 连接共用。将你加入白名单的服务器以此哈希为准。</string>
-    <string name="connections_identity_import">导入身份文件…</string>
-    <string name="connections_identity_imported">已导入身份：%1$s</string>
-    <string name="connections_identity_imported_restart">已导入身份：%1$s。重启 Haven 后连接才会使用它。</string>
-    <string name="connections_identity_not_an_identity">该文件不是 Reticulum 身份。未做任何更改。</string>
-    <string name="connections_identity_install_failed">无法安装该身份：%1$s。原有身份仍然保留。</string>
-    <string name="connections_identity_unreadable">无法读取该文件。</string>
-    <string name="connections_section_glkvm">GLKVM 设置</string>
-    <string name="connections_field_glkvm_layout">目标键盘布局</string>
-    <string name="connections_helper_glkvm">GLKVM（基于 HTTPS 的 PiKVM 式 KVM）— 直接操控目标机的物理鼠标和键盘。TLS 使用首次信任；录入的字符由目标机的键盘布局决定。通过 SSH 隧道或 WireGuard/Tailscale 配置文件即可从局域网之外访问。</string>
 </resources>

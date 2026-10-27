@@ -10,10 +10,7 @@
     <string name="common_edit">編集</string>
     <string name="common_rename">名前変更</string>
     <string name="common_create">作成</string>
-    <string name="common_connect">接続</string>
-    <string name="common_disconnect">切断</string>
     <string name="common_copy">コピー</string>
-    <string name="common_paste">貼り付け</string>
     <string name="common_label">ラベル</string>
     <string name="common_password">パスワード</string>
     <string name="common_port">ポート</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">リセット</string>
     <string name="common_allow">許可</string>
     <string name="common_not_now">後で</string>
-    <string name="common_import">インポート</string>
-    <string name="common_add">追加</string>
-    <string name="common_download">ダウンロード</string>
     <string name="common_unlock">ロック解除</string>
 
     <!-- Tab bar -->
@@ -68,7 +62,6 @@
     <string name="terminal_new_tab_host_key_changed">%s のホスト鍵が変更されました — セキュリティのため接続を拒否しました</string>
     <string name="terminal_new_tab_connection_failed">接続できませんでした: %s</string>
     <string name="terminal_new_tab_shell_failed">シェルを開けませんでした: %s</string>
-    <string name="terminal_new_tab_reticulum_no_session">複製できるアクティブな Reticulum セッションがありません</string>
     <string name="terminal_new_tab_connecting">接続中…</string>
     <!-- Backfilled translations (i18n drift fix) -->
     <string name="terminal_no_contact">サーバー応答なし（%1$d 秒）— 再試行中</string>
@@ -87,23 +80,11 @@
     <!-- i18n sweep #210 -->
     <string name="terminal_link_open_failed">このリンクを開けるアプリがありません</string>
     <string name="terminal_link_scheme_blocked">ブロックされたリンク（未対応のスキーム）</string>
-    <string name="terminal_local_vnc_failed">ローカルデスクトップを起動できませんでした</string>
     <string name="terminal_attach_title">添付</string>
     <string name="terminal_attach_send_file">ファイルを送信</string>
     <string name="terminal_attach_send_file_desc">リモートにアップロードしてパスを貼り付け</string>
     <string name="terminal_attach_take_photo">写真を撮る</string>
     <string name="terminal_attach_take_photo_desc">撮影した写真をファイルとして送信します</string>
-    <string name="terminal_attach_scan_camera">コードをスキャン（カメラ）</string>
-    <string name="terminal_attach_scan_camera_desc">QR コードまたはバーコードを撮影して内容を貼り付け</string>
-    <string name="terminal_attach_scan_gallery">コードをスキャン（フォト）</string>
-    <string name="terminal_attach_scan_gallery_desc">QR コードまたはバーコードの写真を選択して内容を貼り付け</string>
-    <string name="terminal_attach_ocr_camera">テキストを認識（カメラ）</string>
-    <string name="terminal_attach_ocr_camera_desc">印刷テキストを撮影して検出内容を貼り付け</string>
-    <string name="terminal_attach_ocr_gallery">テキストを認識（フォト）</string>
-    <string name="terminal_attach_ocr_gallery_desc">印刷テキストの写真を選択して検出内容を貼り付け</string>
-    <string name="terminal_scan_no_code">画像にコードが検出されませんでした</string>
-    <string name="terminal_scan_no_text">画像にテキストが検出されませんでした</string>
-    <string name="terminal_scan_failed">スキャン失敗: %s</string>
     <string name="terminal_scan_no_camera">カメラアプリがありません</string>
     <string name="terminal_selection_copy">コピー</string>
     <string name="terminal_selection_paste">貼り付け</string>

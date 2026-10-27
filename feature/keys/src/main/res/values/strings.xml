@@ -10,10 +10,7 @@
     <string name="common_edit">Edit</string>
     <string name="common_rename">Rename</string>
     <string name="common_create">Create</string>
-    <string name="common_connect">Connect</string>
-    <string name="common_disconnect">Disconnect</string>
     <string name="common_copy">Copy</string>
-    <string name="common_paste">Paste</string>
     <string name="common_label">Label</string>
     <string name="common_password">Password</string>
     <string name="common_port">Port</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">Reset</string>
     <string name="common_allow">Allow</string>
     <string name="common_not_now">Not now</string>
-    <string name="common_import">Import</string>
-    <string name="common_add">Add</string>
-    <string name="common_download">Download</string>
     <string name="common_unlock">Unlock</string>
 
     <!-- KeysScreen -->
@@ -79,7 +73,6 @@
 
     <!-- copyPublicKey -->
     <string name="keys_ssh_public_key_clip_label">SSH Public Key</string>
-    <string name="keys_section_certificate_authorities">Certificate authorities (%1$d)</string>
     <string name="keys_section_ssh">SSH keys (%1$d)</string>
     <string name="keys_section_drive">USB drive keys (%1$d)</string>
     <string name="keys_section_passwords">Stored passwords (%1$d)</string>
@@ -103,69 +96,13 @@
     <string name="keys_chip_certificate">Certificate attached</string>
 
     <!-- #133 phase 2: step-ca generate-via-OIDC -->
-    <string name="keys_generate_via_stepca">Generate via step-ca</string>
-    <string name="keys_generate_via_stepca_hint">OIDC sign-in mints a fresh keypair + signed cert</string>
-    <string name="keys_generate_via_stepca_no_ca">Tap Certificate authorities above to add one</string>
-    <string name="keys_stepca_dialog_title">Generate via step-ca</string>
-    <string name="keys_stepca_pick_ca">Certificate authority</string>
-    <string name="keys_stepca_principals_override_label">Override principals (optional, comma-separated)</string>
-    <string name="keys_stepca_label">Key label</string>
-    <string name="keys_stepca_generate">Generate</string>
     <string name="keys_chip_certificate_minted">Minted %1$s</string>
-    <string name="keys_regenerate_via_stepca">Regenerate via step-ca</string>
 
     <!-- #133 phase 2b: step-ca CA registration (moved from Settings) -->
-    <string name="stepca_add_title">Add certificate authority</string>
-    <string name="stepca_edit_title">Edit certificate authority</string>
-    <string name="stepca_add">Add</string>
-    <string name="stepca_save">Save</string>
-    <string name="stepca_cancel">Cancel</string>
-    <string name="stepca_delete">Delete</string>
-    <string name="stepca_test_connection">Test connection</string>
-    <string name="stepca_field_name">Display name</string>
-    <string name="stepca_field_ca_url">CA URL</string>
-    <string name="stepca_field_ca_url_hint">https://ca.example.com</string>
-    <string name="stepca_field_oidc_issuer">OIDC issuer URL</string>
-    <string name="stepca_field_oidc_auth_url">OIDC authorize URL</string>
-    <string name="stepca_field_oidc_token_url">OIDC token URL</string>
-    <string name="stepca_field_oidc_client_id">OIDC client ID</string>
-    <string name="stepca_field_provisioner">step-ca provisioner</string>
-    <string name="stepca_field_principals">Default principals (comma-separated)</string>
-    <string name="stepca_field_root_cert">Root certificate (PEM)</string>
-    <string name="stepca_field_root_cert_hint">-----BEGIN CERTIFICATE-----…</string>
-    <string name="stepca_test_ok">Reachable</string>
-    <string name="stepca_test_bad_root_cert">Invalid root cert: %1$s</string>
-    <string name="stepca_test_http_error">HTTP %1$d: %2$s</string>
-    <string name="stepca_test_network_error">Network error: %1$s</string>
-    <string name="stepca_empty_state">No certificate authorities configured.\nTap + to add one.</string>
-    <string name="stepca_validation_required">%1$s is required</string>
-    <string name="stepca_validation_url">%1$s must start with https://</string>
-    <string name="stepca_validation_pem">Root certificate must be PEM-encoded</string>
-    <string name="stepca_validation_host_ca_or_signing">Enter a host CA public key, or fill in the signing fields.</string>
-    <string name="stepca_validation_host_ca">Not a valid SSH host CA public key.</string>
-    <string name="stepca_delete_confirm_title">Delete %1$s?</string>
-    <string name="stepca_delete_confirm_body">Existing keys minted via this CA will keep working until their certificates expire, but you won\'t be able to renew or generate new ones.</string>
-    <string name="stepca_field_ssh_host_ca">SSH host CA public key (optional)</string>
-    <string name="stepca_field_ssh_host_ca_hint">ssh-ed25519 AAAAC3…</string>
-    <string name="stepca_discover_host_ca">Discover from /1.0/ssh/config</string>
-    <string name="stepca_discovering">Discovering…</string>
-    <string name="stepca_import_from_file">Import from file</string>
-    <string name="stepca_import_failed">Import failed: %1$s</string>
 
     <!-- Bootstrap pre-stage (#133 phase 2c) -->
-    <string name="stepca_bootstrap_intro">Bootstrap from CA URL + SHA-256 fingerprint. The rest (root cert, provisioners, OIDC URLs and secret) is fetched from the CA.</string>
-    <string name="stepca_field_fingerprint">Root cert fingerprint (SHA-256)</string>
-    <string name="stepca_field_fingerprint_hint">paste from `step certificate fingerprint`</string>
-    <string name="stepca_bootstrap_action">Bootstrap from CA</string>
-    <string name="stepca_bootstrapping">Talking to CA…</string>
-    <string name="stepca_bootstrap_pick_provisioner">Pick an OIDC provisioner:</string>
-    <string name="stepca_manual_entry">Manual entry…</string>
-    <string name="stepca_field_oidc_client_secret">OIDC client secret (optional)</string>
-    <string name="stepca_field_oidc_client_secret_hint">leave blank for public PKCE-only clients</string>
 
     <!-- FIDO2 resident-key discovery (#152) -->
-    <string name="keys_discover_from_security_key">Discover from security key</string>
-    <string name="keys_discover_from_security_key_hint">Enumerate resident SSH-SK credentials from an inserted/tapped security key. Skips ssh-keygen -K.</string>
     <string name="keys_discover_picker_title">Resident SSH keys</string>
     <string name="keys_discover_picker_body">Pick which resident credentials to import. Each becomes a new SSH key entry; the security key itself still holds the private material.</string>
     <string name="keys_discover_import_selected">Import selected</string>
@@ -187,7 +124,6 @@
     <string name="keys_register_on_security_key">Set up SSH key on security key</string>
     <string name="keys_register_on_security_key_body">Creates a resident sk-ssh-ed25519 credential on the security key. Then: plug it in over USB and press it, or tap &amp; hold it on the back for NFC.</string>
     <string name="keys_register_verify_required">Require PIN at every sign-in</string>
-    <string name="keys_register_verify_required_hint">On: the key asks for its PIN each time it signs an SSH login (verify-required — stronger). Off: touch only.</string>
     <string name="keys_register_pin">Security key PIN</string>
     <string name="keys_register_pin_confirm">Confirm PIN</string>
     <string name="keys_register_pin_hint">Choose a PIN if the key is new, or enter its existing PIN. 4+ characters.</string>
@@ -197,8 +133,6 @@
     <!-- TOTP / Authenticator -->
     <string name="keys_totp_section_header">Authenticator (TOTP) · %1$d</string>
     <string name="keys_totp_delete_desc">Delete authenticator</string>
-    <string name="keys_totp_scan_qr">Scan authenticator QR (TOTP)</string>
-    <string name="keys_totp_scan_qr_hint">Pick an image with an otpauth:// QR code</string>
     <string name="keys_totp_paste">Add authenticator from clipboard (TOTP)</string>
     <string name="keys_totp_paste_hint">Paste an otpauth:// URI or base32 secret</string>
 

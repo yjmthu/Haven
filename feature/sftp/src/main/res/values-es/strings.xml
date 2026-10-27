@@ -10,10 +10,7 @@
     <string name="common_edit">Editar</string>
     <string name="common_rename">Renombrar</string>
     <string name="common_create">Crear</string>
-    <string name="common_connect">Conectar</string>
-    <string name="common_disconnect">Desconectar</string>
     <string name="common_copy">Copiar</string>
-    <string name="common_paste">Pegar</string>
     <string name="common_label">Etiqueta</string>
     <string name="common_password">Contraseña</string>
     <string name="common_port">Puerto</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">Restablecer</string>
     <string name="common_allow">Permitir</string>
     <string name="common_not_now">Ahora no</string>
-    <string name="common_import">Importar</string>
-    <string name="common_add">Agregar</string>
-    <string name="common_download">Descargar</string>
     <string name="common_unlock">Desbloquear</string>
 
     <!-- SftpScreen navigation -->
@@ -113,16 +107,12 @@
     <string name="sftp_bandwidth_limit">Bandwidth limit</string>
     <string name="sftp_dry_run">Simulación (solo vista previa)</string>
     <string name="sftp_start_sync">Start</string>
-    <string name="sftp_dry_run_results">Resultados de la simulación</string>
-    <string name="sftp_start_for_real">Iniciar de verdad</string>
-    <string name="sftp_sync_cancelled">Sync cancelled</string>
     <!-- Rename dialog -->
     <string name="sftp_rename_title">Rename</string>
     <string name="sftp_new_name">New name</string>
 
     <!-- Share link -->
     <string name="sftp_share_link">Share link</string>
-    <string name="sftp_link_copied">Link copied</string>
 
     <!-- Folder size -->
     <string name="sftp_folder_size">Folder size</string>
@@ -186,13 +176,10 @@
     <string name="sftp_attach_pick_profile">Elige un perfil conectado a usar</string>
     <string name="sftp_attach_local_no_upload">Elige un perfil remoto — el local no acepta subidas</string>
     <string name="sftp_attach_will_upload_into">Se subirá a: %1$s</string>
-    <string name="sftp_chat_attach_pick_file">Adjuntar un archivo al chat</string>
-    <string name="sftp_chat_attach_will_pick_from">Elegir de: %1$s</string>
     <string name="sftp_attach_sending">Enviando %1$s…</string>
     <string name="sftp_storage_permission_title">Se requiere acceso al almacenamiento</string>
     <string name="sftp_storage_permission_body">Toca para conceder acceso a los archivos locales — las funciones de medios, exploración y transferencias necesitan este permiso.</string>
     <string name="sftp_paste_unfinished">Pegado sin terminar</string>
-    <string name="sftp_agent_chip">Agente</string>
     <string name="sftp_convert_dest_same_folder_cloud">De vuelta a la nube (misma carpeta)</string>
     <string name="sftp_convert_download_first">Descargar primero</string>
     <string name="sftp_convert_download_first_on">Descarga el archivo completo antes de transcodificar</string>
@@ -209,15 +196,12 @@
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
     <string name="sftp_new_sync">Nueva sincronización de rclone</string>
     <string name="sftp_encrypt">Cifrar (age)</string>
-    <string name="sftp_encrypt_sub">Cifrar para una clave age — legible en cualquier lugar con la herramienta age</string>
     <string name="sftp_decrypt">Descifrar (age)</string>
-    <string name="sftp_decrypt_sub">Descifrar con una identidad age guardada</string>
     <string name="sftp_encrypt_title">Cifrar con age</string>
     <string name="sftp_encrypt_recipient_hint">O pega un destinatario (age1…)</string>
     <string name="sftp_encrypt_action">Cifrar</string>
     <string name="sftp_age_no_identity">No hay identidad age. Crea una en la pestaña Claves o pega un destinatario.</string>
     <string name="sftp_age_failed">La operación de age falló — clave incorrecta o archivo dañado</string>
-    <string name="sftp_open_usb_drive">Abrir una unidad USB…</string>
     <string name="sftp_add_folder_location">Añadir ubicación de carpeta</string>
     <string name="sftp_saf_grant_failed">No se pudo mantener el acceso a esa carpeta</string>
     <string name="sftp_remove_folder_location">Quitar ubicación de carpeta</string>

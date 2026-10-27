@@ -10,10 +10,7 @@
     <string name="common_edit">Modifier</string>
     <string name="common_rename">Renommer</string>
     <string name="common_create">Créer</string>
-    <string name="common_connect">Connecter</string>
-    <string name="common_disconnect">Déconnecter</string>
     <string name="common_copy">Copier</string>
-    <string name="common_paste">Coller</string>
     <string name="common_label">Libellé</string>
     <string name="common_password">Mot de passe</string>
     <string name="common_port">Port</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">Réinitialiser</string>
     <string name="common_allow">Autoriser</string>
     <string name="common_not_now">Pas maintenant</string>
-    <string name="common_import">Importer</string>
-    <string name="common_add">Ajouter</string>
-    <string name="common_download">Télécharger</string>
     <string name="common_unlock">Déverrouiller</string>
 
     <!-- KeysScreen -->
@@ -75,57 +69,11 @@
     <string name="keys_ssh_public_key_clip_label">Clé publique SSH</string>
 
     <!-- #133 phase 2: step-ca generate-via-OIDC (en fallback) -->
-    <string name="keys_generate_via_stepca">Générer via step-ca</string>
-    <string name="keys_generate_via_stepca_hint">La connexion OIDC génère une nouvelle paire de clés et un certificat signé</string>
-    <string name="keys_generate_via_stepca_no_ca">Appuyez sur « Autorités de certification » ci-dessus pour en ajouter une</string>
-    <string name="keys_stepca_dialog_title">Générer via step-ca</string>
-    <string name="keys_stepca_pick_ca">Certificate authority</string>
-    <string name="keys_stepca_principals_override_label">Remplacer les principals (facultatif, séparés par des virgules)</string>
-    <string name="keys_stepca_label">Key label</string>
-    <string name="keys_stepca_generate">Generate</string>
     <string name="keys_chip_certificate_minted">Minted %1$s</string>
 
     <!-- #133 phase 2b: regenerate menu (en fallback) -->
-    <string name="keys_regenerate_via_stepca">Régénérer via step-ca</string>
 
     <!-- #133 phase 2b: step-ca CA registration (moved from Settings) -->
-    <string name="stepca_add_title">Ajouter une autorité de certification</string>
-    <string name="stepca_edit_title">Modifier l’autorité de certification</string>
-    <string name="stepca_add">Add</string>
-    <string name="stepca_save">Save</string>
-    <string name="stepca_cancel">Cancel</string>
-    <string name="stepca_delete">Delete</string>
-    <string name="stepca_test_connection">Test connection</string>
-    <string name="stepca_field_name">Display name</string>
-    <string name="stepca_field_ca_url">CA URL</string>
-    <string name="stepca_field_ca_url_hint">https://ca.example.com</string>
-    <string name="stepca_field_oidc_issuer">URL de l’émetteur OIDC</string>
-    <string name="stepca_field_oidc_auth_url">URL d’autorisation OIDC</string>
-    <string name="stepca_field_oidc_token_url">URL du jeton OIDC</string>
-    <string name="stepca_field_oidc_client_id">ID client OIDC</string>
-    <string name="stepca_field_provisioner">step-ca provisioner</string>
-    <string name="stepca_field_principals">Principals par défaut (séparés par des virgules)</string>
-    <string name="stepca_field_root_cert">Certificat racine (PEM)</string>
-    <string name="stepca_field_root_cert_hint">-----BEGIN CERTIFICATE-----…</string>
-    <string name="stepca_test_ok">Reachable</string>
-    <string name="stepca_test_bad_root_cert">Certificat racine non valide : %1$s</string>
-    <string name="stepca_test_http_error">HTTP %1$d: %2$s</string>
-    <string name="stepca_test_network_error">Erreur réseau : %1$s</string>
-    <string name="stepca_empty_state">Aucune autorité de certification configurée.\nAppuyez sur + pour en ajouter une.</string>
-    <string name="stepca_validation_required">%1$s est obligatoire</string>
-    <string name="stepca_validation_url">%1$s must start with https://</string>
-    <string name="stepca_validation_pem">Le certificat racine doit être encodé en PEM</string>
-    <string name="stepca_validation_host_ca_or_signing">Saisissez une clé publique d\'autorité d\'hôte, ou remplissez les champs de signature.</string>
-    <string name="stepca_validation_host_ca">Clé publique d\'autorité d\'hôte SSH non valide.</string>
-    <string name="stepca_delete_confirm_title">Delete %1$s?</string>
-    <string name="stepca_delete_confirm_body">Les clés déjà émises par cette autorité continueront de fonctionner jusqu’à l’expiration de leurs certificats, mais vous ne pourrez ni les renouveler ni en générer de nouvelles.</string>
-    <string name="stepca_field_ssh_host_ca">Clé publique de l’autorité d’hôte SSH (facultatif)</string>
-    <string name="stepca_field_ssh_host_ca_hint">ssh-ed25519 AAAAC3…</string>
-    <string name="stepca_discover_host_ca">Détecter depuis /1.0/ssh/config</string>
-    <string name="stepca_discovering">Discovering…</string>
-    <string name="stepca_import_from_file">Importer depuis un fichier</string>
-    <string name="stepca_import_failed">Échec de l’import : %1$s</string>
-    <string name="keys_section_certificate_authorities">Autorités de certification (%1$d)</string>
     <string name="keys_section_ssh">Clés SSH (%1$d)</string>
     <string name="keys_section_drive">Clés de disque USB (%1$d)</string>
     <string name="keys_section_passwords">Mots de passe enregistrés (%1$d)</string>
@@ -141,17 +89,6 @@
     <string name="keys_attach_certificate">Joindre un certificat</string>
     <string name="keys_remove_certificate">Retirer le certificat</string>
     <string name="keys_chip_certificate">Certificat joint</string>
-    <string name="stepca_bootstrap_intro">Amorçage depuis l\'URL de l\'AC + empreinte SHA-256. Le reste (certificat racine, fournisseurs, URLs OIDC et secret) est récupéré depuis l\'AC.</string>
-    <string name="stepca_field_fingerprint">Empreinte du certificat racine (SHA-256)</string>
-    <string name="stepca_field_fingerprint_hint">collez depuis `step certificate fingerprint`</string>
-    <string name="stepca_bootstrap_action">Amorcer depuis l\'AC</string>
-    <string name="stepca_bootstrapping">Communication avec l\'AC…</string>
-    <string name="stepca_bootstrap_pick_provisioner">Choisissez un fournisseur OIDC :</string>
-    <string name="stepca_manual_entry">Saisie manuelle…</string>
-    <string name="stepca_field_oidc_client_secret">Secret client OIDC (facultatif)</string>
-    <string name="stepca_field_oidc_client_secret_hint">laissez vide pour les clients publics PKCE uniquement</string>
-    <string name="keys_discover_from_security_key">Découvrir depuis une clé de sécurité</string>
-    <string name="keys_discover_from_security_key_hint">Énumère les identifiants SSH-SK résidents d\'une clé de sécurité insérée ou présentée. Ignore ssh-keygen -K.</string>
     <string name="keys_discover_picker_title">Clés SSH résidentes</string>
     <string name="keys_discover_picker_body">Choisissez les identifiants résidents à importer. Chacun devient une nouvelle entrée de clé SSH ; la clé de sécurité conserve le matériel privé.</string>
     <string name="keys_discover_import_selected">Importer la sélection</string>
@@ -171,8 +108,6 @@
     <string name="keys_export_certificate">Exporter le certificat</string>
     <string name="keys_totp_section_header">Authentificateur (TOTP) · %1$d</string>
     <string name="keys_totp_delete_desc">Supprimer l\'authentificateur</string>
-    <string name="keys_totp_scan_qr">Scanner le QR de l\'authentificateur (TOTP)</string>
-    <string name="keys_totp_scan_qr_hint">Choisissez une image contenant un QR code otpauth://</string>
     <string name="keys_totp_paste">Ajouter un authentificateur depuis le presse-papiers (TOTP)</string>
     <string name="keys_totp_paste_hint">Collez un URI otpauth:// ou un secret base32</string>
     <!-- RenameKeyDialog (#231) -->
@@ -191,7 +126,6 @@
     <string name="keys_register_on_security_key">Configurer une clé SSH sur la clé de sécurité</string>
     <string name="keys_register_on_security_key_body">Crée un identifiant sk-ssh-ed25519 résident sur la clé de sécurité. Ensuite : branchez-la en USB et appuyez dessus, ou maintenez-la contre l\'arrière du téléphone pour le NFC.</string>
     <string name="keys_register_verify_required">Exiger le PIN à chaque connexion</string>
-    <string name="keys_register_verify_required_hint">Activé : la clé demande son PIN à chaque signature d\'une connexion SSH (verify-required — plus sûr). Désactivé : appui simple.</string>
     <string name="keys_register_pin">PIN de la clé de sécurité</string>
     <string name="keys_register_pin_confirm">Confirmer le PIN</string>
     <string name="keys_register_pin_hint">Choisissez un PIN si la clé est neuve, ou saisissez son PIN actuel. 4 caractères ou plus.</string>

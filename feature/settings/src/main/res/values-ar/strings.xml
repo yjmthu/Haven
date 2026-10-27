@@ -10,10 +10,7 @@
     <string name="common_edit">تعديل</string>
     <string name="common_rename">إعادة تسمية</string>
     <string name="common_create">إنشاء</string>
-    <string name="common_connect">اتصال</string>
-    <string name="common_disconnect">قطع الاتصال</string>
     <string name="common_copy">نسخ</string>
-    <string name="common_paste">لصق</string>
     <string name="common_label">التسمية</string>
     <string name="common_password">كلمة المرور</string>
     <string name="common_port">المنفذ</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">إعادة تعيين</string>
     <string name="common_allow">سماح</string>
     <string name="common_not_now">ليس الآن</string>
-    <string name="common_import">استيراد</string>
-    <string name="common_add">إضافة</string>
-    <string name="common_download">تنزيل</string>
     <string name="common_unlock">فتح القفل</string>
 
     <!-- Top-level screen -->
@@ -39,8 +33,6 @@
     <string name="settings_prevent_screenshots_subtitle">حظر التقاط الشاشة ومعاينة مبدّل التطبيقات</string>
 
     <!-- Logging section -->
-    <string name="settings_exclude_recents_title">الإخفاء من التطبيقات الأخيرة</string>
-    <string name="settings_exclude_recents_subtitle">يخفي بطاقة Haven من شاشة التطبيقات الأخيرة؛ تستمر الجلسات في العمل. أعد الفتح من أيقونة التطبيق.</string>
     <string name="settings_connection_logging_title">تسجيل الاتصالات</string>
     <string name="settings_connection_logging_subtitle">تسجيل أحداث الاتصال (اتصال، قطع، أخطاء). يُخزّن محلياً ومحمي بتشفير الجهاز</string>
     <string name="settings_view_connection_log_title">عرض سجل الاتصالات</string>
@@ -66,8 +58,6 @@
     <string name="settings_mouse_input_subtitle">تمرير اللمسات كنقرات والضغط المطوّل كنقرة يمين عندما تفعّل تطبيقات مثل htop و mc و vim تتبع الماوس</string>
     <string name="settings_right_click_title">الضغط المطوّل يرسل نقرة يمين</string>
     <string name="settings_right_click_subtitle">إرسال نقرة يمين للطرفية بدلاً من بدء تحديد النص. مفيد لقوائم tmux السياقية</string>
-    <string name="settings_standard_keyboard_title">الإدخال الصوتي والإكمال التلقائي</string>
-    <string name="settings_standard_keyboard_subtitle">يعطّل أعلام لوحة المفاتيح الآمنة (وضع كلمة المرور، بدون اقتراحات). يتيح الإدخال الصوتي والكتابة بالسحب والتنبؤ بالكلمات — لكن لوحة المفاتيح قد تتعلم كلمات المرور المكتوبة</string>
 
     <!-- Appearance section -->
     <string name="settings_theme_title">المظهر</string>
@@ -75,18 +65,6 @@
     <string name="settings_navigation_tabs_subtitle">أعدّ ترتيب عناصر التنقّل واختر ما يُعرض منها</string>
 
     <!-- Wayland section -->
-    <string name="settings_wayland_shell_title">Shell سطح مكتب Wayland</string>
-    <string name="settings_proot_idle_title">إيقاف ضيف Linux الخامل تلقائيًا</string>
-    <string name="settings_proot_idle_off">مُعطّل — يظل ضيف Linux قيد التشغيل حتى توقفه</string>
-    <string name="settings_proot_idle_on">يوقف الضيف بعد %1$d دقيقة من مغادرتك Haven (خدمة ضيف قيد التشغيل تُبقيه نشطًا)</string>
-    <string name="settings_proot_idle_dialog_title">إيقاف ضيف Linux الخامل تلقائيًا</string>
-    <string name="settings_proot_idle_dialog_body">بعد بقاء Haven في الخلفية هذه المدة، أوقِف طرفيات وأسطح مكتب ضيف Linux لتحرير الذاكرة. خدمة ضيف قيد التشغيل تُبقيه نشطًا. المهمة الطويلة في طرفية بالخلفية ستتوقف أيضًا — اترك هذا مُعطّلًا إلا إذا كنت تريد استعادة الموارد عند الخمول.</string>
-    <string name="settings_proot_idle_off_label">مُعطّل</string>
-    <string name="settings_shizuku_title">تكامل Shizuku</string>
-    <string name="settings_shizuku_enabled">مفعّل — إعفاء تلقائي من البطارية، مشاركة مقبس Wayland</string>
-    <string name="settings_shizuku_available">Shizuku مثبّت — اضغط لمنح الإذن</string>
-    <string name="settings_shizuku_not_running">Shizuku مثبت لكن غير مُشغّل — انقر لفتحه وبدء التشغيل عبر التصحيح اللاسلكي</string>
-    <string name="settings_shizuku_not_installed">تثبيت Shizuku للإعفاء من البطارية ومشاركة Wayland</string>
 
     <!-- Backup section -->
     <string name="settings_backup_sync_title">المزامنة مع جهاز بعيد</string>
@@ -117,9 +95,6 @@
     <string name="settings_version_unknown">غير معروف</string>
 
     <!-- Wayland shell dialog -->
-    <string name="settings_wayland_dialog_title">Shell سطح مكتب Wayland</string>
-    <string name="settings_wayland_dialog_description">أمر Shell للتشغيل داخل طرفية foot في سطح مكتب Wayland. ثبّت أصداف إضافية بـ apk (مثل apk add bash).</string>
-    <string name="settings_wayland_shell_command_label">أمر Shell</string>
 
     <!-- Lock timeout dialog -->
     <string name="settings_lock_timeout_dialog_title">مهلة القفل</string>
@@ -213,21 +188,12 @@
     <string name="common_github">GitHub</string>
     <string name="common_simple">بسيط</string>
     <string name="settings_language_title">اللغة</string>
-    <string name="settings_media_extensions_title">امتدادات ملفات الوسائط</string>
-    <string name="settings_media_extensions_description">امتدادات ملفات مفصولة بمسافات تُعامَل كوسائط قابلة للبث في متصفح الملفات.</string>
-    <string name="settings_media_extensions_label">الامتدادات</string>
-    <string name="settings_show_desktops_title">إظهار بطاقة أسطح المكتب</string>
-    <string name="settings_show_desktops_subtitle">إظهار مدير بيئات سطح المكتب في شاشة الاتصالات</string>
-    <string name="settings_show_linux_vm_title">إظهار بطاقة Linux VM</string>
-    <string name="settings_show_linux_vm_subtitle">إظهار إعداد جهاز Linux الافتراضي في شاشة الاتصالات</string>
     <!-- Backfilled translations (i18n drift fix) -->
     <string name="settings_keep_screen_on_title">إبقاء الشاشة مضاءة في الطرفية</string>
     <string name="settings_keep_screen_on_subtitle">تبقى الشاشة مضاءة طالما توجد علامة تبويب طرفية مفتوحة. يستهلك ذلك البطارية؛ يستحق التفعيل فقط إذا كنت تراقب مخرجات طويلة.</string>
 
     <!-- #135 -->
     <string name="settings_keyboard_mode_title">وضع لوحة المفاتيح</string>
-    <string name="settings_dev_install_title">تثبيت تطويري</string>
-    <string name="settings_dev_install_apk_url">رابط APK</string>
     <string name="settings_font_install_title">تثبيت خط من رابط</string>
     <string name="settings_ime_flags_title">أعلام IME</string>
     <!-- #133 phase 2b: SSH host CA pubkey field (en fallback) -->
@@ -316,50 +282,6 @@
     <string name="settings_nav_tab_visibility_hide_title">إخفاء</string>
     <string name="settings_nav_tab_visibility_always_hint">ظاهر دائماً</string>
 
-    <string name="settings_usb_guest_title">إتاحة أجهزة USB لضيف Linux</string>
-    <string name="settings_usb_guest_subtitle">السماح لأجهزة USB المتصلة بالوصول إلى تطبيقات الضيف عبر الوصلة haven-usb. كل إرفاق يطلب الموافقة.</string>
-    <string name="settings_gps_guest_title">إتاحة GPS لضيف Linux</string>
-    <string name="settings_gps_guest_subtitle">بث موقع GPS للهاتف إلى الضيف كجهاز NMEA (haven-gps). بعد التشغيل يمكن لأي عملية في الضيف قراءة الموقع. كل إرفاق يطلب الموافقة.</string>
-    <string name="settings_proot_install_log_title">عرض سجل تثبيت PRoot</string>
-    <string name="settings_proot_install_log_subtitle">أحداث كل مرحلة من تثبيتات توزيعات Linux (المشكلة #162)</string>
-    <string name="settings_logcat_capture_title">التقاط Logcat</string>
-    <string name="settings_logcat_capture_subtitle_on">جارٍ التسجيل في /sdcard/Download/haven-logcat.txt</string>
-    <string name="settings_logcat_capture_subtitle_off">التقاط logcat لتصحيح الأخطاء عن بُعد</string>
-    <string name="settings_logcat_saved_toast">تم حفظ Logcat</string>
-    <string name="settings_logcat_started_toast">بدأ التقاط Logcat</string>
-    <string name="settings_logcat_start_failed_toast">فشل بدء الالتقاط</string>
-    <string name="settings_agent_endpoint_title">نقطة نهاية الوكيل (MCP)</string>
-    <string name="settings_agent_endpoint_subtitle_on">مفعّل — خادم MCP محلي على loopback. أدوات الكتابة تطلب الموافقة.</string>
-    <string name="settings_agent_endpoint_subtitle_off">معطّل — فعّله للسماح لوكلاء الذكاء الاصطناعي المحليين بقراءة الحالة والتصرف بها (بموافقة)</string>
-    <string name="settings_agent_file_read_title">السماح للوكلاء بقراءة محتويات الملفات</string>
-    <string name="settings_agent_file_read_subtitle_on">مفعّل — `serve_file` يعيد رابط تنزيل لمرة واحدة بعد الموافقة على كل استدعاء</string>
-    <string name="settings_agent_file_read_subtitle_off">معطّل — طلبات `serve_file` تفشل فورًا بدون أي موجه</string>
-    <string name="settings_agent_terminal_input_title">السماح للوكلاء بإدخال نص في الطرفية</string>
-    <string name="settings_agent_terminal_input_subtitle_on">مفعّل — `queue_terminal_input` يراقب مخرجات جلسة SSH ويكتب النص المُجدوَل عند المطالبة التالية (موافقة لكل استدعاء)</string>
-    <string name="settings_agent_terminal_input_subtitle_off">معطّل — طلبات `queue_terminal_input` تفشل فورًا بدون أي موجه</string>
-    <string name="settings_reverse_tunnel_title">اتصال MCP دائم التشغيل</string>
-    <string name="settings_reverse_tunnel_subtitle_set">نفق إلى \"%1$s\" — يبقى عبر تغييرات WiFi وإعادة تشغيل التطبيق</string>
-    <string name="settings_reverse_tunnel_subtitle_unset">غير مضبوط — نقطة النهاية قابلة للوصول على الجهاز فقط</string>
-    <string name="settings_reverse_tunnel_none">بلا (على الجهاز فقط)</string>
-    <string name="settings_mcp_wireguard_title">الإتاحة عبر نفق WireGuard</string>
-    <string name="settings_mcp_wireguard_subtitle_on">مفعّل — قابل للوصول أيضًا عبر &lt;wg-ip&gt;:8730 على نفق WireGuard النشط</string>
-    <string name="settings_mcp_wireguard_subtitle_off">معطّل — فعّله للوصول إلى نقطة النهاية عبر نفق WireGuard نشط</string>
-    <string name="settings_mcp_lan_title">الإتاحة عبر Wi-Fi/LAN</string>
-    <string name="settings_mcp_lan_subtitle_on">مفعّل — قابل للوصول أيضًا عبر &lt;device-lan-ip&gt;:8730 على الشبكة المحلية</string>
-    <string name="settings_mcp_lan_subtitle_off">معطّل — فعّله للوصول المباشر من جهاز على نفس Wi-Fi/LAN</string>
-    <string name="settings_mcp_copy_url_title">نسخ رابط نقطة نهاية الوكيل</string>
-    <string name="settings_mcp_url_copied_toast">تم نسخ نقطة النهاية</string>
-    <string name="settings_mcp_copy_config_title">نسخ إعداد عميل MCP</string>
-    <string name="settings_mcp_copy_config_subtitle">مقتطف JSON قياسي للصقه في أي عميل MCP</string>
-    <string name="settings_mcp_config_copied_toast">تم نسخ الإعداد</string>
-    <string name="settings_mcp_proot_title">متاح أيضًا في PRoot</string>
-    <string name="settings_agent_activity_title">عرض نشاط الوكيل</string>
-    <string name="settings_agent_activity_subtitle">كل استدعاء MCP مسجّل مع إخفاء المعامِلات</string>
-    <string name="settings_agent_confirm_destructive_title">تأكيد إجراءات الوكيل التدميرية</string>
-    <string name="settings_agent_confirm_destructive_subtitle">مطالبة قبل أي استدعاء وكيل يكتب أو يحذف أو يرفع أو يقطع الاتصال. الاستدعاءات للقراءة فقط لا تطالب أبدًا.</string>
-    <string name="settings_agent_forget_allows_title">نسيان التصاريح المحفوظة</string>
-    <string name="settings_agent_forget_allows_subtitle">إعادة المطالبة بكل أداة حصلت سابقًا على موافقة مرة واحدة للجلسة.</string>
-    <string name="settings_agent_allows_cleared_toast">تم مسح التصاريح المحفوظة</string>
     <string name="settings_font_from_url_body">الصق رابطًا مباشرًا لملف خط TTF أو OTF. تتوفر ملفات TTF خام لـ Nerd Fonts الشائعة على GitHub: github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/&lt;Name&gt;/Regular/&lt;Name&gt;NerdFont-Regular.ttf — انسخ الرابط هنا.</string>
     <string name="settings_font_from_url_placeholder">https://…/font.ttf</string>
     <string name="settings_recommended_fonts_dialog_body">اضغط لتنزيل وتطبيق خط ترميز أحادي المسافة شائع.</string>
@@ -368,9 +290,6 @@
     <string name="settings_filter_all">الكل</string>
     <string name="settings_action_clear">مسح</string>
     <string name="settings_cannot_be_undone">لا يمكن التراجع عن هذا.</string>
-    <string name="settings_cd_collapse">طي</string>
-    <string name="settings_cd_expand">توسيع</string>
-    <string name="settings_cd_failed">فشل</string>
     <string name="settings_audit_log_title">سجل الاتصالات</string>
     <string name="settings_audit_log_cd_clear">مسح السجلات</string>
     <string name="settings_audit_log_cd_toggle_details">تبديل التفاصيل</string>
@@ -382,18 +301,6 @@
     <string name="settings_audit_log_share_chooser">مشاركة السجل</string>
     <string name="settings_audit_log_status_sync">مزامنة</string>
     <string name="settings_audit_log_status_sync_failed">فشل المزامنة</string>
-    <string name="settings_agent_activity_screen_title">نشاط الوكيل</string>
-    <string name="settings_agent_activity_cd_clear">مسح السجل</string>
-    <string name="settings_agent_activity_empty">لا يوجد نشاط وكيل بعد.\n\nعند استدعاء عميل MCP أداةً، سيظهر الاستدعاء هنا مع إخفاء المعامِلات وتلخيص النتيجة.</string>
-    <string name="settings_agent_activity_clear_dialog_title">مسح نشاط الوكيل؟</string>
-    <string name="settings_agent_activity_clear_dialog_text">ستُحذف جميع استدعاءات MCP المسجّلة من هذا الجهاز. لا يمكن التراجع عن هذا.</string>
-    <string name="settings_agent_activity_unknown_client">عميل غير معروف</string>
-    <string name="settings_agent_activity_args_redacted">المعامِلات (مخفية)</string>
-    <string name="settings_proot_install_log_screen_title">سجل تثبيت PRoot</string>
-    <string name="settings_proot_install_log_cd_clear">مسح السجل</string>
-    <string name="settings_proot_install_log_empty">لا توجد أحداث تثبيت مسجّلة بعد. ثبّت توزيعة عبر الاتصالات ← أسطح المكتب لملء هذا السجل.</string>
-    <string name="settings_proot_install_log_clear_dialog_title">مسح سجل التثبيت؟</string>
-    <string name="settings_proot_install_log_clear_dialog_text">ستُزال جميع أحداث التثبيت المسجّلة.</string>
     <string name="settings_ime_flag_no_suggestions_title">إخفاء شريط الاقتراحات</string>
     <string name="settings_ime_flag_no_suggestions_detail">TYPE_TEXT_FLAG_NO_SUGGESTIONS — مدعوم بشكل عام</string>
     <string name="settings_ime_flag_visible_password_title">كبت التصحيح التلقائي / الكتابة بالأحرف الكبيرة / المسافة التلقائية</string>
@@ -406,43 +313,14 @@
     <string name="settings_ime_flag_no_extract_ui_detail">IME_FLAG_NO_EXTRACT_UI — يمنع ظهور واجهة IME ملء الشاشة في الوضع الأفقي.</string>
     <string name="settings_ime_flag_no_learning_title">منع IME من التعلم</string>
     <string name="settings_ime_flag_no_learning_detail">IME_FLAG_NO_PERSONALIZED_LEARNING — خصوصية: يتجاهل مستودع كلمات IME ما يُكتب. قوي بما يكفي على Gboard لإخفاء الميكروفون أيضًا.</string>
-    <string name="settings_mcp_tools_title">أدوات MCP</string>
-    <string name="settings_mcp_tools_subtitle">أوقف أدوات الوكيل الفردية لتقليل ما يراه</string>
-    <string name="settings_mcp_tools_screen_title">أدوات MCP</string>
-    <string name="settings_mcp_tools_empty">تظهر قائمة الأدوات بعد تشغيل نقطة نهاية الوكيل.</string>
-    <string name="settings_mcp_tools_intro">الأدوات المتوقفة تختفى تمامًا من قائمة أدوات الوكيل — النماذج الصغيرة ترى فوضًا أقل وكل استدعاء يكلّف رموزًا أقل. لا يزال مفتاح نقطة النهاية والاقتران ورسائل الموافقة سارية.</string>
-    <string name="settings_mcp_tools_consent_every_call">يسأل عند كل استدعاء</string>
-    <string name="settings_mcp_tools_consent_once">يسأل مرة واحدة لكل جلسة</string>
-    <string name="settings_mcp_tools_consent_never">لا طلب عند الاستدعاء</string>
-    <string name="settings_paired_clients_title">عملاء MCP المقترنون</string>
-    <string name="settings_paired_clients_subtitle">راجع العملاء المقترنين، وتخطَّ المطالبات لكل عميل، أو ألغِ الاقتران</string>
-    <string name="settings_paired_clients_screen_title">عملاء MCP المقترنون</string>
-    <string name="settings_paired_clients_empty">لم يتم اقتران أي عميل MCP بعد. يظهر العميل هنا بعد موافقتك على مطالبة الاتصال الخاصة به.</string>
-    <string name="settings_paired_clients_bypass_label">تخطّي مطالبات الموافقة</string>
-    <string name="settings_paired_clients_bypass_on">يوافق تلقائيًا على كل استدعاء من هذا العميل، بما في ذلك العمليات المدمِّرة.</string>
-    <string name="settings_paired_clients_bypass_off">لا يزال كل استدعاء مدمِّر يطلب الموافقة (افتراضي).</string>
-    <string name="settings_paired_clients_cd_unpair">إلغاء اقتران العميل</string>
-    <string name="settings_paired_clients_unpair_title">إلغاء اقتران \'%1$s\'؟</string>
-    <string name="settings_paired_clients_unpair_message">سيتعين الموافقة عليه مجددًا في المرة التالية التي يتصل فيها، وسيتم إلغاء أي موافقة تلقائية.</string>
-    <string name="settings_paired_clients_unpair_confirm">إلغاء الاقتران</string>
-    <string name="settings_paired_clients_unpaired_toast">تم إلغاء اقتران \'%1$s\'</string>
 
     <!-- MCP WireGuard / loopback trust -->
-    <string name="settings_mcp_wireguard_collision">شبكة VPN أخرى (%1$s) تستخدم %2$s — العنوان نفسه الذي ترتبط به نقطة النهاية هذه، لذا فهي محجوبة وغير قابلة للوصول من النظراء. أوقف تلك الشبكة، أو وجّه عميل MCP إلى نقطة نهاية الاسترجاع (127.0.0.1) بدلاً من ذلك.</string>
-    <string name="settings_mcp_trust_loopback_title">الثقة بالعملاء المحليين</string>
-    <string name="settings_mcp_trust_loopback_subtitle_on">مفعّل — يتصل العملاء المحليون (127.0.0.1) دون إقران أو مطالبات موافقة. لا يزال عملاء Wi-Fi/LAN وWireGuard يُطالَبون.</string>
-    <string name="settings_mcp_trust_loopback_subtitle_off">معطّل — يجب اقتران حتى العملاء المحليين والموافقة على كل طلب</string>
 
     <!-- Terminal reflow, GPU stack, standing policies (#250) -->
     <string name="settings_reflow_on_keyboard_title">ملاءمة الطرفية للوحة المفاتيح</string>
     <string name="settings_reflow_on_keyboard_subtitle">عند فتح لوحة المفاتيح، يتم تغيير حجم الطرفية لتلائم المساحة فوقها بدلاً من تمرير العرض للأعلى. يساعد التطبيقات التي تعمل بملء الشاشة وتعرض شريط حالة في الأعلى؛ اتركه معطّلاً للأصداف العادية.</string>
     <string name="settings_tab_titles_follow_session_title">تفضيل أسماء الجلسات في عناوين التبويبات</string>
     <string name="settings_tab_titles_follow_session_subtitle">تحافظ التبويبات المتصلة بـ tmux/zellij/screen على اسم الجلسة بدلًا من العناوين التي تعينها البرامج.</string>
-    <string name="settings_gpu_venus_title">حزمة GPU تجريبية (venus + zink)</string>
-    <string name="settings_gpu_venus_subtitle">يستخدم venus (Vulkan إلى GPU) + zink لـ OpenGL الحديث (نحو 3.2 core) على أسطح المكتب المسرّعة، بدلاً من virgl (GL 2.1). تظهر تطبيقات Vulkan الأصلية؛ لكن عرض OpenGL بطيء حالياً. يتطلب تثبيت mesa-vulkan-drivers في النظام الضيف. معطّل = virgl الافتراضي.</string>
-    <string name="settings_standing_policies_header">السياسات الدائمة — تعمل هذه الأدوات دون طلب تأكيد</string>
-    <string name="settings_standing_policy_meta">%1$s · حتى %2$d استدعاء/دقيقة · ينتهي في %3$s</string>
-    <string name="settings_standing_policy_revoke">إبطال</string>
 
     <!-- Desktop key placement (#245.2) -->
     <string name="settings_toolbar_desktop_key">مفتاح سطح المكتب</string>
@@ -461,13 +339,8 @@
     <string name="settings_terminal_opacity_title">عتامة الخلفية</string>
     <string name="settings_terminal_opacity_value">%1$d%%</string>
     <string name="settings_terminal_opacity_hint" formatted="false">أقل من 100% يصبح Haven شبه شفاف ويعرض خلفية جهازك خلف كل شاشة (الطرفية، القوائم، الإعدادات). التجاوز الخاص بكل اتصال ينطبق على طرفيته فقط.</string>
-    <string name="settings_section_mcp">وكيل الذكاء الاصطناعي (MCP)</string>
     <string name="settings_tailscale_discovery_title">اكتشاف أقران Tailscale</string>
     <string name="settings_tailscale_discovery_subtitle">البحث عن مضيفين في شبكة Tailscale عبر واجهة API المحلية أثناء الفحص. أوقفه لمنع Haven من قراءة قائمة الأقران؛ لن يتأثر Tailscale نفسه.</string>
-    <string name="settings_audio_bridge_title">صوت proot (تجريبي)</string>
-    <string name="settings_audio_bridge_subtitle">تشغيل الصوت من تطبيقات Linux عبر مكبّر صوت الجهاز من خلال جسر PulseAudio داخل الضيف. إخراج فقط. يبث باستمرار أثناء تفعيله — أوقفه عند عدم الاستخدام.</string>
-    <string name="settings_reverse_tunnel_status_active">Near (SSH): عبر %1$s — متصل</string>
-    <string name="settings_reverse_tunnel_status_inactive">Near (SSH): غير متصل — افتح %1$s للتفعيل</string>
     <string name="settings_remote_clipboard_title">مزامنة حافظة الجهاز البعيد</string>
     <string name="settings_remote_clipboard_subtitle">السماح لسطح مكتب بعيد (VNC) بالنسخ إلى حافظة الجهاز. مُعطّل افتراضيًا.</string>
     <string name="settings_rdp_progressive_upgrade_title">RDP: فك ترميز مربّعات الترقية التدريجية (تجريبي)</string>
@@ -538,7 +411,6 @@
     <string name="settings_inline_images_ask">اسأل</string>
     <string name="settings_inline_images_always">دائمًا</string>
     <string name="settings_ambiwidth_title">معالجة الأحرف ذات العرض الغامض</string>
-    <string name="settings_ambiwidth_subtitle">كيفية عرض أحرف شرق آسيا ذات العرض الغامض (الرموز، اليونانية)</string>
     <string name="settings_ambiwidth_mode_narrow">ضيق (خلية واحدة)</string>
     <string name="settings_ambiwidth_mode_narrow_desc">دائمًا خلية واحدة (يونكس القياسي / XTerm، الافتراضي)</string>
     <string name="settings_ambiwidth_mode_auto_narrow">تلقائي + ضيق</string>
@@ -549,17 +421,4 @@
     <string name="settings_ambiwidth_mode_auto_wide_desc">قياس الخط النشط؛ والرجوع إلى خليتين (CJK)</string>
     <string name="settings_bell_notification_title">إشعار الرنين</string>
     <string name="settings_bell_notification_subtitle">عندما يرنّ برنامج طرفية بينما Haven في الخلفية، تُنشر إشعارات تسمّي التبويب. لا يظهر شيء أثناء نظرك إلى الطرفية.</string>
-    <string name="settings_mcp_tools_category_off_count">%1$d متوقف</string>
-    <string name="settings_mcp_tools_cat_terminal">الطرفية</string>
-    <string name="settings_mcp_tools_cat_connections">الاتصالات</string>
-    <string name="settings_mcp_tools_cat_files">الملفات</string>
-    <string name="settings_mcp_tools_cat_desktop">سطح المكتب</string>
-    <string name="settings_mcp_tools_cat_guest">ضيف Linux</string>
-    <string name="settings_mcp_tools_cat_usb">USB والتسلسلي</string>
-    <string name="settings_mcp_tools_cat_keys">المفاتيح وبيانات الاعتماد</string>
-    <string name="settings_mcp_tools_cat_mail">البريد</string>
-    <string name="settings_mcp_tools_cat_rclone">التخزين السحابي</string>
-    <string name="settings_mcp_tools_cat_senses">أجهزة الاستشعار والموقع</string>
-    <string name="settings_mcp_tools_cat_agent">الوكيل والتحكم في الجهاز</string>
-    <string name="settings_mcp_tools_cat_other">أخرى</string>
 </resources>

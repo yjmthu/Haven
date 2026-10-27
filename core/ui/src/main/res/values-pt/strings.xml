@@ -15,10 +15,7 @@
     <string name="common_edit">Editar</string>
     <string name="common_rename">Renomear</string>
     <string name="common_create">Criar</string>
-    <string name="common_connect">Conectar</string>
-    <string name="common_disconnect">Desconectar</string>
     <string name="common_copy">Copiar</string>
-    <string name="common_paste">Colar</string>
     <string name="common_label">Rótulo</string>
     <string name="common_password">Senha</string>
     <string name="common_port">Porta</string>
@@ -28,18 +25,7 @@
     <string name="common_reset">Redefinir</string>
     <string name="common_allow">Permitir</string>
     <string name="common_not_now">Agora não</string>
-    <string name="common_import">Importar</string>
-    <string name="common_add">Adicionar</string>
-    <string name="common_download">Baixar</string>
     <string name="common_github">GitHub</string>
     <string name="common_support">Suporte</string>
     <string name="common_unlock">Desbloquear</string>
-    <string name="nav_mail">E-mail</string>
-    <string name="nav_chat">Conversa</string>
-    <string name="wayland_cd_session_menu">Menu da sessão</string>
-    <string name="wayland_cd_reset_zoom">Redefinir zoom</string>
-    <string name="wayland_cd_exit_fullscreen">Sair da tela cheia</string>
-    <string name="wayland_cd_toggle_keyboard">Mostrar/ocultar o teclado</string>
-    <string name="wayland_cd_fullscreen">Tela cheia</string>
-    <string name="wayland_cd_desktop_resolution">Resolução da área de trabalho</string>
 </resources>

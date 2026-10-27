@@ -10,10 +10,7 @@
     <string name="common_edit">Editar</string>
     <string name="common_rename">Renomear</string>
     <string name="common_create">Criar</string>
-    <string name="common_connect">Conectar</string>
-    <string name="common_disconnect">Desconectar</string>
     <string name="common_copy">Copiar</string>
-    <string name="common_paste">Colar</string>
     <string name="common_label">Rótulo</string>
     <string name="common_password">Senha</string>
     <string name="common_port">Porta</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">Redefinir</string>
     <string name="common_allow">Permitir</string>
     <string name="common_not_now">Agora não</string>
-    <string name="common_import">Importar</string>
-    <string name="common_add">Adicionar</string>
-    <string name="common_download">Baixar</string>
     <string name="common_unlock">Desbloquear</string>
 
     <!-- Tab bar -->
@@ -68,7 +62,6 @@
     <string name="terminal_new_tab_host_key_changed">A chave de host de %s mudou — conexão recusada por segurança</string>
     <string name="terminal_new_tab_connection_failed">Não foi possível conectar: %s</string>
     <string name="terminal_new_tab_shell_failed">Não foi possível abrir o shell: %s</string>
-    <string name="terminal_new_tab_reticulum_no_session">Nenhuma sessão Reticulum ativa para clonar</string>
     <string name="terminal_new_tab_connecting">Connecting…</string>
     <!-- Backfilled translations (i18n drift fix) -->
     <string name="terminal_no_contact">Sem resposta do servidor há %1$ds — tentando novamente</string>
@@ -87,23 +80,11 @@
     <!-- i18n sweep #210 -->
     <string name="terminal_link_open_failed">Nenhum app pode abrir este link</string>
     <string name="terminal_link_scheme_blocked">Link bloqueado (esquema não suportado)</string>
-    <string name="terminal_local_vnc_failed">Não foi possível iniciar o desktop local</string>
     <string name="terminal_attach_title">Anexar</string>
     <string name="terminal_attach_send_file">Enviar um arquivo</string>
     <string name="terminal_attach_send_file_desc">Faz upload para o remoto e cola o caminho</string>
     <string name="terminal_attach_take_photo">Tirar foto</string>
     <string name="terminal_attach_take_photo_desc">Capture uma foto e envie-a como um arquivo</string>
-    <string name="terminal_attach_scan_camera">Escanear código (Câmera)</string>
-    <string name="terminal_attach_scan_camera_desc">Fotografe um QR ou código de barras e cole o conteúdo</string>
-    <string name="terminal_attach_scan_gallery">Escanear código (Fotos)</string>
-    <string name="terminal_attach_scan_gallery_desc">Escolha uma foto de QR ou código de barras e cole o conteúdo</string>
-    <string name="terminal_attach_ocr_camera">Reconhecer texto (Câmera)</string>
-    <string name="terminal_attach_ocr_camera_desc">Fotografe texto impresso e cole o que for detectado</string>
-    <string name="terminal_attach_ocr_gallery">Reconhecer texto (Fotos)</string>
-    <string name="terminal_attach_ocr_gallery_desc">Escolha uma foto de texto impresso e cole o que for detectado</string>
-    <string name="terminal_scan_no_code">Nenhum código detectado na imagem</string>
-    <string name="terminal_scan_no_text">Nenhum texto detectado na imagem</string>
-    <string name="terminal_scan_failed">Escaneamento falhou: %s</string>
     <string name="terminal_scan_no_camera">Nenhum app de câmera disponível</string>
     <string name="terminal_selection_copy">Copiar</string>
     <string name="terminal_selection_paste">Colar</string>

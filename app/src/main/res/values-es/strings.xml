@@ -13,10 +13,7 @@
     <string name="common_edit">Editar</string>
     <string name="common_rename">Renombrar</string>
     <string name="common_create">Crear</string>
-    <string name="common_connect">Conectar</string>
-    <string name="common_disconnect">Desconectar</string>
     <string name="common_copy">Copiar</string>
-    <string name="common_paste">Pegar</string>
     <string name="common_label">Etiqueta</string>
     <string name="common_password">Contraseña</string>
     <string name="common_port">Puerto</string>
@@ -26,16 +23,11 @@
     <string name="common_reset">Restablecer</string>
     <string name="common_allow">Permitir</string>
     <string name="common_not_now">Ahora no</string>
-    <string name="common_import">Importar</string>
-    <string name="common_add">Agregar</string>
-    <string name="common_download">Descargar</string>
     <string name="common_github">GitHub</string>
     <string name="common_support">Soporte</string>
     <string name="common_unlock">Desbloquear</string>
 
     <!-- Battery optimization -->
-    <string name="battery_title">¿Mantener conexiones activas?</string>
-    <string name="battery_message">Android puede cerrar conexiones SSH en segundo plano para ahorrar batería. Desactivar la optimización de batería para Haven evita esto.</string>
 
     <!-- Workspace profiles -->
     <string name="workspace_section_title">Espacios de trabajo</string>
@@ -49,7 +41,6 @@
     <string name="workspace_card_kind_terminal">Terminal</string>
     <string name="workspace_card_kind_file_browser">Archivos</string>
     <string name="workspace_card_kind_desktop">Escritorio</string>
-    <string name="workspace_card_kind_wayland">Wayland</string>
     <string name="workspace_card_kind_count">%1$s × %2$d</string>
     <string name="workspace_card_no_items">vacío</string>
     <string name="workspace_long_press_delete">Eliminar</string>
@@ -64,7 +55,6 @@
     <string name="workspace_launch_dismiss">Descartar</string>
     <string name="biometric_screen_lock_icon">Screen lock</string>
     <string name="desktop_screen_title">Desktop</string>
-    <string name="agent_deny">Deny</string>
 
     <!-- Biometric lock -->
     <string name="app_biometric_locked_title">Haven está bloqueado</string>
@@ -72,66 +62,6 @@
     <string name="app_biometric_open_device_settings">Abrir ajustes del dispositivo</string>
 
     <!-- Desktop / app windows -->
-    <string name="app_desktop_app_windows_title">Ventanas de aplicación</string>
-    <string name="app_desktop_app_windows_description">Inicia una sola aplicación en una ventana flotante sobre la pantalla actual. Las apps se ejecutan en la distribución Linux activa y deben estar instaladas allí.</string>
-    <string name="app_desktop_app_windows_empty">Aún no hay ventanas de aplicación. Agrega una para iniciar una app en una ventana flotante.</string>
-    <string name="app_desktop_app_window_launch_cd">Iniciar %1$s</string>
-    <string name="app_desktop_app_window_edit_cd">Editar %1$s</string>
-    <string name="app_desktop_app_window_delete_cd">Eliminar %1$s</string>
-    <string name="app_desktop_add_app_window">Agregar ventana de app</string>
-    <string name="app_desktop_edit_app_window_title">Editar ventana de app</string>
-    <string name="app_desktop_add_app_window_title">Agregar ventana de app</string>
-    <string name="app_desktop_app_window_label_placeholder">p. ej. Visor de imágenes</string>
-    <string name="app_desktop_app_window_command_label">Comando</string>
-    <string name="app_desktop_app_window_command_placeholder">p. ej. imv /root/board.png</string>
-    <string name="app_desktop_open_shell_cd">Abrir shell en %1$s</string>
-    <string name="app_desktop_delete_distro_cd">Eliminar %1$s</string>
-    <string name="app_desktop_delete_distro_confirm_title">¿Eliminar %1$s?</string>
-    <string name="app_desktop_delete_distro_confirm_body">Esto borra el rootfs y libera su espacio en disco. Los paquetes que instalaste y los archivos de esta distro se perderán. Se volverá a aprovisionar la próxima vez que la abras.</string>
-    <string name="app_desktop_add_distro">+ %1$s  (~%2$d MB)</string>
-    <string name="app_desktop_add_foreign_distro">+ %1$s %2$s — emulado, más lento  (~%3$d MB)</string>
-    <string name="app_desktop_add_distro_confirm_title">¿Descargar %1$s?</string>
-    <string name="app_desktop_add_distro_confirm_body">Esto descarga y extrae el rootfs, unos %1$d MB. Puede tardar un poco con una conexión lenta.</string>
-    <string name="app_desktop_add_foreign_distro_confirm_body">Esto descarga y extrae el rootfs %1$s para uso emulado, unos %2$d MB. Puede tardar un poco con una conexión lenta.</string>
-    <string name="app_desktop_usb_drive_picker_title">¿Qué unidad USB abrir?</string>
-    <string name="app_desktop_usb_route_title">¿Cómo abrir %1$s?</string>
-    <string name="app_desktop_usb_route_body">Android montó esta unidad como «%1$s». Explórala directamente (rápido) o ábrela en una pequeña máquina virtual de Linux: arranca más lento, pero lee sistemas de archivos que Android no puede, como particiones ext4/GPT y LUKS.</string>
-    <string name="app_desktop_usb_route_browse">Explorar directamente</string>
-    <string name="app_desktop_usb_route_vm">Abrir en VM de Linux</string>
-    <string name="app_desktop_usb_route_readonly_hint">La exploración directa es de solo lectura hasta que se conceda el acceso a todos los archivos en Ajustes.</string>
-    <string name="app_desktop_rootfs_downloading">Descargando rootfs… %1$d%%</string>
-    <string name="app_desktop_rootfs_extracting">Extrayendo rootfs…</string>
-    <string name="app_desktop_rootfs_initializing">Configurando rootfs… (%1$s)</string>
-    <string name="app_desktop_phase_download">Descarga</string>
-    <string name="app_desktop_phase_extract">Extracción</string>
-    <string name="app_desktop_phase_bootstrap_hook">Bootstrap hook</string>
-    <string name="app_desktop_phase_baseline">Paquetes base</string>
-    <string name="app_desktop_setup_failed_phase">Error: %1$s</string>
-    <string name="app_desktop_proot_log_hint">Historial completo por fase: Ajustes → Ver registro de instalación de PRoot.</string>
-    <string name="app_desktop_retry_wipe">Borrar y reintentar</string>
-    <string name="app_desktop_retry_step">Reintentar este paso</string>
-    <string name="app_desktop_experimental">experimental</string>
-    <string name="app_desktop_vnc_running">VNC :%1$d (puerto %2$d)</string>
-    <string name="app_desktop_error">Error</string>
-    <string name="app_desktop_install_distro_first">" · instalar distro primero"</string>
-    <string name="app_desktop_vnc_port_stored">Puerto VNC %1$d</string>
-    <string name="app_desktop_custom_cmd_unset">Configura primero el comando de sesión</string>
-    <string name="app_desktop_custom_cmd_edit">Editar comando de sesión</string>
-    <string name="app_desktop_custom_cmd_title">Comando de sesión personalizado</string>
-    <string name="app_desktop_custom_cmd_description">Se ejecuta contra el servidor X de Haven dentro de la distro activa — el patrón de termux-x11, p. ej. dbus-launch startxfce4. Instala antes los paquetes del escritorio en la distro. Los escritorios X11 usan renderizado por software: los que requieren un compositor GL (GNOME Shell, KWin) no arrancarán.</string>
-    <string name="app_desktop_custom_cmd_label">Comando de sesión</string>
-    <string name="app_desktop_custom_cmd_save_start">Guardar e iniciar</string>
-    <string name="app_desktop_de_with_size">%1$s (%2$s)</string>
-    <string name="app_desktop_experimental_on">Experimental en %1$s</string>
-    <string name="app_desktop_vnc_port_label">Puerto VNC</string>
-    <string name="app_desktop_vnc_display">Pantalla :%1$d</string>
-    <string name="app_desktop_vnc_port_range">Rango 5901–5999</string>
-    <string name="app_desktop_phase_packages">Paquetes</string>
-    <string name="app_desktop_phase_vnc_config">Configuración VNC</string>
-    <string name="app_desktop_phase_marker">Archivo marcador</string>
-    <string name="app_desktop_addon_with_size">%1$s (%2$s)</string>
-    <string name="app_desktop_sessions_cd">Sesiones</string>
-    <string name="app_desktop_manage_cd">Gestionar escritorios</string>
     <string name="app_desktop_view_only_cd">Solo vista</string>
     <string name="app_desktop_empty_hint">Conecta por VNC o RDP desde la pestaña Conexiones</string>
     <string name="app_desktop_tab_label">%1$s %2$s</string>
@@ -139,25 +69,8 @@
     <string name="app_desktop_move_tab_right_cd">Mover a la derecha</string>
 
     <!-- Agent / MCP -->
-    <string name="app_agent_pair_title">¿Vincular cliente MCP?</string>
-    <string name="app_agent_action_requested">Acción del agente solicitada</string>
-    <string name="app_agent_from_client">De: %1$s</string>
-    <string name="app_agent_tool">Herramienta: %1$s</string>
-    <string name="app_agent_bypass_label">Permitir todas las solicitudes MCP de \'%1$s\' hasta que Haven se reinicie</string>
-    <string name="app_agent_bypass_description">Incluye operaciones destructivas (entrada de terminal, escritura/eliminación de archivos, instalación de APK). Se borra al cerrar la app.</string>
-    <string name="app_agent_auto_allow_window">Ventana de permiso automático:</string>
-    <string name="app_agent_minutes">%1$dm</string>
-    <string name="app_agent_allow_for_minutes">Permitir durante %1$dm</string>
-    <string name="app_agent_pair">Vincular</string>
-    <string name="app_agent_block_client">Bloquear</string>
 
     <!-- Agent presentation -->
-    <string name="app_present_app_missing_details">Faltan los detalles de conexión de la ventana de app.</string>
-    <string name="app_present_dismiss">Descartar</string>
-    <string name="app_present_image_shared_cd">Imagen compartida por el agente</string>
-    <string name="app_present_pause">Pausar</string>
-    <string name="app_present_play">Reproducir</string>
-    <string name="app_present_preparing_audio">Preparando audio…</string>
 
     <!-- i18n sweep #210 (follow-up batch) -->
     <string name="app_biometric_blocked_no_activity_title">Haven está bloqueado</string>
@@ -166,158 +79,17 @@
     <string name="app_biometric_not_enrolled_body">El bloqueo de la app Haven está activado, pero este dispositivo no tiene bloqueo de pantalla ni datos biométricos registrados. Configura uno en los Ajustes del dispositivo para desbloquear.</string>
     <string name="app_biometric_no_hardware_title">Autenticación no disponible</string>
     <string name="app_biometric_no_hardware_body">Este dispositivo no puede autenticarse (sin hardware biométrico ni credencial del dispositivo). Configura un PIN o una contraseña en Ajustes para desbloquear.</string>
-    <string name="app_present_minimize">Minimizar</string>
-    <string name="app_present_pip">Imagen en imagen</string>
 
     <!-- Local Linux desktop manager -->
-    <string name="app_desktop_manager_title">Linux completo (proot)</string>
-    <string name="app_desktop_primary_title">Escritorio Linux</string>
-    <string name="app_desktop_primary_subline_quick">Listo en unos 4 segundos · apps de Alpine · un escritorio a la vez</string>
-    <string name="app_desktop_primary_subline_full">Cualquier distro · 6 escritorios · se ejecuta junto a tus otras apps</string>
-    <string name="app_desktop_primary_start_quick">Iniciar · Rápido (UML)</string>
-    <string name="app_desktop_primary_start_full">Iniciar · Completo (proot)</string>
-    <string name="app_desktop_primary_switch_to_full">Usar Linux completo en su lugar</string>
-    <string name="app_desktop_primary_switch_to_quick">Usar el escritorio rápido en su lugar</string>
-    <string name="app_desktop_primary_running">En ejecución</string>
-    <string name="app_desktop_primary_chip_quick">Rápido · %1$s</string>
-    <string name="app_desktop_primary_chip_full">Completo · %1$s</string>
-    <string name="app_desktop_manager_description">Ejecuta un escritorio Linux completo dentro de Haven. Elige una distro, instala un entorno de escritorio (Xfce4, Openbox o Sway) y luego pulsa Iniciar — no hace falta un servidor ni una conexión aparte.</string>
 
     <!-- App windows / installed-app launcher (#250) -->
-    <string name="app_desktop_app_window_pin_home_cd">Añadir %1$s a la pantalla de inicio</string>
-    <string name="app_desktop_browse_installed_apps">Explorar apps instaladas</string>
-    <string name="app_desktop_installed_apps_title">Apps instaladas</string>
-    <string name="app_desktop_installed_apps_search">Buscar apps</string>
-    <string name="app_desktop_installed_apps_count">%1$d apps · %2$d con iconos</string>
-    <string name="app_desktop_installed_apps_empty">No se encontraron aplicaciones gráficas en la distro activa.</string>
-    <string name="app_desktop_installed_apps_close_cd">Cerrar</string>
-    <string name="app_desktop_installed_app_icon_cd">Icono de %1$s</string>
-    <string name="app_desktop_installed_app_launch_cd">Iniciar %1$s</string>
-    <string name="app_desktop_installed_app_fullscreen_on_cd">%1$s se abre en pantalla completa — toca para modo ventana</string>
-    <string name="app_desktop_installed_app_fullscreen_off_cd">%1$s se abre en modo ventana — toca para pantalla completa</string>
-    <string name="app_desktop_app_window_fullscreen">Abrir en pantalla completa</string>
-    <string name="app_desktop_app_window_run_as_root">Ejecutar como root</string>
-    <string name="app_desktop_app_window_run_as_root_hint">Para gestores de paquetes y herramientas del sistema (instala fakeroot)</string>
-    <string name="app_desktop_app_window_resolution">Resolución</string>
-    <string name="app_desktop_app_window_scale">Escala</string>
-    <string name="app_desktop_opt_default">Predeterminado</string>
-    <string name="app_desktop_res_auto">Automática</string>
-    <string name="app_desktop_res_landscape">Horizontal</string>
-    <string name="app_desktop_res_custom">Personalizada</string>
-    <string name="app_desktop_res_custom_hint">Ancho×Alto, p. ej. 1024x600</string>
-    <string name="app_desktop_app_window_defaults">Pantalla predeterminada (todas las ventanas de apps)</string>
 
-    <string name="app_system_vm_title">VM del sistema</string>
-    <string name="app_system_vm_description">Arranca una VM Linux x86_64/arm64 completa (QEMU en la distribución activa) y la muestra por VNC. Una a la vez y emulada, así que lenta. Necesita un QEMU compatible con VNC (el de Debian lo tiene; el de Alpine no).</string>
-    <string name="app_system_vm_empty">Aún no hay imágenes. Importa una imagen de disco arrancable (.qcow2, .img, .iso) para empezar.</string>
-    <string name="app_system_vm_import">Importar imagen…</string>
-    <string name="app_system_vm_running">En ejecución · VNC 127.0.0.1:%1$d</string>
-    <string name="app_system_vm_starting">Iniciando…</string>
-    <string name="app_system_vm_stop">Detener</string>
-    <string name="app_system_vm_start_cd">Iniciar %1$s</string>
-    <string name="app_system_vm_delete_cd">Eliminar %1$s</string>
-    <string name="app_system_vm_import_title">Importar imagen de VM del sistema</string>
-    <string name="app_system_vm_import_label">Nombre</string>
-    <string name="app_system_vm_import_source">URL de la imagen o ruta en el dispositivo</string>
-    <string name="app_system_vm_import_arch">Arquitectura del invitado</string>
-    <string name="app_system_vm_import_arch_hint">Debe coincidir con la imagen: un destino incorrecto no da error, simplemente nunca arranca.</string>
 
     <!-- Desktop manager: desktops inside the UML guest (docs/plans/uml-dm.md) -->
-    <string name="app_uml_desktop_title">Escritorio de invitado UML</string>
-    <string name="app_uml_desktop_description">Escritorios que se ejecutan dentro del núcleo propio del invitado UML, vistos por VNC. Uno a la vez (cada uno es un núcleo completo); instalar los paquetes tarda unos minutos.</string>
-    <string name="app_uml_desktop_install">Instalar</string>
-    <string name="app_uml_desktop_installed">Instalado</string>
-    <string name="app_uml_desktop_not_installed">No instalado</string>
-    <string name="app_uml_desktop_installing">Instalando paquetes…</string>
-    <string name="app_uml_desktop_starting">Iniciando en el puerto %1$d…</string>
-    <string name="app_uml_desktop_running">En ejecución · VNC 127.0.0.1:%1$d</string>
-    <string name="app_uml_desktop_failed">Falló</string>
-    <string name="app_uml_desktop_start_cd">Iniciar escritorio de %1$s</string>
-    <string name="app_window_scale_saved">Guardado como el tamaño predeterminado de esta app</string>
 
     <!-- Agent Activity log — result summaries (#239) -->
-    <string name="agent_summary_ok">correcto</string>
-    <string name="agent_summary_entries_at">%1$d entradas en %2$s:%3$s</string>
-    <string name="agent_summary_entries_via">%1$d entradas vía %2$s en %3$s</string>
-    <string name="agent_summary_version">versión %1$s</string>
-    <string name="agent_summary_dispatched">despachado %1$s</string>
-    <string name="agent_summary_bytes">%1$d bytes</string>
-    <string name="agent_summary_disconnected">desconectado</string>
-    <string name="agent_summary_pf_saved">guardado</string>
-    <string name="agent_summary_pf_saved_activated">guardado, activado</string>
-    <string name="agent_summary_pf_bound">%1$s, puerto %2$d</string>
-    <string name="agent_summary_pf_removed">eliminado</string>
-    <string name="agent_summary_pf_removed_deactivated">eliminado y desactivado</string>
-    <string name="agent_summary_uploaded_bytes">%1$d bytes subidos</string>
-    <string name="agent_summary_served_bytes">%1$d bytes servidos desde %2$s</string>
-    <string name="agent_summary_deleted">eliminado</string>
-    <string name="agent_summary_uploaded_bytes_via">%1$d bytes subidos vía %2$s</string>
-    <string name="agent_summary_deleted_via">eliminado vía %1$s</string>
-    <string name="agent_summary_bytes_typed">%1$d bytes escritos</string>
-    <string name="agent_summary_converted">%1$d KiB en %2$d ms</string>
-    <string name="agent_summary_kib_installed">%1$d KiB instalados</string>
-    <string name="agent_summary_reused_existing">reutilizado</string>
-    <string name="agent_summary_opened">abierto</string>
-    <string name="agent_summary_mib_installed">%1$d MiB instalados</string>
-    <string name="agent_summary_enabled_at">habilitado en %1$s:%2$d</string>
-    <string name="agent_summary_enabled">habilitado</string>
 
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
-    <string name="app_desktop_compositor_title">Compositor</string>
-    <string name="app_desktop_mirror_title">Espejo de paquetes</string>
-    <string name="app_desktop_mirror_description">De dónde se descargan los paquetes de la distribución. Elige una región cercana para instalaciones más rápidas y fiables. El valor predeterminado usa el CDN propio de cada distribución.</string>
-    <string name="app_desktop_mirror_default">Predeterminado (CDN)</string>
-    <string name="app_desktop_mirror_europe">Europa</string>
-    <string name="app_desktop_mirror_asia">Asia</string>
-    <string name="app_desktop_mirror_americas">América</string>
-    <string name="app_desktop_remap_ports_title">Reasignar puertos bajos</string>
-    <string name="app_desktop_remap_ports_description">Permite que los servicios del invitado escuchen en puertos privilegiados (&lt;1024): un servicio en el puerto N pasa a estar accesible en N+2000 (p. ej. 80 → 2080). Android impide que la app vincule puertos bajos directamente. Desactivado por defecto; afecta a cada puerto privilegiado, incluido un sshd del invitado.</string>
-    <string name="app_desktop_share_storage_title">Compartir el almacenamiento del dispositivo con el invitado</string>
-    <string name="app_desktop_share_storage_description">Monta tu almacenamiento compartido en el invitado en /storage y /sdcard para que pueda acceder a tus archivos. Desactívalo para mantener tus fotos y descargas ocultas del entorno Linux local.</string>
-    <string name="app_desktop_bind_android_system_title">Exponer el sistema Android al invitado</string>
-    <string name="app_desktop_bind_android_system_description">Monta en el invitado las particiones de solo lectura de Android /system, /vendor, /apex y relacionadas, para que pueda ejecutar los binarios nativos de Android (p. ej. getprop, toybox). Desactivado por defecto: esto expone los internos del dispositivo y del fabricante al entorno Linux local.</string>
-    <string name="app_desktop_custom_binds_title">Montajes personalizados (%1$d)</string>
-    <string name="app_desktop_custom_binds_description">Expone rutas de Android adicionales dentro del invitado de esta distribución, además de los montajes del sistema. Los montajes son de lectura y escritura.</string>
-    <string name="app_desktop_custom_binds_dialog_title">Montajes personalizados — %1$s</string>
-    <string name="app_desktop_custom_binds_host_hint">Ruta de Android (p. ej. /storage/emulated/0/Sync)</string>
-    <string name="app_desktop_custom_binds_guest_hint">Ruta en el invitado (opcional — por defecto la misma ruta)</string>
-    <string name="app_desktop_custom_binds_add">Añadir montaje</string>
-    <string name="app_desktop_custom_binds_empty">No hay montajes personalizados. Añade uno para exponer una ruta de Android en el invitado.</string>
-    <string name="app_desktop_custom_binds_remove_cd">Quitar montaje</string>
-    <string name="app_desktop_custom_binds_takes_effect">Se aplica en el próximo inicio de un shell, un comando o un escritorio de esta distribución.</string>
-    <string name="app_desktop_custom_binds_stale">%1$d montaje propio apunta a una ruta que ya no existe — se omite al iniciar el invitado.</string>
-    <string name="app_desktop_custom_binds_stale_row">Esta ruta ya no existe en el dispositivo — el montaje se omite al iniciar el invitado.</string>
-    <string name="app_desktop_import_rootfs">Importar rootfs…</string>
-    <string name="app_desktop_options_section">Opciones y montajes</string>
-    <string name="app_desktop_open_usb_drive">Abrir unidad USB…</string>
-    <string name="app_desktop_open_usb_drive_writable">Abrir unidad USB (escritura)…</string>
-    <string name="app_desktop_open_usb_drive_writable_confirm_title">¿Montar en lectura y escritura?</string>
-    <string name="app_desktop_open_usb_drive_writable_confirm_body">Esto monta la unidad en lectura y escritura. Si la VM pierde la alimentación en mitad de una escritura (cierre forzado, fallo, batería retirada), el sistema de archivos puede corromperse. Solo lectura es el valor predeterminado más seguro.</string>
-    <string name="app_desktop_eject_usb_drive">Expulsar unidad USB</string>
-    <string name="app_desktop_open_usb_live">Abrir tarjeta USB directamente (consola de rescate)…</string>
-    <string name="app_desktop_open_usb_live_writable">Abrir tarjeta USB directamente (con escritura)…</string>
-    <string name="app_desktop_usb_live_ready">Tarjeta cruda conectada en el invitado de rescate — abre la conexión «%1$s»</string>
-    <string name="app_desktop_usb_live_readonly_note">Tarjeta cruda por NBD · solo lectura · %1$s</string>
-    <string name="app_desktop_usb_live_writable_note">Tarjeta cruda por NBD · ESCRITURA · %1$s</string>
-    <string name="app_desktop_usb_live_close">Cerrar sesión en vivo</string>
-    <string name="app_desktop_delete_usb_appliance">Eliminar el Linux auxiliar de USB</string>
-    <string name="app_desktop_usb_drive_progress">Unidad USB: %1$s</string>
-    <string name="app_desktop_usb_drive_locked">%1$s está bloqueado (LUKS)</string>
-    <string name="app_desktop_usb_drive_unlock">Desbloquear…</string>
-    <string name="app_desktop_usb_drive_unlock_title">Desbloquear %1$s</string>
-    <string name="app_desktop_usb_drive_unlock_passphrase">Frase de contraseña</string>
-    <string name="app_desktop_import_dialog_title">Importar un rootfs</string>
-    <string name="app_desktop_import_description">Trae tu propio tarball de rootfs (.tar.gz o .tar.xz): una imagen de proot-distro, una exportación de Docker o una segunda copia de una distribución que ya tengas. Se usa tal cual (sin instalar paquetes).</string>
-    <string name="app_desktop_import_id_hint">ID de la distro (slug, p. ej. ubuntu-test)</string>
-    <string name="app_desktop_import_label_hint">Etiqueta (p. ej. Ubuntu 26.04 importado)</string>
-    <string name="app_desktop_import_source_hint">URL del tarball (https://…)</string>
-    <string name="app_desktop_import_family">Familia de paquetes</string>
-    <string name="app_desktop_import_confirm">Importar</string>
-    <string name="app_desktop_cancel">Cancelar</string>
-    <string name="app_desktop_save">Guardar</string>
-    <string name="app_desktop_open_terminal_cd">Abrir terminal en %1$s</string>
-    <string name="app_present_fullscreen">Pantalla completa</string>
-    <string name="app_present_exit_fullscreen">Salir de pantalla completa</string>
     <string name="tasker_plugin_name">Ejecutar un comando en un servidor Haven</string>
     <string name="tasker_edit_title">Ejecuta un comando de shell en una conexión SSH de Haven guardada.</string>
     <string name="tasker_loading">Cargando conexiones…</string>
@@ -334,13 +106,6 @@
     <string name="tasker_watch_title">Ver %1$s</string>
     <string name="tasker_watch_text">Toca para ejecutar %1$s en una terminal en vivo</string>
     <string name="tasker_insert_variable">Insertar variable</string>
-    <string name="app_desktop_dns_title">DNS del invitado</string>
-    <string name="app_desktop_dns_custom_label">Servidores de nombres</string>
-    <string name="app_desktop_dns_custom_hint">p. ej. 10.0.0.53, 1.1.1.1</string>
-    <string name="app_desktop_dns_mode_system">Red (DHCP)</string>
-    <string name="app_desktop_dns_mode_public">Públicos (Google + Cloudflare)</string>
-    <string name="app_desktop_dns_mode_custom">Personalizados</string>
-    <string name="app_desktop_dns_description">Qué servidores de nombres usa el invitado Linux local. Si la instalación de paquetes se bloquea en esta red, puede que bloquee el DNS público \u2014 usa el resolutor de la propia red.</string>
     <string name="shortcut_pull_backup_label">Descargar copia ahora</string>
     <string name="backup_sync_channel_name">Sincronización de copias</string>
     <string name="backup_pull_restored_count">Elementos restaurados: %1$d</string>
@@ -370,8 +135,4 @@
     <string name="update_notification_channel">Actualizaciones de la aplicación</string>
     <string name="update_notification_title">Haven %1$s está disponible</string>
     <string name="update_notification_text">Toca para abrir la página de la versión.</string>
-    <string name="app_desktop_guest_user_title">Usuario invitado</string>
-    <string name="app_desktop_guest_user_description">Ejecuta shells y escritorios X11 como un usuario normal (uid 1000) con sudo sin contraseña en lugar de root. Déjalo en blanco o escribe root para el modo root.</string>
-    <string name="app_desktop_guest_user_label">Nombre de usuario</string>
-    <string name="app_desktop_guest_user_hint">root (o p. ej. user)</string>
 </resources>

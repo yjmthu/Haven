@@ -10,10 +10,7 @@
     <string name="common_edit">Modifier</string>
     <string name="common_rename">Renommer</string>
     <string name="common_create">Créer</string>
-    <string name="common_connect">Connecter</string>
-    <string name="common_disconnect">Déconnecter</string>
     <string name="common_copy">Copier</string>
-    <string name="common_paste">Coller</string>
     <string name="common_label">Libellé</string>
     <string name="common_password">Mot de passe</string>
     <string name="common_port">Port</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">Réinitialiser</string>
     <string name="common_allow">Autoriser</string>
     <string name="common_not_now">Pas maintenant</string>
-    <string name="common_import">Importer</string>
-    <string name="common_add">Ajouter</string>
-    <string name="common_download">Télécharger</string>
     <string name="common_unlock">Déverrouiller</string>
 
     <!-- Top-level screen -->
@@ -39,8 +33,6 @@
     <string name="settings_prevent_screenshots_subtitle">Bloquer la capture d\'écran et l\'aperçu du gestionnaire de tâches</string>
 
     <!-- Logging section -->
-    <string name="settings_exclude_recents_title">Masquer des applis récentes</string>
-    <string name="settings_exclude_recents_subtitle">Masque la carte de Haven dans les applis récentes ; les sessions continuent. Rouvrez via l\'icône.</string>
     <string name="settings_connection_logging_title">Journal des connexions</string>
     <string name="settings_connection_logging_subtitle">Enregistrer les événements de connexion (connexion, déconnexion, erreurs). Stocké localement, protégé par le chiffrement de l\'appareil</string>
     <string name="settings_view_connection_log_title">Voir le journal des connexions</string>
@@ -66,8 +58,6 @@
     <string name="settings_mouse_input_subtitle">Transmettre les taps comme clics et l\'appui long comme clic droit quand des applis comme htop, mc ou vim activent le suivi de la souris</string>
     <string name="settings_right_click_title">Appui long = clic droit</string>
     <string name="settings_right_click_subtitle">Envoyer un clic droit au terminal au lieu de sélectionner du texte. Utile pour les menus contextuels tmux</string>
-    <string name="settings_standard_keyboard_title">Saisie vocale et saisie automatique</string>
-    <string name="settings_standard_keyboard_subtitle">Désactive les indicateurs de clavier sécurisé (mode mot de passe, pas de suggestions). Active la saisie vocale, la saisie par glissement et la prédiction de mots — mais le clavier peut mémoriser les mots de passe saisis</string>
 
     <!-- Appearance section -->
     <string name="settings_theme_title">Thème</string>
@@ -75,18 +65,6 @@
     <string name="settings_navigation_tabs_subtitle">Réorganisez les onglets et choisissez ceux qui sont affichés</string>
 
     <!-- Wayland section -->
-    <string name="settings_wayland_shell_title">Shell bureau Wayland</string>
-    <string name="settings_proot_idle_title">Arrêter l\'invité Linux inactif</string>
-    <string name="settings_proot_idle_off">Désactivé — l\'invité Linux continue de tourner jusqu\'à ce que vous l\'arrêtiez</string>
-    <string name="settings_proot_idle_on">Arrête l\'invité %1$d min après avoir quitté Haven (un service invité en cours le maintient actif)</string>
-    <string name="settings_proot_idle_dialog_title">Arrêter l\'invité Linux inactif</string>
-    <string name="settings_proot_idle_dialog_body">Lorsque Haven est resté en arrière-plan aussi longtemps, arrête les terminaux et bureaux de l\'invité Linux pour libérer de la mémoire. Un service invité en cours le maintient actif. Une tâche longue dans un terminal en arrière-plan serait aussi arrêtée — laissez ceci désactivé sauf si vous voulez récupérer les ressources en cas d\'inactivité.</string>
-    <string name="settings_proot_idle_off_label">Désactivé</string>
-    <string name="settings_shizuku_title">Intégration Shizuku</string>
-    <string name="settings_shizuku_enabled">Activé — exemption batterie auto, partage socket Wayland</string>
-    <string name="settings_shizuku_available">Shizuku installé -- appuyez pour accorder la permission</string>
-    <string name="settings_shizuku_not_running">Shizuku installé mais inactif — appuyez pour ouvrir et démarrer via Débogage sans fil</string>
-    <string name="settings_shizuku_not_installed">Installer Shizuku pour exemption batterie et accès Wayland</string>
 
     <!-- Backup section -->
     <string name="settings_backup_sync_title">Synchroniser vers un distant</string>
@@ -117,9 +95,6 @@
     <string name="settings_version_unknown">inconnu</string>
 
     <!-- Wayland shell dialog -->
-    <string name="settings_wayland_dialog_title">Shell bureau Wayland</string>
-    <string name="settings_wayland_dialog_description">Commande shell à exécuter dans le terminal foot du bureau Wayland. Installez des shells supplémentaires avec apk (ex. apk add bash).</string>
-    <string name="settings_wayland_shell_command_label">Commande shell</string>
 
     <!-- Lock timeout dialog -->
     <string name="settings_lock_timeout_dialog_title">Délai de verrouillage</string>
@@ -213,21 +188,12 @@
     <string name="common_github">GitHub</string>
     <string name="common_simple">Simple</string>
     <string name="settings_language_title">Langue</string>
-    <string name="settings_media_extensions_title">Extensions de fichiers multimédias</string>
-    <string name="settings_media_extensions_description">Extensions de fichiers séparées par des espaces à traiter comme des médias diffusables dans l’explorateur de fichiers.</string>
-    <string name="settings_media_extensions_label">Extensions</string>
-    <string name="settings_show_desktops_title">Afficher la carte Bureaux</string>
-    <string name="settings_show_desktops_subtitle">Afficher le gestionnaire d’environnements de bureau sur l’écran Connexions</string>
-    <string name="settings_show_linux_vm_title">Afficher la carte VM Linux</string>
-    <string name="settings_show_linux_vm_subtitle">Afficher la configuration de la VM Linux d’Android sur l’écran Connexions</string>
     <!-- Backfilled translations (i18n drift fix) -->
     <string name="settings_keep_screen_on_title">Garder l’écran allumé dans le terminal</string>
     <string name="settings_keep_screen_on_subtitle">L’écran reste allumé tant qu’un onglet de terminal est ouvert. Cela consomme la batterie ; n’activez que si vous surveillez de longues sorties.</string>
 
     <!-- #135 -->
     <string name="settings_keyboard_mode_title">Keyboard mode</string>
-    <string name="settings_dev_install_title">Dev Install</string>
-    <string name="settings_dev_install_apk_url">APK URL</string>
     <string name="settings_font_install_title">Installer une police depuis une URL</string>
     <string name="settings_ime_flags_title">IME flags</string>
     <!-- #133 phase 2b: SSH host CA pubkey field (en fallback) -->
@@ -316,50 +282,6 @@
     <string name="settings_nav_tab_visibility_hide_title">Masquer</string>
     <string name="settings_nav_tab_visibility_always_hint">Toujours visible</string>
 
-    <string name="settings_usb_guest_title">Exposer les périphériques USB au guest Linux</string>
-    <string name="settings_usb_guest_subtitle">Permettre aux périphériques USB connectés d\'atteindre les apps du guest via le shim haven-usb. Chaque connexion demande confirmation.</string>
-    <string name="settings_gps_guest_title">Exposer le GPS au guest Linux</string>
-    <string name="settings_gps_guest_subtitle">Diffuser la position GPS du téléphone dans le guest en tant que périphérique NMEA (haven-gps). Une fois activé, tout processus du guest peut lire la position. Chaque connexion demande confirmation.</string>
-    <string name="settings_proot_install_log_title">Voir le journal d\'installation PRoot</string>
-    <string name="settings_proot_install_log_subtitle">Événements par phase des installations de distros Linux (issue #162)</string>
-    <string name="settings_logcat_capture_title">Capture Logcat</string>
-    <string name="settings_logcat_capture_subtitle_on">Enregistrement dans /sdcard/Download/haven-logcat.txt</string>
-    <string name="settings_logcat_capture_subtitle_off">Capturer le logcat pour le débogage à distance</string>
-    <string name="settings_logcat_saved_toast">Logcat enregistré</string>
-    <string name="settings_logcat_started_toast">Capture logcat démarrée</string>
-    <string name="settings_logcat_start_failed_toast">Échec du démarrage de la capture</string>
-    <string name="settings_agent_endpoint_title">Point de terminaison agent (MCP)</string>
-    <string name="settings_agent_endpoint_subtitle_on">Activé — serveur MCP local sur la boucle locale. Les outils d\'écriture demandent confirmation.</string>
-    <string name="settings_agent_endpoint_subtitle_off">Désactivé — activez pour permettre aux agents IA locaux de lire l\'état et (avec confirmation) d\'agir dessus</string>
-    <string name="settings_agent_file_read_title">Autoriser les agents à lire le contenu des fichiers</string>
-    <string name="settings_agent_file_read_subtitle_on">Activé — `serve_file` retourne une URL de téléchargement à usage unique après confirmation par appel</string>
-    <string name="settings_agent_file_read_subtitle_off">Désactivé — les requêtes `serve_file` échouent immédiatement, sans invite</string>
-    <string name="settings_agent_terminal_input_title">Autoriser les agents à mettre en file d\'attente la saisie terminal</string>
-    <string name="settings_agent_terminal_input_subtitle_on">Activé — `queue_terminal_input` surveille la sortie de la session SSH et saisit le texte en file d\'attente à la prochaine invite (confirmation par appel)</string>
-    <string name="settings_agent_terminal_input_subtitle_off">Désactivé — les requêtes `queue_terminal_input` échouent immédiatement, sans invite</string>
-    <string name="settings_reverse_tunnel_title">Connexion MCP permanente</string>
-    <string name="settings_reverse_tunnel_subtitle_set">Tunnelisé vers \"%1$s\" — survit aux changements Wi-Fi &amp; redémarrages</string>
-    <string name="settings_reverse_tunnel_subtitle_unset">Non défini — point de terminaison accessible uniquement sur l\'appareil</string>
-    <string name="settings_reverse_tunnel_none">Aucun (sur l\'appareil uniquement)</string>
-    <string name="settings_mcp_wireguard_title">Exposer sur le tunnel WireGuard</string>
-    <string name="settings_mcp_wireguard_subtitle_on">Activé — également accessible à &lt;wg-ip&gt;:8730 sur le tunnel WireGuard actif</string>
-    <string name="settings_mcp_wireguard_subtitle_off">Désactivé — activez pour accéder au point de terminaison via un tunnel WireGuard actif</string>
-    <string name="settings_mcp_lan_title">Exposer sur Wi-Fi/LAN</string>
-    <string name="settings_mcp_lan_subtitle_on">Activé — également accessible à &lt;device-lan-ip&gt;:8730 sur le réseau local</string>
-    <string name="settings_mcp_lan_subtitle_off">Désactivé — activez pour un accès direct depuis un appareil sur le même Wi-Fi/LAN</string>
-    <string name="settings_mcp_copy_url_title">Copier l\'URL du point de terminaison agent</string>
-    <string name="settings_mcp_url_copied_toast">Point de terminaison copié</string>
-    <string name="settings_mcp_copy_config_title">Copier la config du client MCP</string>
-    <string name="settings_mcp_copy_config_subtitle">Extrait JSON standard à coller dans tout client MCP</string>
-    <string name="settings_mcp_config_copied_toast">Config copiée</string>
-    <string name="settings_mcp_proot_title">Disponible aussi dans PRoot</string>
-    <string name="settings_agent_activity_title">Voir l\'activité de l\'agent</string>
-    <string name="settings_agent_activity_subtitle">Chaque appel MCP enregistré avec arguments masqués</string>
-    <string name="settings_agent_confirm_destructive_title">Confirmer les actions destructives de l\'agent</string>
-    <string name="settings_agent_confirm_destructive_subtitle">Demander avant tout appel agent qui écrit, supprime, téléverse ou déconnecte. Les appels en lecture seule ne demandent jamais confirmation.</string>
-    <string name="settings_agent_forget_allows_title">Oublier les autorisations mémorisées</string>
-    <string name="settings_agent_forget_allows_subtitle">Redemander pour chaque outil qui avait précédemment reçu une approbation ponctuelle.</string>
-    <string name="settings_agent_allows_cleared_toast">Autorisations mémorisées effacées</string>
     <string name="settings_font_from_url_body">Collez un lien direct vers un fichier de police TTF ou OTF. Les Nerd Fonts courantes ont des TTF bruts sur GitHub : github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/&lt;Name&gt;/Regular/&lt;Name&gt;NerdFont-Regular.ttf — copiez cette URL ici.</string>
     <string name="settings_font_from_url_placeholder">https://…/font.ttf</string>
     <string name="settings_recommended_fonts_dialog_body">Appuyer pour télécharger et appliquer une police monospace populaire.</string>
@@ -368,9 +290,6 @@
     <string name="settings_filter_all">Tout</string>
     <string name="settings_action_clear">Effacer</string>
     <string name="settings_cannot_be_undone">Cette action est irréversible.</string>
-    <string name="settings_cd_collapse">Réduire</string>
-    <string name="settings_cd_expand">Développer</string>
-    <string name="settings_cd_failed">Échec</string>
     <string name="settings_audit_log_title">Journal des connexions</string>
     <string name="settings_audit_log_cd_clear">Effacer les journaux</string>
     <string name="settings_audit_log_cd_toggle_details">Afficher/masquer les détails</string>
@@ -382,18 +301,6 @@
     <string name="settings_audit_log_share_chooser">Partager le journal</string>
     <string name="settings_audit_log_status_sync">Sync</string>
     <string name="settings_audit_log_status_sync_failed">Échec de la synchronisation</string>
-    <string name="settings_agent_activity_screen_title">Activité de l\'agent</string>
-    <string name="settings_agent_activity_cd_clear">Effacer l\'historique</string>
-    <string name="settings_agent_activity_empty">Aucune activité agent pour l\'instant.\n\nLorsqu\'un client MCP appelle un outil, l\'appel apparaît ici avec les arguments masqués et le résultat résumé.</string>
-    <string name="settings_agent_activity_clear_dialog_title">Effacer l\'activité agent ?</string>
-    <string name="settings_agent_activity_clear_dialog_text">Tous les appels MCP enregistrés seront supprimés de cet appareil. Cette action est irréversible.</string>
-    <string name="settings_agent_activity_unknown_client">client inconnu</string>
-    <string name="settings_agent_activity_args_redacted">args (masqués)</string>
-    <string name="settings_proot_install_log_screen_title">Journal d\'installation PRoot</string>
-    <string name="settings_proot_install_log_cd_clear">Effacer le journal</string>
-    <string name="settings_proot_install_log_empty">Aucun événement d\'installation enregistré. Installez une distro via Connexions → Bureaux pour alimenter ce journal.</string>
-    <string name="settings_proot_install_log_clear_dialog_title">Effacer le journal d\'installation ?</string>
-    <string name="settings_proot_install_log_clear_dialog_text">Tous les événements d\'installation enregistrés seront supprimés.</string>
     <string name="settings_ime_flag_no_suggestions_title">Masquer la barre de suggestions</string>
     <string name="settings_ime_flag_no_suggestions_detail">TYPE_TEXT_FLAG_NO_SUGGESTIONS — universellement respecté</string>
     <string name="settings_ime_flag_visible_password_title">Supprimer la correction/majuscule/espace automatiques</string>
@@ -406,43 +313,14 @@
     <string name="settings_ime_flag_no_extract_ui_detail">IME_FLAG_NO_EXTRACT_UI — empêche l\'interface IME plein écran en paysage de s\'afficher.</string>
     <string name="settings_ime_flag_no_learning_title">Bloquer l\'apprentissage de l\'IME</string>
     <string name="settings_ime_flag_no_learning_detail">IME_FLAG_NO_PERSONALIZED_LEARNING — confidentialité : la banque de mots de l\'IME ignore le texte saisi. Suffisamment fort sur Gboard pour masquer aussi le micro.</string>
-    <string name="settings_mcp_tools_title">Outils MCP</string>
-    <string name="settings_mcp_tools_subtitle">Désactivez des outils individuels de l\'agent pour réduire ce qu\'il voit</string>
-    <string name="settings_mcp_tools_screen_title">Outils MCP</string>
-    <string name="settings_mcp_tools_empty">La liste des outils apparaît une fois le point de terminaison de l\'agent démarré.</string>
-    <string name="settings_mcp_tools_intro">Les outils désactivés quittent entièrement la liste d\'outils de l\'agent : les petits modèles voient moins d\'encombrement et chaque appel coûte moins de jetons. L\'interrupteur du point de terminaison, le jumelage et les demandes de consentement s\'appliquent toujours.</string>
-    <string name="settings_mcp_tools_consent_every_call">Demande à chaque appel</string>
-    <string name="settings_mcp_tools_consent_once">Demande une fois par session</string>
-    <string name="settings_mcp_tools_consent_never">Pas de demande par appel</string>
-    <string name="settings_paired_clients_title">Clients MCP associés</string>
-    <string name="settings_paired_clients_subtitle">Vérifiez les clients associés, ignorez les invites par client ou dissociez</string>
-    <string name="settings_paired_clients_screen_title">Clients MCP associés</string>
-    <string name="settings_paired_clients_empty">Aucun client MCP associé pour l’instant. Un client apparaît ici après que vous avez approuvé son invite de connexion.</string>
-    <string name="settings_paired_clients_bypass_label">Ignorer les invites d’approbation</string>
-    <string name="settings_paired_clients_bypass_on">Approuve automatiquement chaque appel de ce client, y compris les appels destructeurs.</string>
-    <string name="settings_paired_clients_bypass_off">Chaque appel destructeur demande toujours le consentement (par défaut).</string>
-    <string name="settings_paired_clients_cd_unpair">Dissocier le client</string>
-    <string name="settings_paired_clients_unpair_title">Dissocier \'%1$s\' ?</string>
-    <string name="settings_paired_clients_unpair_message">Il devra être approuvé à nouveau lors de sa prochaine connexion, et toute approbation automatique est révoquée.</string>
-    <string name="settings_paired_clients_unpair_confirm">Dissocier</string>
-    <string name="settings_paired_clients_unpaired_toast">\'%1$s\' dissocié</string>
 
     <!-- MCP endpoint VPN collision + loopback trust -->
-    <string name="settings_mcp_wireguard_collision">Un autre VPN (%1$s) utilise %2$s — la même adresse à laquelle ce point de terminaison se lie, il est donc masqué et inaccessible depuis les pairs. Arrêtez ce VPN, ou pointez votre client MCP vers le point de terminaison de boucle locale (127.0.0.1).</string>
-    <string name="settings_mcp_trust_loopback_title">Faire confiance aux clients locaux</string>
-    <string name="settings_mcp_trust_loopback_subtitle_on">Activé — les clients locaux (127.0.0.1) se connectent sans appairage ni invite d\'approbation. Les clients Wi-Fi/LAN et WireGuard demandent toujours confirmation.</string>
-    <string name="settings_mcp_trust_loopback_subtitle_off">Désactivé — même les clients locaux doivent être appairés et approuver chaque requête</string>
 
     <!-- Terminal reflow, GPU stack, standing policies (#250) -->
     <string name="settings_reflow_on_keyboard_title">Adapter le terminal au clavier</string>
     <string name="settings_reflow_on_keyboard_subtitle">Quand le clavier s\'ouvre, redimensionne le terminal pour qu\'il tienne au-dessus plutôt que de faire défiler la vue vers le haut. Utile pour les applis plein écran qui affichent une ligne d\'état en haut ; laissez désactivé pour les shells simples.</string>
     <string name="settings_tab_titles_follow_session_title">Privilégier les noms de session dans les onglets</string>
     <string name="settings_tab_titles_follow_session_subtitle">Les onglets attachés à tmux/zellij/screen conservent le nom de la session au lieu des titres définis par les programmes en cours.</string>
-    <string name="settings_gpu_venus_title">Pile GPU expérimentale (venus + zink)</string>
-    <string name="settings_gpu_venus_subtitle">Utilise venus (Vulkan vers le GPU) + zink pour l\'OpenGL moderne (~3.2 core) sur les bureaux accélérés, au lieu de virgl (GL 2.1). Les applis Vulkan natives s\'affichent ; le rendu OpenGL est lent pour l\'instant. Nécessite mesa-vulkan-drivers installé dans le guest. Désactivé = virgl par défaut.</string>
-    <string name="settings_standing_policies_header">Politiques permanentes — ces outils s\'exécutent sans demander</string>
-    <string name="settings_standing_policy_meta">%1$s · jusqu\'à %2$d appels/min · expire %3$s</string>
-    <string name="settings_standing_policy_revoke">Révoquer</string>
 
     <!-- Desktop key placement (#245.2) -->
     <string name="settings_toolbar_desktop_key">Touche bureau</string>
@@ -461,13 +339,8 @@
     <string name="settings_terminal_opacity_title">Opacité de l\'arrière-plan</string>
     <string name="settings_terminal_opacity_value">%1$d%%</string>
     <string name="settings_terminal_opacity_hint" formatted="false">En dessous de 100%, Haven devient translucide et affiche votre fond d\'écran derrière chaque écran (terminal, listes, paramètres). Un remplacement par connexion ne s\'applique qu\'à ce terminal.</string>
-    <string name="settings_section_mcp">Agent IA (MCP)</string>
     <string name="settings_tailscale_discovery_title">Découverte des pairs Tailscale</string>
     <string name="settings_tailscale_discovery_subtitle">Rechercher les hôtes de votre réseau Tailscale via son API locale lors de l’analyse. Désactivez pour empêcher Haven de lire la liste des pairs ; Tailscale n’est pas affecté.</string>
-    <string name="settings_audio_bridge_title">Audio proot (expérimental)</string>
-    <string name="settings_audio_bridge_subtitle">Diffuse le son des applis Linux sur le haut-parleur de l\'appareil via un pont PulseAudio dans le guest. Sortie uniquement. Diffuse en continu tant que c\'est activé — désactivez quand vous ne l\'utilisez pas.</string>
-    <string name="settings_reverse_tunnel_status_active">Near (SSH) : via %1$s — connecté</string>
-    <string name="settings_reverse_tunnel_status_inactive">Near (SSH) : non connecté — ouvrez %1$s pour l\'activer</string>
     <string name="settings_remote_clipboard_title">Synchroniser le presse-papiers distant</string>
     <string name="settings_remote_clipboard_subtitle">Autorise un bureau distant (VNC) à copier dans le presse-papiers de l\'appareil. Désactivé par défaut.</string>
     <string name="settings_rdp_progressive_upgrade_title">RDP : décoder les tuiles de mise à niveau progressive (expérimental)</string>
@@ -534,7 +407,6 @@ Chaque clé privée déjà stockée dans Haven devra être importée ou génér�
     <string name="settings_inline_images_ask">Demander</string>
     <string name="settings_inline_images_always">Toujours</string>
     <string name="settings_ambiwidth_title">Gestion de la largeur ambiguë des caractères</string>
-    <string name="settings_ambiwidth_subtitle">Rendu des caractères d\'Asie orientale à largeur ambiguë (symboles, grec)</string>
     <string name="settings_ambiwidth_mode_narrow">Étroit (1 cellule)</string>
     <string name="settings_ambiwidth_mode_narrow_desc">Toujours 1 cellule (Unix / XTerm standard, par défaut)</string>
     <string name="settings_ambiwidth_mode_auto_narrow">Auto + Étroit</string>
@@ -545,17 +417,4 @@ Chaque clé privée déjà stockée dans Haven devra être importée ou génér�
     <string name="settings_ambiwidth_mode_auto_wide_desc">Mesurer la police active ; secours à 2 cellules (CJK)</string>
     <string name="settings_bell_notification_title">Notification de sonnerie</string>
     <string name="settings_bell_notification_subtitle">Quand un programme du terminal émet un bip pendant qu\'Haven est en arrière-plan, une notification nommant l\'onglet est affichée. Rien n\'apparaît pendant que vous regardez le terminal.</string>
-    <string name="settings_mcp_tools_category_off_count">%1$d désactivés</string>
-    <string name="settings_mcp_tools_cat_terminal">Terminal</string>
-    <string name="settings_mcp_tools_cat_connections">Connexions</string>
-    <string name="settings_mcp_tools_cat_files">Fichiers</string>
-    <string name="settings_mcp_tools_cat_desktop">Bureau</string>
-    <string name="settings_mcp_tools_cat_guest">Invité Linux</string>
-    <string name="settings_mcp_tools_cat_usb">USB et série</string>
-    <string name="settings_mcp_tools_cat_keys">Clés et identifiants</string>
-    <string name="settings_mcp_tools_cat_mail">Courriel</string>
-    <string name="settings_mcp_tools_cat_rclone">Stockage cloud</string>
-    <string name="settings_mcp_tools_cat_senses">Capteurs et localisation</string>
-    <string name="settings_mcp_tools_cat_agent">Agent et contrôle de l\'appareil</string>
-    <string name="settings_mcp_tools_cat_other">Autres</string>
 </resources>

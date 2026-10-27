@@ -10,10 +10,7 @@
     <string name="common_edit">تعديل</string>
     <string name="common_rename">إعادة تسمية</string>
     <string name="common_create">إنشاء</string>
-    <string name="common_connect">اتصال</string>
-    <string name="common_disconnect">قطع الاتصال</string>
     <string name="common_copy">نسخ</string>
-    <string name="common_paste">لصق</string>
     <string name="common_label">التسمية</string>
     <string name="common_password">كلمة المرور</string>
     <string name="common_port">المنفذ</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">إعادة تعيين</string>
     <string name="common_allow">سماح</string>
     <string name="common_not_now">ليس الآن</string>
-    <string name="common_import">استيراد</string>
-    <string name="common_add">إضافة</string>
-    <string name="common_download">تنزيل</string>
     <string name="common_unlock">فتح القفل</string>
 
     <!-- KeysScreen -->
@@ -75,57 +69,11 @@
     <string name="keys_ssh_public_key_clip_label">مفتاح SSH العام</string>
 
     <!-- #133 phase 2: step-ca generate-via-OIDC (en fallback) -->
-    <string name="keys_generate_via_stepca">إنشاء عبر step-ca</string>
-    <string name="keys_generate_via_stepca_hint">تسجيل الدخول عبر OIDC يُنشئ زوج مفاتيح جديدًا وشهادة موقّعة</string>
-    <string name="keys_generate_via_stepca_no_ca">اضغط على «سلطات الشهادات» أعلاه لإضافة واحدة</string>
-    <string name="keys_stepca_dialog_title">إنشاء عبر step-ca</string>
-    <string name="keys_stepca_pick_ca">سلطة الشهادات</string>
-    <string name="keys_stepca_principals_override_label">تجاوز الـ principals (اختياري، مفصولة بفواصل)</string>
-    <string name="keys_stepca_label">تسمية المفتاح</string>
-    <string name="keys_stepca_generate">إنشاء</string>
     <string name="keys_chip_certificate_minted">أُصدر %1$s</string>
 
     <!-- #133 phase 2b: regenerate menu (en fallback) -->
-    <string name="keys_regenerate_via_stepca">إعادة الإنشاء عبر step-ca</string>
 
     <!-- #133 phase 2b: step-ca CA registration (moved from Settings) -->
-    <string name="stepca_add_title">إضافة سلطة شهادات</string>
-    <string name="stepca_edit_title">تعديل سلطة الشهادات</string>
-    <string name="stepca_add">Add</string>
-    <string name="stepca_save">حفظ</string>
-    <string name="stepca_cancel">إلغاء</string>
-    <string name="stepca_delete">حذف</string>
-    <string name="stepca_test_connection">اختبار الاتصال</string>
-    <string name="stepca_field_name">الاسم المعروض</string>
-    <string name="stepca_field_ca_url">رابط سلطة الشهادات</string>
-    <string name="stepca_field_ca_url_hint">https://ca.example.com</string>
-    <string name="stepca_field_oidc_issuer">رابط مُصدِر OIDC</string>
-    <string name="stepca_field_oidc_auth_url">رابط تفويض OIDC</string>
-    <string name="stepca_field_oidc_token_url">رابط رمز OIDC</string>
-    <string name="stepca_field_oidc_client_id">معرّف عميل OIDC</string>
-    <string name="stepca_field_provisioner">مُزوِّد step-ca</string>
-    <string name="stepca_field_principals">الـ principals الافتراضية (مفصولة بفواصل)</string>
-    <string name="stepca_field_root_cert">الشهادة الجذرية (PEM)</string>
-    <string name="stepca_field_root_cert_hint">-----BEGIN CERTIFICATE-----…</string>
-    <string name="stepca_test_ok">يمكن الوصول إليه</string>
-    <string name="stepca_test_bad_root_cert">شهادة جذرية غير صالحة: %1$s</string>
-    <string name="stepca_test_http_error">HTTP %1$d: %2$s</string>
-    <string name="stepca_test_network_error">خطأ في الشبكة: %1$s</string>
-    <string name="stepca_empty_state">لا توجد سلطات شهادات مُعدّة.\nاضغط + لإضافة واحدة.</string>
-    <string name="stepca_validation_required">%1$s مطلوب</string>
-    <string name="stepca_validation_url">يجب أن يبدأ %1$s بـ https://</string>
-    <string name="stepca_validation_pem">يجب أن تكون الشهادة الجذرية بترميز PEM</string>
-    <string name="stepca_validation_host_ca_or_signing">أدخل مفتاح مرجع مصادقة المضيف العام، أو املأ حقول التوقيع.</string>
-    <string name="stepca_validation_host_ca">مفتاح مرجع مصادقة المضيف العام غير صالح.</string>
-    <string name="stepca_delete_confirm_title">حذف %1$s؟</string>
-    <string name="stepca_delete_confirm_body">ستظل المفاتيح المُصدرة عبر هذه السلطة تعمل حتى تنتهي صلاحية شهاداتها، لكن لن يمكنك تجديدها أو إنشاء مفاتيح جديدة.</string>
-    <string name="stepca_field_ssh_host_ca">المفتاح العام لسلطة مضيف SSH (اختياري)</string>
-    <string name="stepca_field_ssh_host_ca_hint">ssh-ed25519 AAAAC3…</string>
-    <string name="stepca_discover_host_ca">اكتشاف من /1.0/ssh/config</string>
-    <string name="stepca_discovering">جارٍ الاكتشاف…</string>
-    <string name="stepca_import_from_file">استيراد من ملف</string>
-    <string name="stepca_import_failed">فشل الاستيراد: %1$s</string>
-    <string name="keys_section_certificate_authorities">سلطات الشهادات (%1$d)</string>
     <string name="keys_section_ssh">مفاتيح SSH (%1$d)</string>
     <string name="keys_section_drive">مفاتيح أقراص USB (%1$d)</string>
     <string name="keys_section_passwords">كلمات المرور المحفوظة (%1$d)</string>
@@ -141,17 +89,6 @@
     <string name="keys_attach_certificate">إرفاق شهادة</string>
     <string name="keys_remove_certificate">إزالة الشهادة</string>
     <string name="keys_chip_certificate">تم إرفاق الشهادة</string>
-    <string name="stepca_bootstrap_intro">التهيئة من عنوان URL لسلطة التصديق + بصمة SHA-256. يُجلب الباقي (الشهادة الجذرية، الموفّرون، عناوين OIDC والسر) من سلطة التصديق.</string>
-    <string name="stepca_field_fingerprint">بصمة الشهادة الجذرية (SHA-256)</string>
-    <string name="stepca_field_fingerprint_hint">الصق من `step certificate fingerprint`</string>
-    <string name="stepca_bootstrap_action">التهيئة من سلطة التصديق</string>
-    <string name="stepca_bootstrapping">جارٍ التواصل مع سلطة التصديق…</string>
-    <string name="stepca_bootstrap_pick_provisioner">اختر موفّر OIDC:</string>
-    <string name="stepca_manual_entry">إدخال يدوي…</string>
-    <string name="stepca_field_oidc_client_secret">سر عميل OIDC (اختياري)</string>
-    <string name="stepca_field_oidc_client_secret_hint">اتركه فارغًا للعملاء العامين الذين يستخدمون PKCE فقط</string>
-    <string name="keys_discover_from_security_key">الاكتشاف من مفتاح الأمان</string>
-    <string name="keys_discover_from_security_key_hint">يعدّد بيانات اعتماد SSH-SK المقيمة من مفتاح أمان مُدرَج أو مُلامَس. يتخطى ssh-keygen -K.</string>
     <string name="keys_discover_picker_title">مفاتيح SSH المقيمة</string>
     <string name="keys_discover_picker_body">اختر بيانات الاعتماد المقيمة المراد استيرادها. يصبح كل منها إدخال مفتاح SSH جديد؛ وتبقى المادة الخاصة على مفتاح الأمان نفسه.</string>
     <string name="keys_discover_import_selected">استيراد المحدد</string>
@@ -171,8 +108,6 @@
     <string name="keys_export_certificate">تصدير الشهادة</string>
     <string name="keys_totp_section_header">المصادق (TOTP) · %1$d</string>
     <string name="keys_totp_delete_desc">حذف المصادق</string>
-    <string name="keys_totp_scan_qr">مسح رمز QR للمصادق (TOTP)</string>
-    <string name="keys_totp_scan_qr_hint">اختر صورة تحتوي على رمز QR بصيغة otpauth://</string>
     <string name="keys_totp_paste">إضافة مصادق من الحافظة (TOTP)</string>
     <string name="keys_totp_paste_hint">الصق رابط otpauth:// أو سر base32</string>
     <!-- RenameKeyDialog (#231) -->
@@ -191,7 +126,6 @@
     <string name="keys_register_on_security_key">إعداد مفتاح SSH على مفتاح الأمان</string>
     <string name="keys_register_on_security_key_body">ينشئ بيانات اعتماد sk-ssh-ed25519 مقيمة على مفتاح الأمان. ثم: وصّله عبر USB واضغط عليه، أو ضعه على الجهة الخلفية للهاتف من أجل NFC.</string>
     <string name="keys_register_verify_required">طلب رمز PIN في كل تسجيل دخول</string>
-    <string name="keys_register_verify_required_hint">مفعّل: يطلب المفتاح رمز PIN في كل مرة يوقّع فيها تسجيل دخول SSH (verify-required — أكثر أمانًا). معطّل: اللمس فقط.</string>
     <string name="keys_register_pin">رمز PIN لمفتاح الأمان</string>
     <string name="keys_register_pin_confirm">تأكيد رمز PIN</string>
     <string name="keys_register_pin_hint">اختر رمز PIN إذا كان المفتاح جديدًا، أو أدخل رمزه الحالي. 4 أحرف فأكثر.</string>

@@ -10,10 +10,7 @@
     <string name="common_edit">تعديل</string>
     <string name="common_rename">إعادة تسمية</string>
     <string name="common_create">إنشاء</string>
-    <string name="common_connect">اتصال</string>
-    <string name="common_disconnect">قطع الاتصال</string>
     <string name="common_copy">نسخ</string>
-    <string name="common_paste">لصق</string>
     <string name="common_label">التسمية</string>
     <string name="common_password">كلمة المرور</string>
     <string name="common_port">المنفذ</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">إعادة تعيين</string>
     <string name="common_allow">سماح</string>
     <string name="common_not_now">ليس الآن</string>
-    <string name="common_import">استيراد</string>
-    <string name="common_add">إضافة</string>
-    <string name="common_download">تنزيل</string>
     <string name="common_unlock">فتح القفل</string>
 
     <!-- SftpScreen navigation -->
@@ -113,16 +107,12 @@
     <string name="sftp_bandwidth_limit">حد النطاق الترددي</string>
     <string name="sftp_dry_run">تشغيل تجريبي (معاينة فقط)</string>
     <string name="sftp_start_sync">بدء</string>
-    <string name="sftp_dry_run_results">نتائج التشغيل التجريبي</string>
-    <string name="sftp_start_for_real">التنفيذ فعليًا</string>
-    <string name="sftp_sync_cancelled">أُلغيت المزامنة</string>
     <!-- Rename dialog -->
     <string name="sftp_rename_title">إعادة تسمية</string>
     <string name="sftp_new_name">الاسم الجديد</string>
 
     <!-- Share link -->
     <string name="sftp_share_link">مشاركة الرابط</string>
-    <string name="sftp_link_copied">تم نسخ الرابط</string>
 
     <!-- Folder size -->
     <string name="sftp_folder_size">حجم المجلد</string>
@@ -186,13 +176,10 @@
     <string name="sftp_attach_pick_profile">اختر ملف شخصي متصل للاستخدام</string>
     <string name="sftp_attach_local_no_upload">اختر ملفًا شخصيًا بعيدًا — المحلي لا يقبل الرفع</string>
     <string name="sftp_attach_will_upload_into">سيُرفع إلى: %1$s</string>
-    <string name="sftp_chat_attach_pick_file">إرفاق ملف بالدردشة</string>
-    <string name="sftp_chat_attach_will_pick_from">الاختيار من: %1$s</string>
     <string name="sftp_attach_sending">جارٍ إرسال %1$s…</string>
     <string name="sftp_storage_permission_title">مطلوب الوصول إلى التخزين</string>
     <string name="sftp_storage_permission_body">اضغط لمنح الوصول إلى الملفات المحلية — تحتاج ميزات الوسائط والتصفح والنقل إلى هذا الإذن.</string>
     <string name="sftp_paste_unfinished">لصق غير مكتمل</string>
-    <string name="sftp_agent_chip">وكيل</string>
     <string name="sftp_convert_dest_same_folder_cloud">رجوع إلى السحابة (نفس المجلد)</string>
     <string name="sftp_convert_download_first">تنزيل أولًا</string>
     <string name="sftp_convert_download_first_on">ينزّل الملف كاملًا قبل الترميز</string>
@@ -208,15 +195,12 @@
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
     <string name="sftp_new_sync">مزامنة rclone جديدة</string>
     <string name="sftp_encrypt">تشفير (age)</string>
-    <string name="sftp_encrypt_sub">التشفير إلى مفتاح age — قابل للقراءة في أي مكان باستخدام أداة age</string>
     <string name="sftp_decrypt">فك التشفير (age)</string>
-    <string name="sftp_decrypt_sub">فك التشفير بهوية age مخزّنة</string>
     <string name="sftp_encrypt_title">التشفير باستخدام age</string>
     <string name="sftp_encrypt_recipient_hint">أو الصق مستلمًا (age1…)</string>
     <string name="sftp_encrypt_action">تشفير</string>
     <string name="sftp_age_no_identity">لا توجد هوية age. أنشئ واحدة في تبويب المفاتيح، أو الصق مستلمًا.</string>
     <string name="sftp_age_failed">فشلت عملية age — مفتاح خاطئ أو ملف تالف</string>
-    <string name="sftp_open_usb_drive">فتح قرص USB…</string>
     <string name="sftp_add_folder_location">إضافة موقع مجلد</string>
     <string name="sftp_saf_grant_failed">تعذّر الاحتفاظ بالوصول إلى ذلك المجلد</string>
     <string name="sftp_remove_folder_location">إزالة موقع المجلد</string>

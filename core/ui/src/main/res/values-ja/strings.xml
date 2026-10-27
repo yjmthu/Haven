@@ -6,8 +6,6 @@
     <string name="nav_keys">鍵</string>
     <string name="nav_sftp">ファイル</string>
     <string name="nav_settings">設定</string>
-    <string name="nav_mail">メール</string>
-    <string name="nav_chat">チャット</string>
     <string name="common_cancel">キャンセル</string>
     <string name="common_save">保存</string>
     <string name="common_done">完了</string>
@@ -17,10 +15,7 @@
     <string name="common_edit">編集</string>
     <string name="common_rename">名前変更</string>
     <string name="common_create">作成</string>
-    <string name="common_connect">接続</string>
-    <string name="common_disconnect">切断</string>
     <string name="common_copy">コピー</string>
-    <string name="common_paste">貼り付け</string>
     <string name="common_label">ラベル</string>
     <string name="common_password">パスワード</string>
     <string name="common_port">ポート</string>
@@ -30,16 +25,7 @@
     <string name="common_reset">リセット</string>
     <string name="common_allow">許可</string>
     <string name="common_not_now">後で</string>
-    <string name="common_import">インポート</string>
-    <string name="common_add">追加</string>
-    <string name="common_download">ダウンロード</string>
     <string name="common_github">GitHub</string>
     <string name="common_support">サポート</string>
     <string name="common_unlock">ロック解除</string>
-    <string name="wayland_cd_session_menu">セッション メニュー</string>
-    <string name="wayland_cd_reset_zoom">ズームをリセット</string>
-    <string name="wayland_cd_exit_fullscreen">全画面を終了</string>
-    <string name="wayland_cd_toggle_keyboard">キーボードの表示切り替え</string>
-    <string name="wayland_cd_fullscreen">全画面</string>
-    <string name="wayland_cd_desktop_resolution">デスクトップの解像度</string>
 </resources>

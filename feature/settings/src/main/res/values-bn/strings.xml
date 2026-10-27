@@ -10,10 +10,7 @@
     <string name="common_edit">সম্পাদনা</string>
     <string name="common_rename">নাম পরিবর্তন</string>
     <string name="common_create">তৈরি</string>
-    <string name="common_connect">সংযোগ</string>
-    <string name="common_disconnect">সংযোগ বিচ্ছিন্ন</string>
     <string name="common_copy">কপি</string>
-    <string name="common_paste">পেস্ট</string>
     <string name="common_label">লেবেল</string>
     <string name="common_password">পাসওয়ার্ড</string>
     <string name="common_port">পোর্ট</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">রিসেট</string>
     <string name="common_allow">অনুমতি</string>
     <string name="common_not_now">এখন নয়</string>
-    <string name="common_import">ইমপোর্ট</string>
-    <string name="common_add">যোগ</string>
-    <string name="common_download">ডাউনলোড</string>
     <string name="common_unlock">আনলক</string>
 
     <!-- Top-level screen -->
@@ -39,8 +33,6 @@
     <string name="settings_prevent_screenshots_subtitle">স্ক্রিন ক্যাপচার ও টাস্ক সুইচার প্রিভিউ ব্লক করুন</string>
 
     <!-- Logging section -->
-    <string name="settings_exclude_recents_title">সাম্প্রতিক অ্যাপ থেকে লুকান</string>
-    <string name="settings_exclude_recents_subtitle">সাম্প্রতিক স্ক্রিনে Haven-এর কার্ড লুকায়; সেশন চলতে থাকে। অ্যাপ আইকন থেকে আবার খুলুন।</string>
     <string name="settings_connection_logging_title">সংযোগ লগিং</string>
     <string name="settings_connection_logging_subtitle">সংযোগ ইভেন্ট রেকর্ড করুন (সংযোগ, বিচ্ছিন্ন, ত্রুটি)। স্থানীয়ভাবে সংরক্ষিত, ডিভাইস এনক্রিপশন দ্বারা সুরক্ষিত</string>
     <string name="settings_view_connection_log_title">সংযোগ লগ দেখুন</string>
@@ -66,8 +58,6 @@
     <string name="settings_mouse_input_subtitle">htop, mc, বা vim-এর মতো অ্যাপ মাউস ট্র্যাকিং সক্রিয় করলে ট্যাপ ক্লিক ও লং-প্রেস রাইট-ক্লিক হিসেবে ফরওয়ার্ড করুন</string>
     <string name="settings_right_click_title">লং-প্রেসে রাইট-ক্লিক</string>
     <string name="settings_right_click_subtitle">টেক্সট সিলেকশনের বদলে টার্মিনালে রাইট-ক্লিক পাঠান। tmux কনটেক্সট মেনুর জন্য উপযোগী</string>
-    <string name="settings_standard_keyboard_title">ভয়েস ইনপুট এবং স্বয়ংসম্পূর্ণ</string>
-    <string name="settings_standard_keyboard_subtitle">নিরাপদ কীবোর্ড ফ্ল্যাগ নিষ্ক্রিয় করে (পাসওয়ার্ড মোড, কোনো সাজেশন নেই)। ভয়েস ইনপুট, সোয়াইপ টাইপিং এবং শব্দ প্রেডিকশন সক্রিয় করে — তবে IME টাইপ করা পাসওয়ার্ড শিখতে পারে</string>
 
     <!-- Appearance section -->
     <string name="settings_theme_title">থিম</string>
@@ -75,18 +65,6 @@
     <string name="settings_navigation_tabs_subtitle">ট্যাবগুলো পুনর্বিন্যাস করুন এবং দেখানোর জন্য কোনগুলো বাছাই করুন</string>
 
     <!-- Wayland section -->
-    <string name="settings_wayland_shell_title">Wayland ডেস্কটপ শেল</string>
-    <string name="settings_proot_idle_title">নিষ্ক্রিয় Linux গেস্ট স্বয়ংক্রিয়ভাবে বন্ধ করুন</string>
-    <string name="settings_proot_idle_off">বন্ধ — আপনি না থামানো পর্যন্ত Linux গেস্ট চলতে থাকে</string>
-    <string name="settings_proot_idle_on">Haven ছাড়ার %1$d মিনিট পরে গেস্ট বন্ধ করে (চালু থাকা কোনো গেস্ট সার্ভিস এটি চালু রাখে)</string>
-    <string name="settings_proot_idle_dialog_title">নিষ্ক্রিয় Linux গেস্ট স্বয়ংক্রিয়ভাবে বন্ধ করুন</string>
-    <string name="settings_proot_idle_dialog_body">Haven এত সময় ব্যাকগ্রাউন্ডে থাকলে, মেমরি খালি করতে Linux গেস্টের টার্মিনাল ও ডেস্কটপ বন্ধ করুন। চালু থাকা কোনো গেস্ট সার্ভিস এটি চালু রাখে। ব্যাকগ্রাউন্ড টার্মিনালে চলা দীর্ঘ কাজও বন্ধ হবে — নিষ্ক্রিয় অবস্থায় রিসোর্স ফেরত না চাইলে এটি বন্ধ রাখুন।</string>
-    <string name="settings_proot_idle_off_label">বন্ধ</string>
-    <string name="settings_shizuku_title">Shizuku ইন্টিগ্রেশন</string>
-    <string name="settings_shizuku_enabled">সক্রিয় — স্বয়ংক্রিয় ব্যাটারি ছাড়, Wayland সকেট শেয়ারিং</string>
-    <string name="settings_shizuku_available">Shizuku ইনস্টল আছে — অনুমতি দিতে ট্যাপ করুন</string>
-    <string name="settings_shizuku_not_running">Shizuku ইনস্টল কিন্তু চলছে না — ওয়্যারলেস ডিবাগিং দিয়ে শুরু করতে ট্যাপ করুন</string>
-    <string name="settings_shizuku_not_installed">ব্যাটারি ছাড় এবং Wayland অ্যাক্সেসের জন্য Shizuku ইনস্টল করুন</string>
 
     <!-- Backup section -->
     <string name="settings_backup_sync_title">রিমোটে সিঙ্ক করুন</string>
@@ -117,9 +95,6 @@
     <string name="settings_version_unknown">অজানা</string>
 
     <!-- Wayland shell dialog -->
-    <string name="settings_wayland_dialog_title">Wayland ডেস্কটপ শেল</string>
-    <string name="settings_wayland_dialog_description">Wayland ডেস্কটপ foot টার্মিনালে চালানোর শেল কমান্ড। apk দিয়ে অতিরিক্ত শেল ইনস্টল করুন (যেমন apk add bash)।</string>
-    <string name="settings_wayland_shell_command_label">শেল কমান্ড</string>
 
     <!-- Lock timeout dialog -->
     <string name="settings_lock_timeout_dialog_title">লক টাইমআউট</string>
@@ -213,21 +188,12 @@
     <string name="common_github">GitHub</string>
     <string name="common_simple">সাধারণ</string>
     <string name="settings_language_title">ভাষা</string>
-    <string name="settings_media_extensions_title">মিডিয়া ফাইল এক্সটেনশন</string>
-    <string name="settings_media_extensions_description">স্পেস দিয়ে আলাদা করা ফাইল এক্সটেনশন, যেগুলিকে ফাইল ব্রাউজারে স্ট্রিমযোগ্য মিডিয়া হিসেবে গণ্য করা হবে।</string>
-    <string name="settings_media_extensions_label">এক্সটেনশন</string>
-    <string name="settings_show_desktops_title">ডেস্কটপ কার্ড দেখান</string>
-    <string name="settings_show_desktops_subtitle">সংযোগ স্ক্রিনে ডেস্কটপ এনভায়রনমেন্ট ম্যানেজার দেখান</string>
-    <string name="settings_show_linux_vm_title">Linux VM কার্ড দেখান</string>
-    <string name="settings_show_linux_vm_subtitle">সংযোগ স্ক্রিনে Android Linux VM সেটআপ দেখান</string>
     <!-- Backfilled translations (i18n drift fix) -->
     <string name="settings_keep_screen_on_title">টার্মিনালে স্ক্রিন চালু রাখুন</string>
     <string name="settings_keep_screen_on_subtitle">টার্মিনাল ট্যাব খোলা থাকলে ডিসপ্লে জাগ্রত থাকে। ব্যাটারি খরচ হয়; দীর্ঘ আউটপুট দেখার সময় শুধু কার্যকর।</string>
 
     <!-- #135 -->
     <string name="settings_keyboard_mode_title">কীবোর্ড মোড</string>
-    <string name="settings_dev_install_title">ডেভ ইনস্টল</string>
-    <string name="settings_dev_install_apk_url">APK URL</string>
     <string name="settings_font_install_title">URL থেকে ফন্ট ইনস্টল করুন</string>
     <string name="settings_ime_flags_title">IME ফ্ল্যাগ</string>
     <!-- #133 phase 2b: SSH host CA pubkey field (en fallback) -->
@@ -316,50 +282,6 @@
     <string name="settings_nav_tab_visibility_hide_title">লুকান</string>
     <string name="settings_nav_tab_visibility_always_hint">সর্বদা দৃশ্যমান</string>
 
-    <string name="settings_usb_guest_title">USB ডিভাইস Linux গেস্টে প্রকাশ করুন</string>
-    <string name="settings_usb_guest_subtitle">সংযুক্ত USB ডিভাইসগুলি haven-usb shim-এর মাধ্যমে গেস্ট অ্যাপে পৌঁছাতে দিন। প্রতিটি সংযুক্তিতে সম্মতি চাওয়া হয়।</string>
-    <string name="settings_gps_guest_title">Linux গেস্টে GPS প্রকাশ করুন</string>
-    <string name="settings_gps_guest_subtitle">ফোনের GPS অবস্থান NMEA ডিভাইস হিসেবে গেস্টে স্ট্রিম করুন (haven-gps)। চালু থাকলে গেস্টের যেকোনো প্রসেস অবস্থান পড়তে পারে। প্রতিটি সংযুক্তিতে সম্মতি চাওয়া হয়।</string>
-    <string name="settings_proot_install_log_title">PRoot ইনস্টল লগ দেখুন</string>
-    <string name="settings_proot_install_log_subtitle">Linux ডিস্ট্রো ইনস্টল থেকে প্রতি-ধাপের ইভেন্ট (issue #162)</string>
-    <string name="settings_logcat_capture_title">Logcat ক্যাপচার</string>
-    <string name="settings_logcat_capture_subtitle_on">/sdcard/Download/haven-logcat.txt-এ রেকর্ড হচ্ছে</string>
-    <string name="settings_logcat_capture_subtitle_off">রিমোট ডিবাগিংয়ের জন্য logcat ক্যাপচার করুন</string>
-    <string name="settings_logcat_saved_toast">Logcat সংরক্ষিত হয়েছে</string>
-    <string name="settings_logcat_started_toast">Logcat ক্যাপচার শুরু হয়েছে</string>
-    <string name="settings_logcat_start_failed_toast">ক্যাপচার শুরু করতে ব্যর্থ</string>
-    <string name="settings_agent_endpoint_title">এজেন্ট এন্ডপয়েন্ট (MCP)</string>
-    <string name="settings_agent_endpoint_subtitle_on">চালু — loopback-এ স্থানীয় MCP সার্ভার। Write টুল সম্মতি চায়।</string>
-    <string name="settings_agent_endpoint_subtitle_off">বন্ধ — স্থানীয় AI agent-দের স্থিতি পড়তে ও (সম্মতিসহ) কার্য করতে দিতে চালু করুন</string>
-    <string name="settings_agent_file_read_title">Agent-দের ফাইল বিষয়বস্তু পড়তে দিন</string>
-    <string name="settings_agent_file_read_subtitle_on">চালু — `serve_file` প্রতি-কলে সম্মতির পরে একটি একক-ব্যবহার ডাউনলোড URL দেয়</string>
-    <string name="settings_agent_file_read_subtitle_off">বন্ধ — `serve_file` অনুরোধ তাৎক্ষণিকভাবে ব্যর্থ হয়, কোনো prompt নেই</string>
-    <string name="settings_agent_terminal_input_title">Agent-দের টার্মিনাল ইনপুট queue করতে দিন</string>
-    <string name="settings_agent_terminal_input_subtitle_on">চালু — `queue_terminal_input` SSH সেশনের আউটপুট দেখে পরবর্তী prompt-এ queued টেক্সট টাইপ করে (প্রতি-কলে সম্মতি)</string>
-    <string name="settings_agent_terminal_input_subtitle_off">বন্ধ — `queue_terminal_input` অনুরোধ তাৎক্ষণিকভাবে ব্যর্থ হয়, কোনো prompt নেই</string>
-    <string name="settings_reverse_tunnel_title">সর্বদা-চালু MCP সংযোগ</string>
-    <string name="settings_reverse_tunnel_subtitle_set">\"%1$s\"-এ টানেল করা — WiFi পরিবর্তন ও অ্যাপ রিস্টার্টে টিকে থাকে</string>
-    <string name="settings_reverse_tunnel_subtitle_unset">সেট করা নেই — endpoint শুধু ডিভাইসে পৌঁছানো যায়</string>
-    <string name="settings_reverse_tunnel_none">কোনোটি নয় (শুধু ডিভাইসে)</string>
-    <string name="settings_mcp_wireguard_title">WireGuard টানেলে প্রকাশ করুন</string>
-    <string name="settings_mcp_wireguard_subtitle_on">চালু — সক্রিয় WireGuard টানেলে &lt;wg-ip&gt;:8730-এও পৌঁছানো যায়</string>
-    <string name="settings_mcp_wireguard_subtitle_off">বন্ধ — সক্রিয় WireGuard টানেলে endpoint পৌঁছাতে চালু করুন</string>
-    <string name="settings_mcp_lan_title">Wi-Fi/LAN-এ প্রকাশ করুন</string>
-    <string name="settings_mcp_lan_subtitle_on">চালু — স্থানীয় নেটওয়ার্কে &lt;device-lan-ip&gt;:8730-এও পৌঁছানো যায়</string>
-    <string name="settings_mcp_lan_subtitle_off">বন্ধ — একই Wi-Fi/LAN-এর ডিভাইস থেকে সরাসরি পৌঁছাতে চালু করুন</string>
-    <string name="settings_mcp_copy_url_title">Agent endpoint URL কপি করুন</string>
-    <string name="settings_mcp_url_copied_toast">Endpoint কপি হয়েছে</string>
-    <string name="settings_mcp_copy_config_title">MCP ক্লায়েন্ট কনফিগ কপি করুন</string>
-    <string name="settings_mcp_copy_config_subtitle">যেকোনো MCP ক্লায়েন্টে পেস্ট করার জন্য স্ট্যান্ডার্ড JSON snippet</string>
-    <string name="settings_mcp_config_copied_toast">কনফিগ কপি হয়েছে</string>
-    <string name="settings_mcp_proot_title">PRoot-এও উপলব্ধ</string>
-    <string name="settings_agent_activity_title">Agent কার্যকলাপ দেখুন</string>
-    <string name="settings_agent_activity_subtitle">redacted আর্গুমেন্টসহ প্রতিটি MCP কল রেকর্ড করা</string>
-    <string name="settings_agent_confirm_destructive_title">ধ্বংসাত্মক agent কার্য নিশ্চিত করুন</string>
-    <string name="settings_agent_confirm_destructive_subtitle">যেকোনো agent কল যা লেখে, মোছে, আপলোড করে বা সংযোগ বিচ্ছিন্ন করে তার আগে prompt করুন। Read-only কল কখনো prompt করে না।</string>
-    <string name="settings_agent_forget_allows_title">মনে রাখা অনুমোদন ভুলে যান</string>
-    <string name="settings_agent_forget_allows_subtitle">পূর্বে once-per-session অনুমোদন পাওয়া প্রতিটি টুলের জন্য পুনরায় prompt করুন।</string>
-    <string name="settings_agent_allows_cleared_toast">মনে রাখা অনুমোদন সাফ হয়েছে</string>
     <string name="settings_font_from_url_body">একটি TTF বা OTF ফন্ট ফাইলের সরাসরি লিংক পেস্ট করুন। সাধারণ Nerd Fonts-এর raw TTF GitHub-এ github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/&lt;Name&gt;/Regular/&lt;Name&gt;NerdFont-Regular.ttf-এ আছে — সেই URL এখানে কপি করুন।</string>
     <string name="settings_font_from_url_placeholder">https://…/font.ttf</string>
     <string name="settings_recommended_fonts_dialog_body">জনপ্রিয় monospace coding ফন্ট ডাউনলোড ও প্রয়োগ করতে ট্যাপ করুন।</string>
@@ -368,9 +290,6 @@
     <string name="settings_filter_all">সব</string>
     <string name="settings_action_clear">সাফ</string>
     <string name="settings_cannot_be_undone">এটি পূর্বাবস্থায় ফেরানো যাবে না।</string>
-    <string name="settings_cd_collapse">সঙ্কুচিত</string>
-    <string name="settings_cd_expand">প্রসারিত</string>
-    <string name="settings_cd_failed">ব্যর্থ</string>
     <string name="settings_audit_log_title">সংযোগ লগ</string>
     <string name="settings_audit_log_cd_clear">লগ সাফ করুন</string>
     <string name="settings_audit_log_cd_toggle_details">বিস্তারিত টগল</string>
@@ -382,18 +301,6 @@
     <string name="settings_audit_log_share_chooser">লগ শেয়ার করুন</string>
     <string name="settings_audit_log_status_sync">Sync</string>
     <string name="settings_audit_log_status_sync_failed">Sync ব্যর্থ হয়েছে</string>
-    <string name="settings_agent_activity_screen_title">Agent কার্যকলাপ</string>
-    <string name="settings_agent_activity_cd_clear">ইতিহাস সাফ</string>
-    <string name="settings_agent_activity_empty">এখনো কোনো agent কার্যকলাপ নেই।\n\nকোনো MCP ক্লায়েন্ট টুল কল করলে, কলটি এখানে redacted আর্গুমেন্ট ও সংক্ষিপ্ত ফলাফলসহ দেখাবে।</string>
-    <string name="settings_agent_activity_clear_dialog_title">Agent কার্যকলাপ সাফ করবেন?</string>
-    <string name="settings_agent_activity_clear_dialog_text">এই ডিভাইস থেকে সব রেকর্ড করা MCP কল মুছে ফেলা হবে। এটি পূর্বাবস্থায় ফেরানো যাবে না।</string>
-    <string name="settings_agent_activity_unknown_client">অজানা ক্লায়েন্ট</string>
-    <string name="settings_agent_activity_args_redacted">আর্গুমেন্ট (redacted)</string>
-    <string name="settings_proot_install_log_screen_title">PRoot ইনস্টল লগ</string>
-    <string name="settings_proot_install_log_cd_clear">লগ সাফ</string>
-    <string name="settings_proot_install_log_empty">এখনো কোনো ইনস্টল ইভেন্ট রেকর্ড হয়নি। এই লগ পূরণ করতে Connections → Desktops দিয়ে একটি ডিস্ট্রো ইনস্টল করুন।</string>
-    <string name="settings_proot_install_log_clear_dialog_title">ইনস্টল লগ সাফ করবেন?</string>
-    <string name="settings_proot_install_log_clear_dialog_text">সব রেকর্ড করা ইনস্টল ইভেন্ট মুছে ফেলা হবে।</string>
     <string name="settings_ime_flag_no_suggestions_title">সাজেশন স্ট্রিপ লুকান</string>
     <string name="settings_ime_flag_no_suggestions_detail">TYPE_TEXT_FLAG_NO_SUGGESTIONS — সর্বজনীনভাবে সম্মানিত</string>
     <string name="settings_ime_flag_visible_password_title">Autocorrect / autocap / autospace দমন করুন</string>
@@ -406,43 +313,14 @@
     <string name="settings_ime_flag_no_extract_ui_detail">IME_FLAG_NO_EXTRACT_UI — landscape-এর fullscreen IME UI দেখানো বন্ধ করে।</string>
     <string name="settings_ime_flag_no_learning_title">IME-কে শেখা থেকে বিরত রাখুন</string>
     <string name="settings_ime_flag_no_learning_detail">IME_FLAG_NO_PERSONALIZED_LEARNING — গোপনীয়তা: IME-এর word bank টাইপ করা টেক্সট উপেক্ষা করে। Gboard-এ mic লুকাতেও যথেষ্ট শক্তিশালী।</string>
-    <string name="settings_mcp_tools_title">MCP টুল</string>
-    <string name="settings_mcp_tools_subtitle">এজেন্ট যা দেখে তা কমাতে পৃথক এজেন্ট টুল বন্ধ করুন</string>
-    <string name="settings_mcp_tools_screen_title">MCP টুল</string>
-    <string name="settings_mcp_tools_empty">এজেন্ট এন্ডপয়েন্ট চালু হলে টুলের তালিকা দেখা যাবে।</string>
-    <string name="settings_mcp_tools_intro">বন্ধ করা টুল এজেন্টের টুল তালিকা থেকে সম্পূর্ণ মুছে যায় — ছোট মডেল কম বিশৃঙ্খলা দেখে এবং প্রতিটি কল কম টোকেন খরচ করে। এন্ডপয়েন্ট সুইচ, পেয়ারিং ও সম্মতি প্রম্প্ট প্রযোজ্য থাকে।</string>
-    <string name="settings_mcp_tools_consent_every_call">প্রতিটি কলে জিজ্ঞাসা করে</string>
-    <string name="settings_mcp_tools_consent_once">প্রতি সেশনে একবার জিজ্ঞাসা করে</string>
-    <string name="settings_mcp_tools_consent_never">প্রতি-কলে কোনো প্রম্প্ট নেই</string>
-    <string name="settings_paired_clients_title">পেয়ার করা MCP ক্লায়েন্ট</string>
-    <string name="settings_paired_clients_subtitle">পেয়ার করা ক্লায়েন্ট দেখুন, ক্লায়েন্ট অনুযায়ী প্রম্পট এড়িয়ে যান, বা আনপেয়ার করুন</string>
-    <string name="settings_paired_clients_screen_title">পেয়ার করা MCP ক্লায়েন্ট</string>
-    <string name="settings_paired_clients_empty">এখনও কোনও MCP ক্লায়েন্ট পেয়ার করা হয়নি। আপনি কোনও ক্লায়েন্টের সংযোগ প্রম্পট অনুমোদন করলে এটি এখানে দেখা যাবে।</string>
-    <string name="settings_paired_clients_bypass_label">অনুমোদন প্রম্পট এড়িয়ে যান</string>
-    <string name="settings_paired_clients_bypass_on">এই ক্লায়েন্টের প্রতিটি কল স্বয়ংক্রিয়ভাবে অনুমোদন করে, ধ্বংসাত্মক কলসহ।</string>
-    <string name="settings_paired_clients_bypass_off">প্রতিটি ধ্বংসাত্মক কল এখনও সম্মতি চায় (ডিফল্ট)।</string>
-    <string name="settings_paired_clients_cd_unpair">ক্লায়েন্ট আনপেয়ার করুন</string>
-    <string name="settings_paired_clients_unpair_title">\'%1$s\' আনপেয়ার করবেন?</string>
-    <string name="settings_paired_clients_unpair_message">পরেরবার সংযুক্ত হলে এটিকে আবার অনুমোদন করতে হবে, এবং যেকোনো স্বয়ংক্রিয় অনুমোদন বাতিল হবে।</string>
-    <string name="settings_paired_clients_unpair_confirm">আনপেয়ার</string>
-    <string name="settings_paired_clients_unpaired_toast">\'%1$s\' আনপেয়ার করা হয়েছে</string>
 
     <!-- MCP endpoint warnings / loopback trust -->
-    <string name="settings_mcp_wireguard_collision">আরেকটি VPN (%1$s) %2$s ব্যবহার করছে — এই endpoint যে ঠিকানায় বাইন্ড করে সেই একই ঠিকানা, তাই এটি ছায়াবৃত এবং পেয়ার থেকে অপৌঁছনীয়। সেই VPN বন্ধ করুন, অথবা আপনার MCP ক্লায়েন্টকে loopback (127.0.0.1) endpoint-এ নির্দেশ করুন।</string>
-    <string name="settings_mcp_trust_loopback_title">স্থানীয় ক্লায়েন্টদের বিশ্বাস করুন</string>
-    <string name="settings_mcp_trust_loopback_subtitle_on">চালু — স্থানীয় ক্লায়েন্ট (127.0.0.1) পেয়ারিং বা অনুমোদন প্রম্পট ছাড়াই সংযুক্ত হয়। Wi-Fi/LAN ও WireGuard ক্লায়েন্ট এখনও প্রম্পট করে।</string>
-    <string name="settings_mcp_trust_loopback_subtitle_off">বন্ধ — স্থানীয় ক্লায়েন্টদেরও পেয়ার করতে হবে এবং প্রতিটি অনুরোধ অনুমোদন করতে হবে</string>
 
     <!-- Terminal reflow, GPU stack, standing policies (#250) -->
     <string name="settings_reflow_on_keyboard_title">কীবোর্ডের সাথে টার্মিনালের আকার মানানসই করুন</string>
     <string name="settings_reflow_on_keyboard_subtitle">কীবোর্ড খুললে, ভিউ উপরে স্ক্রোল করার বদলে টার্মিনালের আকার তার উপরে মানানসই করা হয়। উপরে স্ট্যাটাস লাইন দেখায় এমন ফুলস্ক্রিন অ্যাপের জন্য সহায়ক; সাধারণ শেলের জন্য বন্ধ রাখুন।</string>
     <string name="settings_tab_titles_follow_session_title">ট্যাব শীর্ষকে সেশনের নাম পছন্দ করুন</string>
     <string name="settings_tab_titles_follow_session_subtitle">tmux/zellij/screen-এ সংযুক্ত ট্যাবগুলি চলমান প্রোগ্রাম নির্ধারিত শীর্ষকের বদলে সেশনের নাম ধরে রাখে।</string>
-    <string name="settings_gpu_venus_title">পরীক্ষামূলক GPU স্ট্যাক (venus + zink)</string>
-    <string name="settings_gpu_venus_subtitle">অ্যাক্সিলারেটেড ডেস্কটপে virgl (GL 2.1)-এর বদলে venus (GPU-তে Vulkan) + zink ব্যবহার করে আধুনিক OpenGL (প্রায় 3.2 core) চালায়। নেটিভ Vulkan অ্যাপ দেখায়; তবে OpenGL প্রদর্শন এখন ধীর। গেস্টে mesa-vulkan-drivers ইনস্টল থাকা প্রয়োজন। বন্ধ = virgl (ডিফল্ট)।</string>
-    <string name="settings_standing_policies_header">স্থায়ী নীতি — এই টুলগুলি জিজ্ঞাসা ছাড়াই চলে</string>
-    <string name="settings_standing_policy_meta">%1$s · সর্বোচ্চ %2$d কল/মিনিট · %3$s-এ মেয়াদ শেষ</string>
-    <string name="settings_standing_policy_revoke">প্রত্যাহার করুন</string>
 
     <!-- Desktop key placement (#245.2) -->
     <string name="settings_toolbar_desktop_key">ডেস্কটপ কী</string>
@@ -461,13 +339,8 @@
     <string name="settings_terminal_opacity_title">ব্যাকগ্রাউন্ড অস্বচ্ছতা</string>
     <string name="settings_terminal_opacity_value">%1$d%%</string>
     <string name="settings_terminal_opacity_hint" formatted="false">100%-এর নিচে Haven স্বচ্ছপ্রায় হয়ে যায় এবং প্রতিটি স্ক্রিনের (টার্মিনাল, তালিকা, সেটিংস) পিছনে আপনার ডিভাইসের ওয়ালপেপার দেখায়। প্রতি-সংযোগ ওভাররাইড কেবল সেই টার্মিনালে প্রযোজ্য।</string>
-    <string name="settings_section_mcp">AI এজেন্ট (MCP)</string>
     <string name="settings_tailscale_discovery_title">Tailscale পিয়ার সনাক্তকরণ</string>
     <string name="settings_tailscale_discovery_subtitle">স্ক্যানের সময় স্থানীয় API-এর মাধ্যমে আপনার Tailscale নেটওয়ার্কের হোস্ট খুঁজুন। বন্ধ করলে Haven পিয়ার তালিকা পড়বে না; Tailscale প্রভাবিত হবে না।</string>
-    <string name="settings_audio_bridge_title">Proot অডিও (পরীক্ষামূলক)</string>
-    <string name="settings_audio_bridge_subtitle">গেস্টের ভিতরের PulseAudio ব্রিজের মাধ্যমে Linux অ্যাপের শব্দ ডিভাইসের স্পিকারে বাজান। শুধু আউটপুট। চালু থাকলে অবিরাম স্ট্রিম হয় — ব্যবহার না করলে বন্ধ করুন।</string>
-    <string name="settings_reverse_tunnel_status_active">Near (SSH): %1$s-এর মাধ্যমে চলছে — সংযুক্ত</string>
-    <string name="settings_reverse_tunnel_status_inactive">Near (SSH): সংযুক্ত নয় — চালু করতে %1$s খুলুন</string>
     <string name="settings_remote_clipboard_title">রিমোট ক্লিপবোর্ড সিঙ্ক করুন</string>
     <string name="settings_remote_clipboard_subtitle">একটি রিমোট ডেস্কটপ (VNC) কে ডিভাইসের ক্লিপবোর্ডে কপি করতে দিন। ডিফল্টভাবে বন্ধ।</string>
     <string name="settings_rdp_progressive_upgrade_title">RDP: প্রোগ্রেসিভ আপগ্রেড টাইল ডিকোড করুন (পরীক্ষামূলক)</string>
@@ -534,7 +407,6 @@ Haven-এ ইম্মদ্য সংরক্ষিত প্রত্যে�
     <string name="settings_inline_images_ask">জিজ্ঞাসা করুন</string>
     <string name="settings_inline_images_always">সবসময়</string>
     <string name="settings_ambiwidth_title">অস্পষ্ট প্রস্থ অক্ষরের পরিচালনা</string>
-    <string name="settings_ambiwidth_subtitle">পূর্ব এশীয় অস্পষ্ট অক্ষরের (প্রতীক, গ্রীক) রেন্ডারিং পদ্ধতি</string>
     <string name="settings_ambiwidth_mode_narrow">সংকীর্ণ (১টি ঘর)</string>
     <string name="settings_ambiwidth_mode_narrow_desc">সর্বদা ১টি ঘর (স্ট্যান্ডার্ড ইউনিক্স / XTerm, ডিফল্ট)</string>
     <string name="settings_ambiwidth_mode_auto_narrow">অটো + সংকীর্ণ</string>
@@ -545,17 +417,4 @@ Haven-এ ইম্মদ্য সংরক্ষিত প্রত্যে�
     <string name="settings_ambiwidth_mode_auto_wide_desc">সক্রিয় ফন্ট পরিমাপ করুন; অন্যথায় ২টি ঘর (CJK)</string>
     <string name="settings_bell_notification_title">ঘণ্টির বিজ্ঞপ্তি</string>
     <string name="settings_bell_notification_subtitle">Haven পটভূমিতে থাকার সময় কোনো টার্মিনাল প্রোগ্রাম ঘণ্টি বাজালে ট্যাবের নাম উল্লেখ করে একটি বিজ্ঞপ্তি পাঠানো হয়। আপনি টার্মিনাল দেখার সময় কিছু দেখানো হয় না।</string>
-    <string name="settings_mcp_tools_category_off_count">%1$d বন্ধ</string>
-    <string name="settings_mcp_tools_cat_terminal">টার্মিনাল</string>
-    <string name="settings_mcp_tools_cat_connections">সংযোগ</string>
-    <string name="settings_mcp_tools_cat_files">ফাইল</string>
-    <string name="settings_mcp_tools_cat_desktop">ডেস্কটপ</string>
-    <string name="settings_mcp_tools_cat_guest">Linux গেস্ট</string>
-    <string name="settings_mcp_tools_cat_usb">USB এবং সিরিয়াল</string>
-    <string name="settings_mcp_tools_cat_keys">কী এবং শংসাপত্র</string>
-    <string name="settings_mcp_tools_cat_mail">মেইল</string>
-    <string name="settings_mcp_tools_cat_rclone">ক্লাউড স্টোরেজ</string>
-    <string name="settings_mcp_tools_cat_senses">সেন্সর এবং অবস্থান</string>
-    <string name="settings_mcp_tools_cat_agent">এজেন্ট এবং ডিভাইস নিয়ন্ত্রণ</string>
-    <string name="settings_mcp_tools_cat_other">অন্যান্য</string>
 </resources>

@@ -13,10 +13,7 @@
     <string name="common_edit">Изменить</string>
     <string name="common_rename">Переименовать</string>
     <string name="common_create">Создать</string>
-    <string name="common_connect">Подключить</string>
-    <string name="common_disconnect">Отключить</string>
     <string name="common_copy">Копировать</string>
-    <string name="common_paste">Вставить</string>
     <string name="common_label">Метка</string>
     <string name="common_password">Пароль</string>
     <string name="common_port">Порт</string>
@@ -26,16 +23,11 @@
     <string name="common_reset">Сбросить</string>
     <string name="common_allow">Разрешить</string>
     <string name="common_not_now">Не сейчас</string>
-    <string name="common_import">Импорт</string>
-    <string name="common_add">Добавить</string>
-    <string name="common_download">Скачать</string>
     <string name="common_github">GitHub</string>
     <string name="common_support">Поддержка</string>
     <string name="common_unlock">Разблокировать</string>
 
     <!-- Battery optimization -->
-    <string name="battery_title">Поддерживать соединения?</string>
-    <string name="battery_message">Android может закрывать фоновые SSH-подключения для экономии батареи. Отключение оптимизации батареи для Haven предотвращает это.</string>
 
     <!-- Workspace profiles -->
     <string name="workspace_section_title">Рабочие пространства</string>
@@ -49,7 +41,6 @@
     <string name="workspace_card_kind_terminal">Терминал</string>
     <string name="workspace_card_kind_file_browser">Файлы</string>
     <string name="workspace_card_kind_desktop">Рабочий стол</string>
-    <string name="workspace_card_kind_wayland">Wayland</string>
     <string name="workspace_card_kind_count">%1$s × %2$d</string>
     <string name="workspace_card_no_items">пусто</string>
     <string name="workspace_long_press_delete">Удалить</string>
@@ -64,7 +55,6 @@
     <string name="workspace_launch_dismiss">Закрыть</string>
     <string name="biometric_screen_lock_icon">Блокировка экрана</string>
     <string name="desktop_screen_title">Рабочий стол</string>
-    <string name="agent_deny">Отклонить</string>
 
     <!-- Biometric lock -->
     <string name="app_biometric_locked_title">Haven заблокирован</string>
@@ -72,66 +62,6 @@
     <string name="app_biometric_open_device_settings">Открыть настройки устройства</string>
 
     <!-- Desktop / app windows -->
-    <string name="app_desktop_app_windows_title">Окна приложений</string>
-    <string name="app_desktop_app_windows_description">Запуск одного приложения в плавающем окне поверх текущего экрана. Приложения выполняются в активном дистрибутиве Linux и должны быть в нём установлены.</string>
-    <string name="app_desktop_app_windows_empty">Окон приложений пока нет. Добавьте одно, чтобы запустить приложение в плавающем окне.</string>
-    <string name="app_desktop_app_window_launch_cd">Запустить %1$s</string>
-    <string name="app_desktop_app_window_edit_cd">Изменить %1$s</string>
-    <string name="app_desktop_app_window_delete_cd">Удалить %1$s</string>
-    <string name="app_desktop_add_app_window">Добавить окно приложения</string>
-    <string name="app_desktop_edit_app_window_title">Изменить окно приложения</string>
-    <string name="app_desktop_add_app_window_title">Добавить окно приложения</string>
-    <string name="app_desktop_app_window_label_placeholder">напр. Просмотрщик изображений</string>
-    <string name="app_desktop_app_window_command_label">Команда</string>
-    <string name="app_desktop_app_window_command_placeholder">напр. imv /root/board.png</string>
-    <string name="app_desktop_open_shell_cd">Открыть оболочку в %1$s</string>
-    <string name="app_desktop_delete_distro_cd">Удалить %1$s</string>
-    <string name="app_desktop_delete_distro_confirm_title">Удалить %1$s?</string>
-    <string name="app_desktop_delete_distro_confirm_body">Это удалит rootfs и освободит занятое им место на диске. Установленные вами пакеты и файлы в этом дистрибутиве будут потеряны. При следующем открытии он будет создан заново.</string>
-    <string name="app_desktop_add_distro">+ %1$s  (~%2$d МБ)</string>
-    <string name="app_desktop_add_foreign_distro">+ %1$s %2$s — эмуляция, медленнее  (~%3$d МБ)</string>
-    <string name="app_desktop_add_distro_confirm_title">Скачать %1$s?</string>
-    <string name="app_desktop_add_distro_confirm_body">Это скачает и распакует rootfs, около %1$d МБ. На медленном соединении это может занять время.</string>
-    <string name="app_desktop_add_foreign_distro_confirm_body">Это скачает и распакует rootfs %1$s для эмулируемого использования, около %2$d МБ. На медленном соединении это может занять время.</string>
-    <string name="app_desktop_usb_drive_picker_title">Какой USB-накопитель открыть?</string>
-    <string name="app_desktop_usb_route_title">Как открыть %1$s?</string>
-    <string name="app_desktop_usb_route_body">Android смонтировал этот диск как «%1$s». Просмотрите его напрямую (быстро) или откройте в небольшой виртуальной машине Linux — она запускается медленнее, но читает файловые системы, недоступные Android: разделы ext4/GPT и LUKS.</string>
-    <string name="app_desktop_usb_route_browse">Просмотреть напрямую</string>
-    <string name="app_desktop_usb_route_vm">Открыть в ВМ Linux</string>
-    <string name="app_desktop_usb_route_readonly_hint">Прямой просмотр доступен только для чтения, пока в настройках не выдан доступ ко всем файлам.</string>
-    <string name="app_desktop_rootfs_downloading">Загрузка rootfs… %1$d%%</string>
-    <string name="app_desktop_rootfs_extracting">Распаковка rootfs…</string>
-    <string name="app_desktop_rootfs_initializing">Настройка rootfs… (%1$s)</string>
-    <string name="app_desktop_phase_download">Загрузка</string>
-    <string name="app_desktop_phase_extract">Распаковка</string>
-    <string name="app_desktop_phase_bootstrap_hook">Хук инициализации</string>
-    <string name="app_desktop_phase_baseline">Базовые пакеты</string>
-    <string name="app_desktop_setup_failed_phase">Сбой: %1$s</string>
-    <string name="app_desktop_proot_log_hint">Полная история по фазам: Настройки → Журнал установки PRoot.</string>
-    <string name="app_desktop_retry_wipe">Стереть и повторить</string>
-    <string name="app_desktop_retry_step">Повторить этот шаг</string>
-    <string name="app_desktop_experimental">экспериментально</string>
-    <string name="app_desktop_vnc_running">VNC :%1$d (порт %2$d)</string>
-    <string name="app_desktop_error">Ошибка</string>
-    <string name="app_desktop_install_distro_first">" · сначала установите дистрибутив"</string>
-    <string name="app_desktop_vnc_port_stored">Порт VNC %1$d</string>
-    <string name="app_desktop_custom_cmd_unset">Сначала задайте команду сеанса</string>
-    <string name="app_desktop_custom_cmd_edit">Изменить команду сеанса</string>
-    <string name="app_desktop_custom_cmd_title">Своя команда сеанса</string>
-    <string name="app_desktop_custom_cmd_description">Выполняется на X-сервере Haven внутри активного дистрибутива — схема termux-x11, например dbus-launch startxfce4. Сначала установите пакеты рабочего стола в дистрибутиве. X11-рабочие столы используют программный рендеринг: окружения, требующие GL-композитор (GNOME Shell, KWin), не запустятся.</string>
-    <string name="app_desktop_custom_cmd_label">Команда сеанса</string>
-    <string name="app_desktop_custom_cmd_save_start">Сохранить и запустить</string>
-    <string name="app_desktop_de_with_size">%1$s (%2$s)</string>
-    <string name="app_desktop_experimental_on">Экспериментально на %1$s</string>
-    <string name="app_desktop_vnc_port_label">Порт VNC</string>
-    <string name="app_desktop_vnc_display">Дисплей :%1$d</string>
-    <string name="app_desktop_vnc_port_range">Диапазон 5901–5999</string>
-    <string name="app_desktop_phase_packages">Пакеты</string>
-    <string name="app_desktop_phase_vnc_config">Конфигурация VNC</string>
-    <string name="app_desktop_phase_marker">Файл-маркер</string>
-    <string name="app_desktop_addon_with_size">%1$s (%2$s)</string>
-    <string name="app_desktop_sessions_cd">Сессии</string>
-    <string name="app_desktop_manage_cd">Управление рабочими столами</string>
     <string name="app_desktop_view_only_cd">Только просмотр</string>
     <string name="app_desktop_empty_hint">Подключитесь через VNC или RDP на вкладке «Подключения»</string>
     <string name="app_desktop_tab_label">%1$s %2$s</string>
@@ -139,25 +69,8 @@
     <string name="app_desktop_move_tab_right_cd">Переместить вправо</string>
 
     <!-- Agent / MCP -->
-    <string name="app_agent_pair_title">Привязать MCP-клиент?</string>
-    <string name="app_agent_action_requested">Запрос действия агента</string>
-    <string name="app_agent_from_client">От: %1$s</string>
-    <string name="app_agent_tool">Инструмент: %1$s</string>
-    <string name="app_agent_bypass_label">Разрешить все MCP-запросы от \'%1$s\' до перезапуска Haven</string>
-    <string name="app_agent_bypass_description">Включает деструктивные операции (ввод в терминал, запись/удаление файлов, установка APK). Сбрасывается при закрытии приложения.</string>
-    <string name="app_agent_auto_allow_window">Окно автоодобрения:</string>
-    <string name="app_agent_minutes">%1$dм</string>
-    <string name="app_agent_allow_for_minutes">Разрешить на %1$dм</string>
-    <string name="app_agent_pair">Привязать</string>
-    <string name="app_agent_block_client">Заблокировать</string>
 
     <!-- Present / media overlay -->
-    <string name="app_present_app_missing_details">В окне приложения отсутствуют данные подключения.</string>
-    <string name="app_present_dismiss">Закрыть</string>
-    <string name="app_present_image_shared_cd">Изображение от агента</string>
-    <string name="app_present_pause">Пауза</string>
-    <string name="app_present_play">Воспроизвести</string>
-    <string name="app_present_preparing_audio">Подготовка аудио…</string>
 
     <!-- i18n sweep #210 (follow-up batch) -->
     <string name="app_biometric_blocked_no_activity_title">Haven заблокирован</string>
@@ -166,158 +79,17 @@
     <string name="app_biometric_not_enrolled_body">Блокировка приложения Haven включена, но на этом устройстве нет блокировки экрана или зарегистрированной биометрии. Настройте её в настройках устройства, чтобы разблокировать.</string>
     <string name="app_biometric_no_hardware_title">Аутентификация недоступна</string>
     <string name="app_biometric_no_hardware_body">Это устройство не может выполнить аутентификацию (нет биометрического оборудования и учётных данных устройства). Настройте PIN-код или пароль в настройках, чтобы разблокировать.</string>
-    <string name="app_present_minimize">Свернуть</string>
-    <string name="app_present_pip">Картинка в картинке</string>
 
     <!-- Local Linux desktop manager -->
-    <string name="app_desktop_manager_title">Полный Linux (proot)</string>
-    <string name="app_desktop_primary_title">Рабочий стол Linux</string>
-    <string name="app_desktop_primary_subline_quick">Готов примерно за 4 секунды · приложения Alpine · один рабочий стол за раз</string>
-    <string name="app_desktop_primary_subline_full">Любой дистрибутив · 6 рабочих столов · работает вместе с другими приложениями</string>
-    <string name="app_desktop_primary_start_quick">Запустить · Быстрый (UML)</string>
-    <string name="app_desktop_primary_start_full">Запустить · Полный (proot)</string>
-    <string name="app_desktop_primary_switch_to_full">Вместо этого использовать полный Linux</string>
-    <string name="app_desktop_primary_switch_to_quick">Вместо этого использовать быстрый рабочий стол</string>
-    <string name="app_desktop_primary_running">Запущено</string>
-    <string name="app_desktop_primary_chip_quick">Быстрый · %1$s</string>
-    <string name="app_desktop_primary_chip_full">Полный · %1$s</string>
-    <string name="app_desktop_manager_description">Запустите полноценный рабочий стол Linux внутри Haven. Выберите дистрибутив, установите среду рабочего стола (Xfce4, Openbox или Sway), затем нажмите «Запустить» — отдельный сервер или подключение не нужны.</string>
 
     <!-- App windows / installed-app launcher (#250) -->
-    <string name="app_desktop_app_window_pin_home_cd">Добавить %1$s на главный экран</string>
-    <string name="app_desktop_browse_installed_apps">Просмотр установленных приложений</string>
-    <string name="app_desktop_installed_apps_title">Установленные приложения</string>
-    <string name="app_desktop_installed_apps_search">Поиск приложений</string>
-    <string name="app_desktop_installed_apps_count">%1$d приложений · %2$d со значками</string>
-    <string name="app_desktop_installed_apps_empty">В активном дистрибутиве не найдено графических приложений.</string>
-    <string name="app_desktop_installed_apps_close_cd">Закрыть</string>
-    <string name="app_desktop_installed_app_icon_cd">Значок %1$s</string>
-    <string name="app_desktop_installed_app_launch_cd">Запустить %1$s</string>
-    <string name="app_desktop_installed_app_fullscreen_on_cd">%1$s открывается в полноэкранном режиме — нажмите для оконного</string>
-    <string name="app_desktop_installed_app_fullscreen_off_cd">%1$s открывается в оконном режиме — нажмите для полноэкранного</string>
-    <string name="app_desktop_app_window_fullscreen">Открыть в полноэкранном режиме</string>
-    <string name="app_desktop_app_window_run_as_root">Запустить от root</string>
-    <string name="app_desktop_app_window_run_as_root_hint">Для пакетных менеджеров и системных утилит (устанавливает fakeroot)</string>
-    <string name="app_desktop_app_window_resolution">Разрешение</string>
-    <string name="app_desktop_app_window_scale">Масштаб</string>
-    <string name="app_desktop_opt_default">По умолчанию</string>
-    <string name="app_desktop_res_auto">Авто</string>
-    <string name="app_desktop_res_landscape">Альбомная</string>
-    <string name="app_desktop_res_custom">Своё</string>
-    <string name="app_desktop_res_custom_hint">Ширина×Высота, напр. 1024x600</string>
-    <string name="app_desktop_app_window_defaults">Экран по умолчанию (все окна приложений)</string>
 
-    <string name="app_system_vm_title">Системная ВМ</string>
-    <string name="app_system_vm_description">Запускает полноценную x86_64/arm64 Linux-ВМ (QEMU в активном дистрибутиве) и показывает её через VNC. По одной за раз и с эмуляцией — поэтому медленно. Нужен QEMU с поддержкой VNC (в Debian есть, в Alpine нет).</string>
-    <string name="app_system_vm_empty">Пока нет образов. Импортируйте загрузочный образ диска (.qcow2, .img, .iso), чтобы начать.</string>
-    <string name="app_system_vm_import">Импорт образа…</string>
-    <string name="app_system_vm_running">Работает · VNC 127.0.0.1:%1$d</string>
-    <string name="app_system_vm_starting">Запуск…</string>
-    <string name="app_system_vm_stop">Остановить</string>
-    <string name="app_system_vm_start_cd">Запустить %1$s</string>
-    <string name="app_system_vm_delete_cd">Удалить %1$s</string>
-    <string name="app_system_vm_import_title">Импорт образа системной ВМ</string>
-    <string name="app_system_vm_import_label">Имя</string>
-    <string name="app_system_vm_import_source">URL образа или путь на устройстве</string>
-    <string name="app_system_vm_import_arch">Архитектура гостя</string>
-    <string name="app_system_vm_import_arch_hint">Должна совпадать с образом — при неверной цели ошибки не будет, просто не загрузится.</string>
 
     <!-- Desktop manager: desktops inside the UML guest (docs/plans/uml-dm.md) -->
-    <string name="app_uml_desktop_title">Рабочий стол гостя UML</string>
-    <string name="app_uml_desktop_description">Рабочие столы, выполняемые в собственном ядре гостя UML, поверх VNC. Один за раз (каждый — целое ядро); установка пакетов занимает несколько минут.</string>
-    <string name="app_uml_desktop_install">Установить</string>
-    <string name="app_uml_desktop_installed">Установлен</string>
-    <string name="app_uml_desktop_not_installed">Не установлен</string>
-    <string name="app_uml_desktop_installing">Установка пакетов…</string>
-    <string name="app_uml_desktop_starting">Запуск на порту %1$d…</string>
-    <string name="app_uml_desktop_running">Работает · VNC 127.0.0.1:%1$d</string>
-    <string name="app_uml_desktop_failed">Сбой</string>
-    <string name="app_uml_desktop_start_cd">Запустить рабочий стол %1$s</string>
-    <string name="app_window_scale_saved">Сохранено как размер по умолчанию для этого приложения</string>
 
     <!-- Agent Activity log — result summaries (#239) -->
-    <string name="agent_summary_ok">готово</string>
-    <string name="agent_summary_entries_at">%1$d записей в %2$s:%3$s</string>
-    <string name="agent_summary_entries_via">%1$d записей через %2$s в %3$s</string>
-    <string name="agent_summary_version">версия %1$s</string>
-    <string name="agent_summary_dispatched">отправлено %1$s</string>
-    <string name="agent_summary_bytes">%1$d байт</string>
-    <string name="agent_summary_disconnected">отключено</string>
-    <string name="agent_summary_pf_saved">сохранено</string>
-    <string name="agent_summary_pf_saved_activated">сохранено, активировано</string>
-    <string name="agent_summary_pf_bound">%1$s, порт %2$d</string>
-    <string name="agent_summary_pf_removed">удалено</string>
-    <string name="agent_summary_pf_removed_deactivated">удалено и деактивировано</string>
-    <string name="agent_summary_uploaded_bytes">отправлено %1$d байт</string>
-    <string name="agent_summary_served_bytes">отдано %1$d байт из %2$s</string>
-    <string name="agent_summary_deleted">удалено</string>
-    <string name="agent_summary_uploaded_bytes_via">отправлено %1$d байт через %2$s</string>
-    <string name="agent_summary_deleted_via">удалено через %1$s</string>
-    <string name="agent_summary_bytes_typed">введено %1$d байт</string>
-    <string name="agent_summary_converted">%1$d KiB за %2$d мс</string>
-    <string name="agent_summary_kib_installed">установлено %1$d KiB</string>
-    <string name="agent_summary_reused_existing">повторно использовано</string>
-    <string name="agent_summary_opened">открыто</string>
-    <string name="agent_summary_mib_installed">установлено %1$d MiB</string>
-    <string name="agent_summary_enabled_at">включено на %1$s:%2$d</string>
-    <string name="agent_summary_enabled">включено</string>
 
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
-    <string name="app_desktop_compositor_title">Композитор</string>
-    <string name="app_desktop_mirror_title">Зеркало пакетов</string>
-    <string name="app_desktop_mirror_description">Откуда загружаются пакеты дистрибутива. Выберите ближайший к вам регион для более быстрой и надёжной установки. По умолчанию используется собственный CDN каждого дистрибутива.</string>
-    <string name="app_desktop_mirror_default">По умолчанию (CDN)</string>
-    <string name="app_desktop_mirror_europe">Европа</string>
-    <string name="app_desktop_mirror_asia">Азия</string>
-    <string name="app_desktop_mirror_americas">Америка</string>
-    <string name="app_desktop_remap_ports_title">Переназначать низкие порты</string>
-    <string name="app_desktop_remap_ports_description">Позволяет гостевым службам слушать привилегированные порты (&lt;1024): служба на порту N становится доступной на N+2000 (напр. 80 → 2080). Android не даёт приложению напрямую занимать низкие порты. По умолчанию выключено; затрагивает каждый привилегированный порт, включая гостевой sshd.</string>
-    <string name="app_desktop_share_storage_title">Открыть хранилище устройства для гостя</string>
-    <string name="app_desktop_share_storage_description">Монтирует общее хранилище в гостевую систему в /storage и /sdcard, чтобы гость имел доступ к вашим файлам. Выключите, чтобы скрыть ваши фотографии и загрузки от локальной среды Linux.</string>
-    <string name="app_desktop_bind_android_system_title">Открыть систему Android для гостя</string>
-    <string name="app_desktop_bind_android_system_description">Монтирует доступные только для чтения разделы Android /system, /vendor, /apex и связанные с ними в гостевую систему, чтобы гость мог запускать собственные нативные бинарники Android (напр. getprop, toybox). По умолчанию выключено: это открывает внутренности устройства и вендора локальной среде Linux.</string>
-    <string name="app_desktop_custom_binds_title">Свои точки монтирования (%1$d)</string>
-    <string name="app_desktop_custom_binds_description">Открывает дополнительные пути Android внутри гостевой системы этого дистрибутива, помимо системных точек монтирования. Монтирования доступны для чтения и записи.</string>
-    <string name="app_desktop_custom_binds_dialog_title">Свои точки монтирования — %1$s</string>
-    <string name="app_desktop_custom_binds_host_hint">Путь Android (напр. /storage/emulated/0/Sync)</string>
-    <string name="app_desktop_custom_binds_guest_hint">Путь в гостевой системе (необязательно — по умолчанию тот же путь)</string>
-    <string name="app_desktop_custom_binds_add">Добавить монтирование</string>
-    <string name="app_desktop_custom_binds_empty">Своих точек монтирования нет. Добавьте одну, чтобы открыть путь Android в гостевой системе.</string>
-    <string name="app_desktop_custom_binds_remove_cd">Удалить монтирование</string>
-    <string name="app_desktop_custom_binds_takes_effect">Применяется при следующем запуске shell, команды или рабочего стола этого дистрибутива.</string>
-    <string name="app_desktop_custom_binds_stale">%1$d собственных монтирований указывают на несуществующий путь — при запуске гостя оно пропускается.</string>
-    <string name="app_desktop_custom_binds_stale_row">Этот путь более не существует на устройстве — монтирование пропускается при запуске гостя.</string>
-    <string name="app_desktop_import_rootfs">Импортировать rootfs…</string>
-    <string name="app_desktop_options_section">Параметры и точки монтирования</string>
-    <string name="app_desktop_open_usb_drive">Открыть USB-накопитель…</string>
-    <string name="app_desktop_open_usb_drive_writable">Открыть USB-накопитель (с записью)…</string>
-    <string name="app_desktop_open_usb_drive_writable_confirm_title">Смонтировать для чтения и записи?</string>
-    <string name="app_desktop_open_usb_drive_writable_confirm_body">Накопитель будет смонтирован для чтения и записи. Если VM потеряет питание во время записи (завершение, сбой, извлечение батареи), файловая система может быть повреждена. Только чтение — более безопасный вариант по умолчанию.</string>
-    <string name="app_desktop_eject_usb_drive">Извлечь USB-накопитель</string>
-    <string name="app_desktop_open_usb_live">Открыть USB-карту напрямую (консоль восстановления)…</string>
-    <string name="app_desktop_open_usb_live_writable">Открыть USB-карту напрямую (с записью)…</string>
-    <string name="app_desktop_usb_live_ready">Raw-карта подключена в госте восстановления — откройте подключение «%1$s»</string>
-    <string name="app_desktop_usb_live_readonly_note">Raw-карта через NBD · только чтение · %1$s</string>
-    <string name="app_desktop_usb_live_writable_note">Raw-карта через NBD · ЗАПИСЬ · %1$s</string>
-    <string name="app_desktop_usb_live_close">Закрыть прямой сеанс</string>
-    <string name="app_desktop_delete_usb_appliance">Удалить вспомогательный Linux для USB</string>
-    <string name="app_desktop_usb_drive_progress">USB-накопитель: %1$s</string>
-    <string name="app_desktop_usb_drive_locked">%1$s заблокирован (LUKS)</string>
-    <string name="app_desktop_usb_drive_unlock">Разблокировать…</string>
-    <string name="app_desktop_usb_drive_unlock_title">Разблокировать %1$s</string>
-    <string name="app_desktop_usb_drive_unlock_passphrase">Парольная фраза</string>
-    <string name="app_desktop_import_dialog_title">Импорт rootfs</string>
-    <string name="app_desktop_import_description">Используйте собственный tarball rootfs (.tar.gz или .tar.xz) — образ proot-distro, экспорт Docker или вторую копию уже установленного дистрибутива. Он используется как есть (пакеты не устанавливаются).</string>
-    <string name="app_desktop_import_id_hint">Id дистрибутива (slug, напр. ubuntu-test)</string>
-    <string name="app_desktop_import_label_hint">Метка (напр. «Импорт Ubuntu 26.04»)</string>
-    <string name="app_desktop_import_source_hint">URL tarball (https://…)</string>
-    <string name="app_desktop_import_family">Семейство пакетов</string>
-    <string name="app_desktop_import_confirm">Импорт</string>
-    <string name="app_desktop_cancel">Отмена</string>
-    <string name="app_desktop_save">Сохранить</string>
-    <string name="app_desktop_open_terminal_cd">Открыть терминал в %1$s</string>
-    <string name="app_present_fullscreen">Во весь экран</string>
-    <string name="app_present_exit_fullscreen">Выйти из полноэкранного режима</string>
     <string name="tasker_plugin_name">Выполнить команду на сервере Haven</string>
     <string name="tasker_edit_title">Выполнить команду оболочки на сохранённом SSH-подключении Haven.</string>
     <string name="tasker_loading">Загрузка подключений…</string>
@@ -334,13 +106,6 @@
     <string name="tasker_watch_title">Наблюдать за %1$s</string>
     <string name="tasker_watch_text">Нажмите, чтобы выполнить %1$s в живом терминале</string>
     <string name="tasker_insert_variable">Вставить переменную</string>
-    <string name="app_desktop_dns_title">DNS гостя</string>
-    <string name="app_desktop_dns_custom_label">DNS-серверы</string>
-    <string name="app_desktop_dns_custom_hint">напр. 10.0.0.53, 1.1.1.1</string>
-    <string name="app_desktop_dns_mode_system">Сеть (DHCP)</string>
-    <string name="app_desktop_dns_mode_public">Публичные (Google + Cloudflare)</string>
-    <string name="app_desktop_dns_mode_custom">Свои</string>
-    <string name="app_desktop_dns_description">Какие DNS-серверы использует локальный гость Linux. Если установка пакетов зависает в этой сети, она может блокировать публичный DNS \u2014 используйте резолвер самой сети.</string>
     <string name="shortcut_pull_backup_label">Загрузить резервную копию</string>
     <string name="backup_sync_channel_name">Синхронизация резервных копий</string>
     <string name="backup_pull_restored_count">Восстановлено элементов: %1$d</string>
@@ -378,8 +143,4 @@
     <string name="update_notification_channel">Обновления приложения</string>
     <string name="update_notification_title">Доступна версия Haven %1$s</string>
     <string name="update_notification_text">Нажмите, чтобы открыть страницу выпуска.</string>
-    <string name="app_desktop_guest_user_title">Гостевой пользователь</string>
-    <string name="app_desktop_guest_user_description">Запускать оболочки и рабочие столы X11 от имени обычного пользователя (uid 1000) с sudo без пароля вместо root. Оставьте пустым или укажите root для режима суперпользователя.</string>
-    <string name="app_desktop_guest_user_label">Имя пользователя</string>
-    <string name="app_desktop_guest_user_hint">root (или, например, user)</string>
 </resources>

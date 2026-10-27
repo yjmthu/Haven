@@ -10,10 +10,7 @@
     <string name="common_edit">সম্পাদনা</string>
     <string name="common_rename">নাম পরিবর্তন</string>
     <string name="common_create">তৈরি</string>
-    <string name="common_connect">সংযোগ</string>
-    <string name="common_disconnect">সংযোগ বিচ্ছিন্ন</string>
     <string name="common_copy">কপি</string>
-    <string name="common_paste">পেস্ট</string>
     <string name="common_label">লেবেল</string>
     <string name="common_password">পাসওয়ার্ড</string>
     <string name="common_port">পোর্ট</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">রিসেট</string>
     <string name="common_allow">অনুমতি</string>
     <string name="common_not_now">এখন নয়</string>
-    <string name="common_import">ইমপোর্ট</string>
-    <string name="common_add">যোগ</string>
-    <string name="common_download">ডাউনলোড</string>
     <string name="common_unlock">আনলক</string>
 
     <!-- SftpScreen navigation -->
@@ -113,16 +107,12 @@
     <string name="sftp_bandwidth_limit">ব্যান্ডউইথ সীমা</string>
     <string name="sftp_dry_run">ড্রাই রান (শুধু প্রিভিউ)</string>
     <string name="sftp_start_sync">শুরু করুন</string>
-    <string name="sftp_dry_run_results">ড্রাই রানের ফলাফল</string>
-    <string name="sftp_start_for_real">সত্যিকারে শুরু করুন</string>
-    <string name="sftp_sync_cancelled">সিঙ্ক বাতিল হয়েছে</string>
     <!-- Rename dialog -->
     <string name="sftp_rename_title">নাম বদলান</string>
     <string name="sftp_new_name">নতুন নাম</string>
 
     <!-- Share link -->
     <string name="sftp_share_link">লিঙ্ক শেয়ার করুন</string>
-    <string name="sftp_link_copied">লিঙ্ক কপি হয়েছে</string>
 
     <!-- Folder size -->
     <string name="sftp_folder_size">ফোল্ডারের আকার</string>
@@ -186,13 +176,10 @@
     <string name="sftp_attach_pick_profile">ব্যবহার করতে একটি সংযুক্ত প্রোফাইল বেছে নিন</string>
     <string name="sftp_attach_local_no_upload">রিমোট প্রোফাইল বেছে নিন — local আপলোড গ্রহণ করতে পারে না</string>
     <string name="sftp_attach_will_upload_into">আপলোড হবে: %1$s</string>
-    <string name="sftp_chat_attach_pick_file">চ্যাটে একটি ফাইল সংযুক্ত করুন</string>
-    <string name="sftp_chat_attach_will_pick_from">থেকে বাছবেন: %1$s</string>
     <string name="sftp_attach_sending">%1$s পাঠানো হচ্ছে…</string>
     <string name="sftp_storage_permission_title">Storage অ্যাক্সেস প্রয়োজন</string>
     <string name="sftp_storage_permission_body">স্থানীয় ফাইলে অ্যাক্সেস দিতে ট্যাপ করুন — মিডিয়া সুবিধা, ব্রাউজিং ও ট্রান্সফারের জন্য এই অনুমতি দরকার।</string>
     <string name="sftp_paste_unfinished">অসম্পূর্ণ paste</string>
-    <string name="sftp_agent_chip">Agent</string>
     <string name="sftp_convert_dest_same_folder_cloud">ক্লাউডে ফেরত (একই ফোল্ডার)</string>
     <string name="sftp_convert_download_first">আগে ডাউনলোড করুন</string>
     <string name="sftp_convert_download_first_on">transcoding-এর আগে পুরো ফাইল ডাউনলোড করে</string>
@@ -208,15 +195,12 @@
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
     <string name="sftp_new_sync">নতুন rclone সিঙ্ক</string>
     <string name="sftp_encrypt">এনক্রিপ্ট (age)</string>
-    <string name="sftp_encrypt_sub">একটি age কী-তে এনক্রিপ্ট করুন — age টুল দিয়ে যেকোনো জায়গায় পড়া যায়</string>
     <string name="sftp_decrypt">ডিক্রিপ্ট (age)</string>
-    <string name="sftp_decrypt_sub">সংরক্ষিত age পরিচয় দিয়ে ডিক্রিপ্ট করুন</string>
     <string name="sftp_encrypt_title">age দিয়ে এনক্রিপ্ট করুন</string>
     <string name="sftp_encrypt_recipient_hint">অথবা একজন প্রাপক পেস্ট করুন (age1…)</string>
     <string name="sftp_encrypt_action">এনক্রিপ্ট করুন</string>
     <string name="sftp_age_no_identity">কোনো age পরিচয় নেই। কী ট্যাবে একটি তৈরি করুন, বা একজন প্রাপক পেস্ট করুন।</string>
     <string name="sftp_age_failed">age অপারেশন ব্যর্থ — ভুল কী বা নষ্ট ফাইল</string>
-    <string name="sftp_open_usb_drive">একটি USB ড্রাইভ খুলুন…</string>
     <string name="sftp_add_folder_location">ফোল্ডার অবস্থান যোগ করুন</string>
     <string name="sftp_saf_grant_failed">সেই ফোল্ডারে অ্যাক্সেস রাখা যায়নি</string>
     <string name="sftp_remove_folder_location">ফোল্ডার অবস্থান সরান</string>

@@ -10,10 +10,7 @@
     <string name="common_edit">সম্পাদনা</string>
     <string name="common_rename">নাম পরিবর্তন</string>
     <string name="common_create">তৈরি</string>
-    <string name="common_connect">সংযোগ</string>
-    <string name="common_disconnect">সংযোগ বিচ্ছিন্ন</string>
     <string name="common_copy">কপি</string>
-    <string name="common_paste">পেস্ট</string>
     <string name="common_label">লেবেল</string>
     <string name="common_password">পাসওয়ার্ড</string>
     <string name="common_port">পোর্ট</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">রিসেট</string>
     <string name="common_allow">অনুমতি</string>
     <string name="common_not_now">এখন নয়</string>
-    <string name="common_import">ইমপোর্ট</string>
-    <string name="common_add">যোগ</string>
-    <string name="common_download">ডাউনলোড</string>
     <string name="common_unlock">আনলক</string>
 
     <!-- KeysScreen -->
@@ -75,57 +69,11 @@
     <string name="keys_ssh_public_key_clip_label">SSH পাবলিক কী</string>
 
     <!-- #133 phase 2: step-ca generate-via-OIDC (en fallback) -->
-    <string name="keys_generate_via_stepca">step-ca দিয়ে তৈরি করুন</string>
-    <string name="keys_generate_via_stepca_hint">OIDC সাইন-ইন একটি নতুন কী-জোড়া ও স্বাক্ষরিত সার্টিফিকেট তৈরি করে</string>
-    <string name="keys_generate_via_stepca_no_ca">একটি যোগ করতে উপরের সার্টিফিকেট অথরিটি-তে ট্যাপ করুন</string>
-    <string name="keys_stepca_dialog_title">step-ca দিয়ে তৈরি করুন</string>
-    <string name="keys_stepca_pick_ca">সার্টিফিকেট অথরিটি</string>
-    <string name="keys_stepca_principals_override_label">প্রিন্সিপাল ওভাররাইড (ঐচ্ছিক, কমা দিয়ে আলাদা)</string>
-    <string name="keys_stepca_label">কী লেবেল</string>
-    <string name="keys_stepca_generate">তৈরি করুন</string>
     <string name="keys_chip_certificate_minted">%1$s-এ ইস্যু</string>
 
     <!-- #133 phase 2b: regenerate menu (en fallback) -->
-    <string name="keys_regenerate_via_stepca">step-ca দিয়ে পুনরায় তৈরি করুন</string>
 
     <!-- #133 phase 2b: step-ca CA registration (moved from Settings) -->
-    <string name="stepca_add_title">সার্টিফিকেট অথরিটি যোগ করুন</string>
-    <string name="stepca_edit_title">সার্টিফিকেট অথরিটি সম্পাদনা করুন</string>
-    <string name="stepca_add">Add</string>
-    <string name="stepca_save">সংরক্ষণ করুন</string>
-    <string name="stepca_cancel">বাতিল</string>
-    <string name="stepca_delete">মুছুন</string>
-    <string name="stepca_test_connection">সংযোগ পরীক্ষা করুন</string>
-    <string name="stepca_field_name">প্রদর্শিত নাম</string>
-    <string name="stepca_field_ca_url">CA URL</string>
-    <string name="stepca_field_ca_url_hint">https://ca.example.com</string>
-    <string name="stepca_field_oidc_issuer">OIDC ইস্যুয়ার URL</string>
-    <string name="stepca_field_oidc_auth_url">OIDC অথরাইজ URL</string>
-    <string name="stepca_field_oidc_token_url">OIDC টোকেন URL</string>
-    <string name="stepca_field_oidc_client_id">OIDC ক্লায়েন্ট ID</string>
-    <string name="stepca_field_provisioner">step-ca প্রভিশনার</string>
-    <string name="stepca_field_principals">ডিফল্ট প্রিন্সিপাল (কমা দিয়ে আলাদা)</string>
-    <string name="stepca_field_root_cert">রুট সার্টিফিকেট (PEM)</string>
-    <string name="stepca_field_root_cert_hint">-----BEGIN CERTIFICATE-----…</string>
-    <string name="stepca_test_ok">পৌঁছানো যাচ্ছে</string>
-    <string name="stepca_test_bad_root_cert">অবৈধ রুট সার্টিফিকেট: %1$s</string>
-    <string name="stepca_test_http_error">HTTP %1$d: %2$s</string>
-    <string name="stepca_test_network_error">নেটওয়ার্ক ত্রুটি: %1$s</string>
-    <string name="stepca_empty_state">কোনো সার্টিফিকেট অথরিটি কনফিগার করা নেই।\nএকটি যোগ করতে + ট্যাপ করুন।</string>
-    <string name="stepca_validation_required">%1$s আবশ্যক</string>
-    <string name="stepca_validation_url">%1$s অবশ্যই https:// দিয়ে শুরু হতে হবে</string>
-    <string name="stepca_validation_pem">রুট সার্টিফিকেট PEM-এনকোডেড হতে হবে</string>
-    <string name="stepca_validation_host_ca_or_signing">একটি হোস্ট CA পাবলিক কী দিন, অথবা signing ক্ষেত্রগুলি পূরণ করুন।</string>
-    <string name="stepca_validation_host_ca">বৈধ SSH হোস্ট CA পাবলিক কী নয়।</string>
-    <string name="stepca_delete_confirm_title">%1$s মুছবেন?</string>
-    <string name="stepca_delete_confirm_body">এই CA দিয়ে ইস্যু করা কী-গুলি তাদের সার্টিফিকেটের মেয়াদ শেষ না হওয়া পর্যন্ত কাজ করবে, তবে আপনি সেগুলি নবায়ন বা নতুন তৈরি করতে পারবেন না।</string>
-    <string name="stepca_field_ssh_host_ca">SSH হোস্ট CA পাবলিক কী (ঐচ্ছিক)</string>
-    <string name="stepca_field_ssh_host_ca_hint">ssh-ed25519 AAAAC3…</string>
-    <string name="stepca_discover_host_ca">/1.0/ssh/config থেকে খুঁজুন</string>
-    <string name="stepca_discovering">খোঁজা হচ্ছে…</string>
-    <string name="stepca_import_from_file">ফাইল থেকে ইমপোর্ট করুন</string>
-    <string name="stepca_import_failed">ইমপোর্ট ব্যর্থ: %1$s</string>
-    <string name="keys_section_certificate_authorities">সার্টিফিকেট অথরিটি (%1$d)</string>
     <string name="keys_section_ssh">SSH কী (%1$d)</string>
     <string name="keys_section_drive">USB ড্রাইভ কী (%1$d)</string>
     <string name="keys_section_passwords">সংরক্ষিত পাসওয়ার্ড (%1$d)</string>
@@ -141,17 +89,6 @@
     <string name="keys_attach_certificate">সার্টিফিকেট সংযুক্ত করুন</string>
     <string name="keys_remove_certificate">সার্টিফিকেট সরান</string>
     <string name="keys_chip_certificate">সার্টিফিকেট সংযুক্ত</string>
-    <string name="stepca_bootstrap_intro">CA URL + SHA-256 ফিঙ্গারপ্রিন্ট থেকে বুটস্ট্র্যাপ করুন। বাকিটা (রুট সার্টিফিকেট, প্রোভিশনার, OIDC URL ও সিক্রেট) CA থেকে আনা হয়।</string>
-    <string name="stepca_field_fingerprint">রুট সার্টিফিকেট ফিঙ্গারপ্রিন্ট (SHA-256)</string>
-    <string name="stepca_field_fingerprint_hint">`step certificate fingerprint` থেকে পেস্ট করুন</string>
-    <string name="stepca_bootstrap_action">CA থেকে বুটস্ট্র্যাপ করুন</string>
-    <string name="stepca_bootstrapping">CA-এর সাথে যোগাযোগ হচ্ছে…</string>
-    <string name="stepca_bootstrap_pick_provisioner">একটি OIDC প্রোভিশনার নির্বাচন করুন:</string>
-    <string name="stepca_manual_entry">ম্যানুয়াল এন্ট্রি…</string>
-    <string name="stepca_field_oidc_client_secret">OIDC ক্লায়েন্ট সিক্রেট (ঐচ্ছিক)</string>
-    <string name="stepca_field_oidc_client_secret_hint">পাবলিক শুধু-PKCE ক্লায়েন্টের জন্য খালি রাখুন</string>
-    <string name="keys_discover_from_security_key">সিকিউরিটি কী থেকে আবিষ্কার করুন</string>
-    <string name="keys_discover_from_security_key_hint">সংযুক্ত/ট্যাপ করা সিকিউরিটি কী থেকে রেসিডেন্ট SSH-SK শংসাপত্র তালিকাভুক্ত করে। ssh-keygen -K এড়িয়ে যায়।</string>
     <string name="keys_discover_picker_title">রেসিডেন্ট SSH কী</string>
     <string name="keys_discover_picker_body">কোন রেসিডেন্ট শংসাপত্রগুলি আমদানি করবেন তা নির্বাচন করুন। প্রতিটি একটি নতুন SSH কী এন্ট্রি হয়ে যায়; ব্যক্তিগত উপাদান সিকিউরিটি কী-তেই থাকে।</string>
     <string name="keys_discover_import_selected">নির্বাচিতগুলি আমদানি করুন</string>
@@ -171,8 +108,6 @@
     <string name="keys_export_certificate">সার্টিফিকেট এক্সপোর্ট</string>
     <string name="keys_totp_section_header">প্রমাণক (TOTP) · %1$d</string>
     <string name="keys_totp_delete_desc">Authenticator মুছুন</string>
-    <string name="keys_totp_scan_qr">Authenticator QR স্ক্যান করুন (TOTP)</string>
-    <string name="keys_totp_scan_qr_hint">otpauth:// QR কোড সহ একটি ছবি বেছে নিন</string>
     <string name="keys_totp_paste">ক্লিপবোর্ড থেকে authenticator যোগ করুন (TOTP)</string>
     <string name="keys_totp_paste_hint">একটি otpauth:// URI বা base32 সিক্রেট পেস্ট করুন</string>
     <!-- RenameKeyDialog (#231) -->
@@ -191,7 +126,6 @@
     <string name="keys_register_on_security_key">সিকিউরিটি কী-তে SSH কী সেট করুন</string>
     <string name="keys_register_on_security_key_body">সিকিউরিটি কী-তে একটি রেসিডেন্ট sk-ssh-ed25519 শংসাপত্র তৈরি করে। তারপর: USB দিয়ে সংযুক্ত করে এটি চাপুন, অথবা NFC-এর জন্য ফোনের পেছনে ধরুন।</string>
     <string name="keys_register_verify_required">প্রতিবার সাইন ইনে PIN আবশ্যক করুন</string>
-    <string name="keys_register_verify_required_hint">চালু: প্রতিবার SSH লগইনে স্বাক্ষর করার সময় কী তার PIN চায় (verify-required — বেশি নিরাপদ)। বন্ধ: শুধু টাচ।</string>
     <string name="keys_register_pin">সিকিউরিটি কী PIN</string>
     <string name="keys_register_pin_confirm">PIN নিশ্চিত করুন</string>
     <string name="keys_register_pin_hint">কী নতুন হলে একটি PIN বেছে নিন, নয়তো এর বর্তমান PIN লিখুন। ন্যূনতম 4 অক্ষর।</string>

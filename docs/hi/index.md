@@ -72,15 +72,7 @@ title: Haven
 
 - **[टर्मिनल](../features/terminal.md)** — Mosh / Eternal Terminal / SSH, सीरियल↔TCP ब्रिज के साथ USB / Bluetooth / BLE सीरियल कंसोल, tmux सत्र पुनर्स्थापना, विन्यास-योग्य कीबोर्ड टूलबार, OSC 7/8/9/52/133/777 एकीकरण।
 - **[डेस्कटॉप](../features/desktops.md)** — VNC (RFB 3.8 / VeNCrypt), RDP (IronRDP + EGFX), SPICE (QEMU/KVM, GLZ/QUIC), एक GPU-त्वरित नेटिव Wayland कंपोज़िटर, और एक बहु-डिस्ट्रो स्थानीय-डेस्कटॉप प्रबंधक।
-- **[फ़ाइलें और क्लाउड](../features/files-and-cloud.md)** — SFTP/SCP, SMB, 60+ क्लाउड प्रदाता (rclone), क्रॉस-फ़ाइलसिस्टम कॉपी/मूव; साथ ही FFmpeg ट्रांसकोड, HLS, और DLNA।
 - **[कनेक्शन](../features/connections.md)** — पोर्ट फ़ॉरवर्डिंग (-L/-R/-D/-J), SOCKS/HTTP/Tor प्रॉक्सी, प्रति-ऐप WireGuard और Tailscale टनल, पोर्ट नॉकिंग + fwknop SPA, SSH कुंजियाँ और FIDO2।
-- **[ईमेल](../features/email.md)** — ProtonMail + IMAP/SMTP, लिखें/जवाब दें/अग्रेषित करें, बहु-खाता, Mail Rules स्वचालन।
-- **[स्थानीय Linux](../features/local-linux.md)** — PRoot के ज़रिए Alpine / Debian / Ubuntu / Arch / Void, साथ-साथ, बिना root के।
-- **[Linux गेस्ट (UML)](../features/uml-guest.md)** — किसी भी arm64 डिवाइस पर बिना root के ऐप प्रोसेस के रूप में बूट होने वाला एक पूरा Linux कर्नेल (user-mode Linux): `apk` के साथ Alpine, उसकी अपनी ext4 डिस्क और नेटवर्क स्टैक, जब PRoot का सिसकॉल इम्यूलेशन काफ़ी न हो।
-- **[USB कार्ड रेस्क्यू कंसोल](../features/usb-recovery-live.md)** — ख़राब हो रहे SD कार्ड का रॉ डिवाइस सेकंडों में Linux गेस्ट तक पहुँच जाता है, `ddrescue` के लिए तैयार।
-- **[USB फ़ॉरवर्डिंग](../features/usb.md)** — किसी USB डिवाइस को एजेंट, Linux गेस्ट, या USB/IP के माध्यम से किसी दूरस्थ होस्ट को सौंपें।
-- **[Reticulum](../features/reticulum.md)** — rnsh शेल, फ़ाइल स्थानांतरण, और मेश पर `-L`/`-D` फ़ॉरवर्डिंग। वह एकमात्र ट्रांसपोर्ट जो बिना किसी इंटरनेट के भी काम करता रहता है।
-- **[एजेंट ट्रांसपोर्ट (MCP)](../mcp-tools.md)** — ~230 सहमति-नियंत्रित उपकरण; एजेंट Haven की अपनी UI तक चला सकता है।
 - **[सुरक्षा](../features/security.md)** — बायोमेट्रिक लॉक, कोई टेलीमेट्री नहीं, एन्क्रिप्टेड बैकअप/पुनर्स्थापना (AES-256-GCM)।
 
 [पूर्ण सुविधा सूची](../FEATURES.md) देखें।

@@ -10,10 +10,7 @@
     <string name="common_edit">Изменить</string>
     <string name="common_rename">Переименовать</string>
     <string name="common_create">Создать</string>
-    <string name="common_connect">Подключить</string>
-    <string name="common_disconnect">Отключить</string>
     <string name="common_copy">Копировать</string>
-    <string name="common_paste">Вставить</string>
     <string name="common_label">Метка</string>
     <string name="common_password">Пароль</string>
     <string name="common_port">Порт</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">Сбросить</string>
     <string name="common_allow">Разрешить</string>
     <string name="common_not_now">Не сейчас</string>
-    <string name="common_import">Импорт</string>
-    <string name="common_add">Добавить</string>
-    <string name="common_download">Скачать</string>
     <string name="common_unlock">Разблокировать</string>
 
     <!-- Top-level screen -->
@@ -39,8 +33,6 @@
     <string name="settings_prevent_screenshots_subtitle">Блокировать захват экрана и превью в диспетчере задач</string>
 
     <!-- Logging section -->
-    <string name="settings_exclude_recents_title">Скрывать из недавних</string>
-    <string name="settings_exclude_recents_subtitle">Скрывает карточку Haven на экране недавних; сеансы продолжают работать. Открыть снова — с иконки приложения.</string>
     <string name="settings_connection_logging_title">Журнал подключений</string>
     <string name="settings_connection_logging_subtitle">Записывать события подключений (подключение, отключение, ошибки). Хранится локально, защищено шифрованием устройства</string>
     <string name="settings_view_connection_log_title">Просмотр журнала подключений</string>
@@ -66,8 +58,6 @@
     <string name="settings_mouse_input_subtitle">Передавать нажатия как клики и удержание как правый клик, когда приложения типа htop, mc или vim включают отслеживание мыши</string>
     <string name="settings_right_click_title">Удержание — правый клик</string>
     <string name="settings_right_click_subtitle">Отправлять правый клик в терминал вместо выделения текста. Полезно для контекстного меню tmux</string>
-    <string name="settings_standard_keyboard_title">Голосовой ввод и автодополнение</string>
-    <string name="settings_standard_keyboard_subtitle">Отключает флаги защищённой клавиатуры (режим пароля, без подсказок). Включает голосовой ввод, свайп-набор и предсказание слов — но клавиатура может запоминать введённые пароли</string>
 
     <!-- Appearance section -->
     <string name="settings_theme_title">Тема</string>
@@ -75,18 +65,6 @@
     <string name="settings_navigation_tabs_subtitle">Измените порядок вкладок и выберите, какие из них показывать</string>
 
     <!-- Wayland section -->
-    <string name="settings_wayland_shell_title">Оболочка рабочего стола Wayland</string>
-    <string name="settings_proot_idle_title">Автоостановка простаивающего гостя Linux</string>
-    <string name="settings_proot_idle_off">Выключено — гость Linux работает, пока вы его не остановите</string>
-    <string name="settings_proot_idle_on">Останавливает гостя через %1$d мин после выхода из Haven (запущенная гостевая служба удерживает его)</string>
-    <string name="settings_proot_idle_dialog_title">Автоостановка простаивающего гостя Linux</string>
-    <string name="settings_proot_idle_dialog_body">Когда Haven пробыл в фоне столько времени, остановить терминалы и рабочие столы гостя Linux, чтобы освободить память. Запущенная гостевая служба удерживает его. Долгая задача в фоновом терминале тоже будет остановлена — оставьте выключенным, если не нужна очистка при простое.</string>
-    <string name="settings_proot_idle_off_label">Выключено</string>
-    <string name="settings_shizuku_title">Интеграция Shizuku</string>
-    <string name="settings_shizuku_enabled">Включено — автоисключение батареи, общий сокет Wayland</string>
-    <string name="settings_shizuku_available">Shizuku установлен — нажмите для предоставления доступа</string>
-    <string name="settings_shizuku_not_running">Shizuku установлен, но не запущен — нажмите для запуска через Беспроводную отладку</string>
-    <string name="settings_shizuku_not_installed">Установить Shizuku для исключения батареи и доступа Wayland</string>
 
     <!-- Backup section -->
     <string name="settings_backup_sync_title">Синхронизировать с удалённым</string>
@@ -117,9 +95,6 @@
     <string name="settings_version_unknown">неизвестно</string>
 
     <!-- Wayland shell dialog -->
-    <string name="settings_wayland_dialog_title">Оболочка рабочего стола Wayland</string>
-    <string name="settings_wayland_dialog_description">Команда оболочки для терминала foot в Wayland-рабочем столе. Дополнительные оболочки можно установить через apk (напр. apk add bash).</string>
-    <string name="settings_wayland_shell_command_label">Команда оболочки</string>
 
     <!-- Lock timeout dialog -->
     <string name="settings_lock_timeout_dialog_title">Время блокировки</string>
@@ -213,21 +188,12 @@
     <string name="common_github">GitHub</string>
     <string name="common_simple">Простой</string>
     <string name="settings_language_title">Язык</string>
-    <string name="settings_media_extensions_title">Расширения медиафайлов</string>
-    <string name="settings_media_extensions_description">Расширения файлов через пробел, которые в файловом браузере считаются потоковым медиа.</string>
-    <string name="settings_media_extensions_label">Расширения</string>
-    <string name="settings_show_desktops_title">Показывать карточку рабочих столов</string>
-    <string name="settings_show_desktops_subtitle">Показывать менеджер окружений рабочего стола на экране подключений</string>
-    <string name="settings_show_linux_vm_title">Показывать карточку Linux VM</string>
-    <string name="settings_show_linux_vm_subtitle">Показывать настройку Android Linux VM на экране подключений</string>
     <!-- Backfilled translations (i18n drift fix) -->
     <string name="settings_keep_screen_on_title">Не выключать экран в терминале</string>
     <string name="settings_keep_screen_on_subtitle">Дисплей остаётся включённым, пока открыта вкладка терминала. Расходует заряд; включайте только если следите за длительным выводом.</string>
 
     <!-- #135 -->
     <string name="settings_keyboard_mode_title">Режим клавиатуры</string>
-    <string name="settings_dev_install_title">Установка для разработки</string>
-    <string name="settings_dev_install_apk_url">URL APK</string>
     <string name="settings_font_install_title">Установить шрифт по URL</string>
     <string name="settings_ime_flags_title">Флаги IME</string>
     <!-- #133 phase 2b: SSH host CA pubkey field (en fallback) -->
@@ -316,50 +282,6 @@
     <string name="settings_nav_tab_visibility_hide_title">Скрывать</string>
     <string name="settings_nav_tab_visibility_always_hint">Всегда виден</string>
 
-    <string name="settings_usb_guest_title">Открыть USB-устройства для Linux-гостя</string>
-    <string name="settings_usb_guest_subtitle">Разрешить подключённым USB-устройствам работать с гостевыми приложениями через шим haven-usb. Каждое подключение запрашивает согласие.</string>
-    <string name="settings_gps_guest_title">Открыть GPS для Linux-гостя</string>
-    <string name="settings_gps_guest_subtitle">Передавать GPS-позицию телефона в гостя как NMEA-устройство (haven-gps). После включения любой гостевой процесс может читать позицию. Каждое подключение запрашивает согласие.</string>
-    <string name="settings_proot_install_log_title">Просмотр журнала установки PRoot</string>
-    <string name="settings_proot_install_log_subtitle">Пофазные события установки дистрибутивов Linux (задача #162)</string>
-    <string name="settings_logcat_capture_title">Захват Logcat</string>
-    <string name="settings_logcat_capture_subtitle_on">Запись в /sdcard/Download/haven-logcat.txt</string>
-    <string name="settings_logcat_capture_subtitle_off">Захват logcat для удалённой отладки</string>
-    <string name="settings_logcat_saved_toast">Logcat сохранён</string>
-    <string name="settings_logcat_started_toast">Захват logcat запущен</string>
-    <string name="settings_logcat_start_failed_toast">Не удалось запустить захват</string>
-    <string name="settings_agent_endpoint_title">Конечная точка агента (MCP)</string>
-    <string name="settings_agent_endpoint_subtitle_on">Включено — локальный MCP-сервер на loopback. Инструменты записи запрашивают согласие.</string>
-    <string name="settings_agent_endpoint_subtitle_off">Отключено — включите, чтобы локальные AI-агенты могли читать состояние и (с согласия) действовать</string>
-    <string name="settings_agent_file_read_title">Разрешить агентам читать содержимое файлов</string>
-    <string name="settings_agent_file_read_subtitle_on">Включено — `serve_file` возвращает одноразовый URL для скачивания после согласия на каждый вызов</string>
-    <string name="settings_agent_file_read_subtitle_off">Отключено — запросы `serve_file` сразу завершаются ошибкой без запроса</string>
-    <string name="settings_agent_terminal_input_title">Разрешить агентам ставить ввод в очередь терминала</string>
-    <string name="settings_agent_terminal_input_subtitle_on">Включено — `queue_terminal_input` следит за выводом SSH-сессии и вводит текст при следующем приглашении (согласие на каждый вызов)</string>
-    <string name="settings_agent_terminal_input_subtitle_off">Отключено — запросы `queue_terminal_input` сразу завершаются ошибкой без запроса</string>
-    <string name="settings_reverse_tunnel_title">Постоянное MCP-подключение</string>
-    <string name="settings_reverse_tunnel_subtitle_set">Туннель к \"%1$s\" — сохраняется при смене Wi-Fi и перезапуске приложения</string>
-    <string name="settings_reverse_tunnel_subtitle_unset">Не задана — конечная точка доступна только на устройстве</string>
-    <string name="settings_reverse_tunnel_none">Нет (только на устройстве)</string>
-    <string name="settings_mcp_wireguard_title">Открыть через туннель WireGuard</string>
-    <string name="settings_mcp_wireguard_subtitle_on">Включено — также доступно по адресу &lt;wg-ip&gt;:8730 в активном туннеле WireGuard</string>
-    <string name="settings_mcp_wireguard_subtitle_off">Отключено — включите для доступа к конечной точке через активный туннель WireGuard</string>
-    <string name="settings_mcp_lan_title">Открыть через Wi-Fi/LAN</string>
-    <string name="settings_mcp_lan_subtitle_on">Включено — также доступно по адресу &lt;device-lan-ip&gt;:8730 в локальной сети</string>
-    <string name="settings_mcp_lan_subtitle_off">Отключено — включите для прямого доступа с устройства в той же Wi-Fi/LAN-сети</string>
-    <string name="settings_mcp_copy_url_title">Скопировать URL конечной точки агента</string>
-    <string name="settings_mcp_url_copied_toast">Конечная точка скопирована</string>
-    <string name="settings_mcp_copy_config_title">Скопировать конфигурацию MCP-клиента</string>
-    <string name="settings_mcp_copy_config_subtitle">Стандартный JSON-фрагмент для вставки в любой MCP-клиент</string>
-    <string name="settings_mcp_config_copied_toast">Конфигурация скопирована</string>
-    <string name="settings_mcp_proot_title">Также доступно в PRoot</string>
-    <string name="settings_agent_activity_title">Просмотр активности агента</string>
-    <string name="settings_agent_activity_subtitle">Все вызовы MCP записываются с замаскированными аргументами</string>
-    <string name="settings_agent_confirm_destructive_title">Подтверждать деструктивные действия агента</string>
-    <string name="settings_agent_confirm_destructive_subtitle">Запрашивать подтверждение перед вызовами агента, которые записывают, удаляют, загружают или отключают. Вызовы только для чтения не запрашивают.</string>
-    <string name="settings_agent_forget_allows_title">Забыть запомненные разрешения</string>
-    <string name="settings_agent_forget_allows_subtitle">Запрашивать заново для каждого инструмента, ранее получившего одноразовое одобрение.</string>
-    <string name="settings_agent_allows_cleared_toast">Запомненные разрешения очищены</string>
     <string name="settings_font_from_url_body">Вставьте прямую ссылку на файл шрифта TTF или OTF. Популярные Nerd Fonts имеют TTF-файлы на GitHub: github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/&lt;Name&gt;/Regular/&lt;Name&gt;NerdFont-Regular.ttf — скопируйте этот URL сюда.</string>
     <string name="settings_font_from_url_placeholder">https://…/font.ttf</string>
     <string name="settings_recommended_fonts_dialog_body">Нажмите для загрузки и применения популярного моноширинного шрифта для программирования.</string>
@@ -368,9 +290,6 @@
     <string name="settings_filter_all">Все</string>
     <string name="settings_action_clear">Очистить</string>
     <string name="settings_cannot_be_undone">Это действие нельзя отменить.</string>
-    <string name="settings_cd_collapse">Свернуть</string>
-    <string name="settings_cd_expand">Развернуть</string>
-    <string name="settings_cd_failed">Сбой</string>
     <string name="settings_audit_log_title">Журнал подключений</string>
     <string name="settings_audit_log_cd_clear">Очистить журналы</string>
     <string name="settings_audit_log_cd_toggle_details">Показать/скрыть подробности</string>
@@ -382,18 +301,6 @@
     <string name="settings_audit_log_share_chooser">Поделиться журналом</string>
     <string name="settings_audit_log_status_sync">Синхронизация</string>
     <string name="settings_audit_log_status_sync_failed">Ошибка синхронизации</string>
-    <string name="settings_agent_activity_screen_title">Активность агента</string>
-    <string name="settings_agent_activity_cd_clear">Очистить историю</string>
-    <string name="settings_agent_activity_empty">Активности агента пока нет.\n\nКогда MCP-клиент вызывает инструмент, вызов появится здесь с замаскированными аргументами и кратким результатом.</string>
-    <string name="settings_agent_activity_clear_dialog_title">Очистить активность агента?</string>
-    <string name="settings_agent_activity_clear_dialog_text">Все записанные вызовы MCP будут удалены с этого устройства. Это действие нельзя отменить.</string>
-    <string name="settings_agent_activity_unknown_client">неизвестный клиент</string>
-    <string name="settings_agent_activity_args_redacted">аргументы (скрыты)</string>
-    <string name="settings_proot_install_log_screen_title">Журнал установки PRoot</string>
-    <string name="settings_proot_install_log_cd_clear">Очистить журнал</string>
-    <string name="settings_proot_install_log_empty">Событий установки пока не записано. Установите дистрибутив через «Подключения → Рабочие столы», чтобы заполнить журнал.</string>
-    <string name="settings_proot_install_log_clear_dialog_title">Очистить журнал установки?</string>
-    <string name="settings_proot_install_log_clear_dialog_text">Все записанные события установки будут удалены.</string>
     <string name="settings_ime_flag_no_suggestions_title">Скрыть панель подсказок</string>
     <string name="settings_ime_flag_no_suggestions_detail">TYPE_TEXT_FLAG_NO_SUGGESTIONS — поддерживается повсеместно</string>
     <string name="settings_ime_flag_visible_password_title">Отключить автокоррекцию / автозаглавные / автопробел</string>
@@ -406,43 +313,14 @@
     <string name="settings_ime_flag_no_extract_ui_detail">IME_FLAG_NO_EXTRACT_UI — предотвращает показ полноэкранного IME в альбомной ориентации.</string>
     <string name="settings_ime_flag_no_learning_title">Запретить IME обучаться</string>
     <string name="settings_ime_flag_no_learning_detail">IME_FLAG_NO_PERSONALIZED_LEARNING — конфиденциальность: словарь IME игнорирует введённый текст. Достаточно сильно, чтобы скрыть микрофон в Gboard.</string>
-    <string name="settings_mcp_tools_title">Инструменты MCP</string>
-    <string name="settings_mcp_tools_subtitle">Отключайте отдельные инструменты агента, чтобы уменьшить то, что он видит</string>
-    <string name="settings_mcp_tools_screen_title">Инструменты MCP</string>
-    <string name="settings_mcp_tools_empty">Список инструментов появится после запуска конечной точки агента.</string>
-    <string name="settings_mcp_tools_intro">Отключённые инструменты полностью исчезают из списка инструментов агента: маленькие модели видят меньше лишнего, и каждый вызов стоит меньше токенов. Переключатель конечной точки, сопряжение и запросы согласия продолжают действовать.</string>
-    <string name="settings_mcp_tools_consent_every_call">Спрашивает при каждом вызове</string>
-    <string name="settings_mcp_tools_consent_once">Спрашивает один раз за сессию</string>
-    <string name="settings_mcp_tools_consent_never">Без запроса на вызов</string>
-    <string name="settings_paired_clients_title">Сопряжённые клиенты MCP</string>
-    <string name="settings_paired_clients_subtitle">Просмотр сопряжённых клиентов, пропуск запросов по клиенту или разрыв сопряжения</string>
-    <string name="settings_paired_clients_screen_title">Сопряжённые клиенты MCP</string>
-    <string name="settings_paired_clients_empty">Пока нет сопряжённых клиентов MCP. Клиент появится здесь после того, как вы одобрите его запрос на подключение.</string>
-    <string name="settings_paired_clients_bypass_label">Пропускать запросы подтверждения</string>
-    <string name="settings_paired_clients_bypass_on">Автоматически одобряет каждый вызов этого клиента, включая разрушительные.</string>
-    <string name="settings_paired_clients_bypass_off">Каждый разрушительный вызов по-прежнему запрашивает согласие (по умолчанию).</string>
-    <string name="settings_paired_clients_cd_unpair">Разорвать сопряжение клиента</string>
-    <string name="settings_paired_clients_unpair_title">Разорвать сопряжение с \'%1$s\'?</string>
-    <string name="settings_paired_clients_unpair_message">При следующем подключении его потребуется одобрить заново, а любое автоодобрение отменяется.</string>
-    <string name="settings_paired_clients_unpair_confirm">Разорвать</string>
-    <string name="settings_paired_clients_unpaired_toast">Сопряжение с \'%1$s\' разорвано</string>
 
     <!-- MCP endpoint: VPN collision + loopback trust -->
-    <string name="settings_mcp_wireguard_collision">Другой VPN (%1$s) использует %2$s — тот же адрес, к которому привязана эта конечная точка, поэтому она перекрыта и недоступна для пиров. Остановите этот VPN или укажите MCP-клиенту конечную точку loopback (127.0.0.1).</string>
-    <string name="settings_mcp_trust_loopback_title">Доверять локальным клиентам</string>
-    <string name="settings_mcp_trust_loopback_subtitle_on">Включено — локальные клиенты (127.0.0.1) подключаются без сопряжения и запросов подтверждения. Клиенты по Wi-Fi/LAN и WireGuard по-прежнему запрашивают подтверждение.</string>
-    <string name="settings_mcp_trust_loopback_subtitle_off">Отключено — даже локальные клиенты должны быть сопряжены и подтверждать каждый запрос</string>
 
     <!-- Terminal reflow, GPU stack, standing policies (#250) -->
     <string name="settings_reflow_on_keyboard_title">Подгонять терминал под клавиатуру</string>
     <string name="settings_reflow_on_keyboard_subtitle">Когда открывается клавиатура, терминал уменьшается, чтобы поместиться над ней, вместо прокрутки экрана вверх. Помогает полноэкранным приложениям со строкой состояния вверху; для обычных оболочек оставьте выключенным.</string>
     <string name="settings_tab_titles_follow_session_title">Предпочитать имена сеансов в заголовках вкладок</string>
     <string name="settings_tab_titles_follow_session_subtitle">Вкладки, подключённые к tmux/zellij/screen, сохраняют имя сеанса вместо заголовков, задаваемых запущенными программами.</string>
-    <string name="settings_gpu_venus_title">Экспериментальный стек GPU (venus + zink)</string>
-    <string name="settings_gpu_venus_subtitle">Использует venus (Vulkan к GPU) + zink для современного OpenGL (~3.2 core) на ускоренных рабочих столах вместо virgl (GL 2.1). Нативные приложения Vulkan отображаются; вывод OpenGL пока медленный. Требуется mesa-vulkan-drivers в гостевой системе. Выключено = virgl по умолчанию.</string>
-    <string name="settings_standing_policies_header">Постоянные политики — эти инструменты выполняются без запроса</string>
-    <string name="settings_standing_policy_meta">%1$s · до %2$d вызовов/мин · истекает %3$s</string>
-    <string name="settings_standing_policy_revoke">Отозвать</string>
 
     <!-- Desktop key placement (#245.2) -->
     <string name="settings_toolbar_desktop_key">Кнопка рабочего стола</string>
@@ -461,13 +339,8 @@
     <string name="settings_terminal_opacity_title">Непрозрачность фона</string>
     <string name="settings_terminal_opacity_value">%1$d%%</string>
     <string name="settings_terminal_opacity_hint" formatted="false">Ниже 100% Haven становится полупрозрачным и показывает обои устройства за каждым экраном (терминал, списки, настройки). Переопределение для отдельного подключения действует только на его терминал.</string>
-    <string name="settings_section_mcp">ИИ-агент (MCP)</string>
     <string name="settings_tailscale_discovery_title">Обнаружение узлов Tailscale</string>
     <string name="settings_tailscale_discovery_subtitle">Искать хосты вашей сети Tailscale через локальный API при сканировании. Отключите, чтобы Haven не читал список узлов; на сам Tailscale это не влияет.</string>
-    <string name="settings_audio_bridge_title">Звук proot (экспериментально)</string>
-    <string name="settings_audio_bridge_subtitle">Воспроизводит звук из приложений Linux через динамик устройства с помощью моста PulseAudio в гостевой системе. Только вывод. Поток идёт непрерывно, пока включено — выключайте, когда не используется.</string>
-    <string name="settings_reverse_tunnel_status_active">Near (SSH): через %1$s — подключено</string>
-    <string name="settings_reverse_tunnel_status_inactive">Near (SSH): не подключено — откройте %1$s, чтобы включить</string>
     <string name="settings_remote_clipboard_title">Синхронизировать удалённый буфер обмена</string>
     <string name="settings_remote_clipboard_subtitle">Разрешить удалённому рабочему столу (VNC) копировать в буфер обмена устройства. По умолчанию выключено.</string>
     <string name="settings_rdp_progressive_upgrade_title">RDP: декодирование плиток прогрессивного обновления (экспериментально)</string>
@@ -536,7 +409,6 @@
     <string name="settings_inline_images_ask">Спрашивать</string>
     <string name="settings_inline_images_always">Всегда</string>
     <string name="settings_ambiwidth_title">Обработка символов неоднозначной ширины</string>
-    <string name="settings_ambiwidth_subtitle">Как отображаются восточноазиатские символы неоднозначной ширины (знаки, греческие буквы)</string>
     <string name="settings_ambiwidth_mode_narrow">Узкий (1 ячейка)</string>
     <string name="settings_ambiwidth_mode_narrow_desc">Всегда 1 ячейка (стандартный Unix / XTerm, по умолчанию)</string>
     <string name="settings_ambiwidth_mode_auto_narrow">Авто + Узкий</string>
@@ -547,17 +419,4 @@
     <string name="settings_ambiwidth_mode_auto_wide_desc">Замерять активный шрифт; при сбое 2 ячейки (CJK)</string>
     <string name="settings_bell_notification_title">Уведомление о звонке</string>
     <string name="settings_bell_notification_subtitle">Когда программа в терминале подаёт звуковой сигнал, пока Haven в фоновом режиме, приходит уведомление с названием вкладки. Пока вы смотрите в терминал, ничего не появляется.</string>
-    <string name="settings_mcp_tools_category_off_count">выкл. %1$d</string>
-    <string name="settings_mcp_tools_cat_terminal">Терминал</string>
-    <string name="settings_mcp_tools_cat_connections">Подключения</string>
-    <string name="settings_mcp_tools_cat_files">Файлы</string>
-    <string name="settings_mcp_tools_cat_desktop">Рабочий стол</string>
-    <string name="settings_mcp_tools_cat_guest">Гость Linux</string>
-    <string name="settings_mcp_tools_cat_usb">USB и последовательный порт</string>
-    <string name="settings_mcp_tools_cat_keys">Ключи и учётные данные</string>
-    <string name="settings_mcp_tools_cat_mail">Почта</string>
-    <string name="settings_mcp_tools_cat_rclone">Облачное хранилище</string>
-    <string name="settings_mcp_tools_cat_senses">Датчики и местоположение</string>
-    <string name="settings_mcp_tools_cat_agent">Агент и управление устройством</string>
-    <string name="settings_mcp_tools_cat_other">Прочее</string>
 </resources>

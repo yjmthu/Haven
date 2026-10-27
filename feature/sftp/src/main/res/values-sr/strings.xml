@@ -9,10 +9,7 @@
     <string name="common_edit">Уреди</string>
     <string name="common_rename">Преименуј</string>
     <string name="common_create">Креирај</string>
-    <string name="common_connect">Повежи</string>
-    <string name="common_disconnect">Прекини везу</string>
     <string name="common_copy">Копирај</string>
-    <string name="common_paste">Налепи</string>
     <string name="common_label">Ознака</string>
     <string name="common_password">Лозинка</string>
     <string name="common_port">Порт</string>
@@ -22,9 +19,6 @@
     <string name="common_reset">Ресетуј</string>
     <string name="common_allow">Дозволи</string>
     <string name="common_not_now">Не сада</string>
-    <string name="common_import">Увези</string>
-    <string name="common_add">Додај</string>
-    <string name="common_download">Преузми</string>
     <string name="common_unlock">Откључај</string>
     <string name="sftp_navigate_up">Иди навише</string>
     <string name="sftp_hide_hidden_files">Сакриј скривене фајлове</string>
@@ -78,9 +72,6 @@
     <string name="sftp_bandwidth_limit">Ограничење пропусног опсега</string>
     <string name="sftp_dry_run">Пробно извршавање (само преглед)</string>
     <string name="sftp_start_sync">Почни</string>
-    <string name="sftp_dry_run_results">Резултати пробног извршавања</string>
-    <string name="sftp_start_for_real">Почни заиста</string>
-    <string name="sftp_sync_cancelled">Синхро је отказана</string>
     <string name="sftp_saved_sync_label">Сачувана конфигурација</string>
     <string name="sftp_saved_sync_pick">Изаберите сачувану конфигурацију</string>
     <string name="sftp_saved_sync_save">Сачувај</string>
@@ -92,9 +83,7 @@
     <string name="sftp_file_icon">Фајл</string>
     <string name="sftp_download">Преузми</string>
     <string name="sftp_encrypt">Шифруј (age)</string>
-    <string name="sftp_encrypt_sub">Шифрује за age кључ — може да се чита било где са age алатом</string>
     <string name="sftp_decrypt">Дешифруј (age)</string>
-    <string name="sftp_decrypt_sub">Дешифрује сачуваним age идентитетом</string>
     <string name="sftp_encrypt_title">Шифровање са age</string>
     <string name="sftp_encrypt_recipient_hint">Или налепите примаоца (age1…)</string>
     <string name="sftp_encrypt_action">Шифруј</string>
@@ -135,7 +124,6 @@
     <string name="sftp_sort_date_desc">Датум (најновије)</string>
     <string name="sftp_file_browser_title">SFTP прегледач фајлова</string>
     <string name="sftp_connect_to_browse">Повежите се на сервер да прегледате фајлове</string>
-    <string name="sftp_open_usb_drive">Отвори USB драјв…</string>
     <string name="sftp_new_folder_title">Нови фолдер</string>
     <string name="sftp_folder_name">Име фолдера</string>
     <string name="sftp_create">Креирај</string>
@@ -148,7 +136,6 @@
     <string name="sftp_rename_title">Преименуј</string>
     <string name="sftp_new_name">Ново име</string>
     <string name="sftp_share_link">Подели линк</string>
-    <string name="sftp_link_copied">Линк је копиран</string>
     <string name="sftp_folder_size">Величина фолдера</string>
     <string name="sftp_folder_size_title">Величина фолдера</string>
     <string name="sftp_calculating_size">Израчунавање…</string>
@@ -157,13 +144,10 @@
     <string name="sftp_attach_pick_profile">Изаберите повезани профил који треба да се користи</string>
     <string name="sftp_attach_local_no_upload">Изаберите удаљени профил — локални не може да прихвати отпремања</string>
     <string name="sftp_attach_will_upload_into">Отпремиће се у: %1$s</string>
-    <string name="sftp_chat_attach_pick_file">Прикачи фајл у ћаскање</string>
-    <string name="sftp_chat_attach_will_pick_from">Избор из: %1$s</string>
     <string name="sftp_attach_sending">Шаље се %1$s…</string>
     <string name="sftp_storage_permission_title">Потребна је дозвола за складиште</string>
     <string name="sftp_storage_permission_body">Тапните да одобрите приступ локалним фајловима — ова дозвола је потребна за медијске функционалности, прегледање и трансфере.</string>
     <string name="sftp_paste_unfinished">Недовршено налепљивање</string>
-    <string name="sftp_agent_chip">Агент</string>
     <string name="sftp_convert_dest_same_folder_cloud">Назад на облак (исти фолдер)</string>
     <string name="sftp_convert_download_first">Најпре преузми</string>
     <string name="sftp_convert_download_first_on">Преузима се цео фајл пре транскодирања</string>

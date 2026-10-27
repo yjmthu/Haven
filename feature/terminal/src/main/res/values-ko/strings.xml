@@ -10,10 +10,7 @@
     <string name="common_edit">편집</string>
     <string name="common_rename">이름 변경</string>
     <string name="common_create">생성</string>
-    <string name="common_connect">연결</string>
-    <string name="common_disconnect">연결 해제</string>
     <string name="common_copy">복사</string>
-    <string name="common_paste">붙여넣기</string>
     <string name="common_label">라벨</string>
     <string name="common_password">비밀번호</string>
     <string name="common_port">포트</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">재설정</string>
     <string name="common_allow">허용</string>
     <string name="common_not_now">나중에</string>
-    <string name="common_import">가져오기</string>
-    <string name="common_add">추가</string>
-    <string name="common_download">다운로드</string>
     <string name="common_unlock">잠금 해제</string>
 
     <!-- Tab bar -->
@@ -51,7 +45,6 @@
     <string name="terminal_new_tab_host_key_changed">%s의 호스트 키가 변경됨 — 보안을 위해 연결이 거부되었습니다</string>
     <string name="terminal_new_tab_connection_failed">연결할 수 없음: %s</string>
     <string name="terminal_new_tab_shell_failed">셸을 열지 못함: %s</string>
-    <string name="terminal_new_tab_reticulum_no_session">복제할 활성 Reticulum 세션이 없습니다</string>
     <string name="terminal_new_tab_connecting">연결 중…</string>
 
     <!-- EmptyTerminalState -->
@@ -88,23 +81,11 @@
     <!-- #210 i18n sweep -->
     <string name="terminal_link_open_failed">이 링크를 열 수 있는 앱이 없습니다</string>
     <string name="terminal_link_scheme_blocked">차단된 링크 (지원되지 않는 스킴)</string>
-    <string name="terminal_local_vnc_failed">로컬 데스크톱을 시작할 수 없습니다</string>
     <string name="terminal_attach_title">첨부</string>
     <string name="terminal_attach_send_file">파일 보내기</string>
     <string name="terminal_attach_send_file_desc">원격으로 업로드하고 경로를 붙여넣습니다</string>
     <string name="terminal_attach_take_photo">사진 촬영</string>
     <string name="terminal_attach_take_photo_desc">사진을 찍어 파일처럼 보냅니다</string>
-    <string name="terminal_attach_scan_camera">코드 스캔 (카메라)</string>
-    <string name="terminal_attach_scan_camera_desc">QR 코드나 바코드를 촬영하여 내용을 붙여넣습니다</string>
-    <string name="terminal_attach_scan_gallery">코드 스캔 (사진)</string>
-    <string name="terminal_attach_scan_gallery_desc">QR 코드나 바코드가 있는 사진을 선택하여 내용을 붙여넣습니다</string>
-    <string name="terminal_attach_ocr_camera">텍스트 인식 (카메라)</string>
-    <string name="terminal_attach_ocr_camera_desc">인쇄된 텍스트를 촬영하여 인식된 내용을 붙여넣습니다</string>
-    <string name="terminal_attach_ocr_gallery">텍스트 인식 (사진)</string>
-    <string name="terminal_attach_ocr_gallery_desc">인쇄된 텍스트가 있는 사진을 선택하여 인식된 내용을 붙여넣습니다</string>
-    <string name="terminal_scan_no_code">이미지에서 코드를 감지하지 못했습니다</string>
-    <string name="terminal_scan_no_text">이미지에서 텍스트를 감지하지 못했습니다</string>
-    <string name="terminal_scan_failed">스캔 실패: %s</string>
     <string name="terminal_scan_no_camera">사용 가능한 카메라 앱이 없습니다</string>
     <string name="terminal_selection_copy">복사</string>
     <string name="terminal_selection_paste">붙여넣기</string>

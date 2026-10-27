@@ -10,10 +10,7 @@
     <string name="common_edit">编辑</string>
     <string name="common_rename">重命名</string>
     <string name="common_create">创建</string>
-    <string name="common_connect">连接</string>
-    <string name="common_disconnect">断开</string>
     <string name="common_copy">复制</string>
-    <string name="common_paste">粘贴</string>
     <string name="common_label">标签</string>
     <string name="common_password">密码</string>
     <string name="common_port">端口</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">重置</string>
     <string name="common_allow">允许</string>
     <string name="common_not_now">暂不</string>
-    <string name="common_import">导入</string>
-    <string name="common_add">添加</string>
-    <string name="common_download">下载</string>
     <string name="common_unlock">解锁</string>
 
     <!-- Tab bar -->
@@ -68,7 +62,6 @@
     <string name="terminal_new_tab_host_key_changed">%s 的主机密钥已更改 — 出于安全考虑拒绝连接</string>
     <string name="terminal_new_tab_connection_failed">无法连接：%s</string>
     <string name="terminal_new_tab_shell_failed">无法打开 shell：%s</string>
-    <string name="terminal_new_tab_reticulum_no_session">没有可克隆的活动 Reticulum 会话</string>
     <string name="terminal_new_tab_connecting">连接中…</string>
     <!-- Backfilled translations (i18n drift fix) -->
     <string name="terminal_no_contact">服务器 %1$ds 无响应 — 正在重试</string>
@@ -87,23 +80,11 @@
     <!-- i18n sweep #210 -->
     <string name="terminal_link_open_failed">没有应用可以打开此链接</string>
     <string name="terminal_link_scheme_blocked">已拦截的链接（不支持的协议）</string>
-    <string name="terminal_local_vnc_failed">无法启动本地桌面</string>
     <string name="terminal_attach_title">附加</string>
     <string name="terminal_attach_send_file">发送文件</string>
     <string name="terminal_attach_send_file_desc">上传到远程并粘贴其路径</string>
     <string name="terminal_attach_take_photo">拍摄照片</string>
     <string name="terminal_attach_take_photo_desc">拍摄一张照片并像文件一样发送</string>
-    <string name="terminal_attach_scan_camera">扫描码（相机）</string>
-    <string name="terminal_attach_scan_camera_desc">拍摄 QR 码或条形码并粘贴其内容</string>
-    <string name="terminal_attach_scan_gallery">扫描码（相册）</string>
-    <string name="terminal_attach_scan_gallery_desc">从相册选取含 QR 码或条形码的图片并粘贴其内容</string>
-    <string name="terminal_attach_ocr_camera">识别文字（相机）</string>
-    <string name="terminal_attach_ocr_camera_desc">拍摄印刷文字并粘贴识别结果</string>
-    <string name="terminal_attach_ocr_gallery">识别文字（相册）</string>
-    <string name="terminal_attach_ocr_gallery_desc">从相册选取印刷文字图片并粘贴识别结果</string>
-    <string name="terminal_scan_no_code">图片中未检测到码</string>
-    <string name="terminal_scan_no_text">图片中未检测到文字</string>
-    <string name="terminal_scan_failed">扫描失败：%s</string>
     <string name="terminal_scan_no_camera">无可用相机应用</string>
     <string name="terminal_selection_copy">复制</string>
     <string name="terminal_selection_paste">粘贴</string>

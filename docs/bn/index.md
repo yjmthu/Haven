@@ -72,15 +72,7 @@ title: Haven
 
 - **[টার্মিনাল](../features/terminal.md)** — Mosh / Eternal Terminal / SSH, সিরিয়াল↔TCP ব্রিজ সহ USB / Bluetooth / BLE সিরিয়াল কনসোল, tmux সেশন পুনরুদ্ধার, কনফিগারযোগ্য কীবোর্ড টুলবার, OSC 7/8/9/52/133/777 ইন্টিগ্রেশন।
 - **[ডেস্কটপ](../features/desktops.md)** — VNC (RFB 3.8 / VeNCrypt), RDP (IronRDP + EGFX), SPICE (QEMU/KVM, GLZ/QUIC), একটি GPU-অ্যাক্সিলারেটেড নেটিভ Wayland কম্পোজিটর, এবং একটি বহু-ডিস্ট্রো লোকাল-ডেস্কটপ ম্যানেজার।
-- **[ফাইল ও ক্লাউড](../features/files-and-cloud.md)** — SFTP/SCP, SMB, ৬০+ ক্লাউড প্রদানকারী (rclone), ক্রস-ফাইলসিস্টেম কপি/মুভ; এছাড়াও FFmpeg ট্রান্সকোড, HLS, এবং DLNA।
 - **[সংযোগ](../features/connections.md)** — পোর্ট ফরওয়ার্ডিং (-L/-R/-D/-J), SOCKS/HTTP/Tor প্রক্সি, প্রতি-অ্যাপ WireGuard ও Tailscale টানেল, পোর্ট নকিং + fwknop SPA, SSH কী ও FIDO2।
-- **[ইমেইল](../features/email.md)** — ProtonMail + IMAP/SMTP, রচনা/উত্তর/ফরওয়ার্ড, বহু-অ্যাকাউন্ট, Mail Rules অটোমেশন।
-- **[লোকাল Linux](../features/local-linux.md)** — PRoot এর মাধ্যমে Alpine / Debian / Ubuntu / Arch / Void, পাশাপাশি, কোনো root প্রয়োজন নেই।
-- **[Linux গেস্ট (UML)](../features/uml-guest.md)** — যেকোনো arm64 ডিভাইসে কোনো root ছাড়াই অ্যাপ প্রসেস হিসেবে বুট হওয়া একটি পূর্ণ Linux কার্নেল (user-mode Linux): `apk` সহ Alpine, নিজস্ব ext4 ডিস্ক ও নেটওয়ার্ক স্ট্যাক, যখন PRoot-এর সিসকল ইমুলেশন যথেষ্ট নয়।
-- **[USB কার্ড রেসকিউ কনসোল](../features/usb-recovery-live.md)** — ত্রুটিপূর্ণ SD কার্ডের কাঁচা ডিভাইস কয়েক সেকেন্ডে Linux গেস্টে পৌঁছে যায়, `ddrescue`-এর জন্য প্রস্তুত।
-- **[USB ফরওয়ার্ডিং](../features/usb.md)** — USB/IP এর মাধ্যমে একটি USB ডিভাইস এজেন্ট, Linux গেস্ট, বা একটি দূরবর্তী হোস্টে ব্রোকার করুন।
-- **[Reticulum](../features/reticulum.md)** — মেশের উপর rnsh শেল, ফাইল স্থানান্তর, এবং `-L`/`-D` ফরওয়ার্ডিং। একমাত্র ট্রান্সপোর্ট যা ইন্টারনেট ছাড়াই কাজ করতে থাকে।
-- **[এজেন্ট ট্রান্সপোর্ট (MCP)](../mcp-tools.md)** — ~২৩০টি সম্মতি-নিয়ন্ত্রিত টুল; এজেন্ট এমনকি Haven এর নিজস্ব UI চালাতে পারে।
 - **[নিরাপত্তা](../features/security.md)** — বায়োমেট্রিক লক, কোনো টেলিমেট্রি নেই, এনক্রিপ্ট করা ব্যাকআপ/পুনরুদ্ধার (AES-256-GCM)।
 
 [সম্পূর্ণ বৈশিষ্ট্য সূচক](../FEATURES.md) ব্রাউজ করুন।

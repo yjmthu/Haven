@@ -10,10 +10,7 @@
     <string name="common_edit">সম্পাদনা</string>
     <string name="common_rename">নাম পরিবর্তন</string>
     <string name="common_create">তৈরি</string>
-    <string name="common_connect">সংযোগ</string>
-    <string name="common_disconnect">সংযোগ বিচ্ছিন্ন</string>
     <string name="common_copy">কপি</string>
-    <string name="common_paste">পেস্ট</string>
     <string name="common_label">লেবেল</string>
     <string name="common_password">পাসওয়ার্ড</string>
     <string name="common_port">পোর্ট</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">রিসেট</string>
     <string name="common_allow">অনুমতি</string>
     <string name="common_not_now">এখন নয়</string>
-    <string name="common_import">ইমপোর্ট</string>
-    <string name="common_add">যোগ</string>
-    <string name="common_download">ডাউনলোড</string>
     <string name="common_unlock">আনলক</string>
 
     <!-- Tab bar -->
@@ -68,7 +62,6 @@
     <string name="terminal_new_tab_host_key_changed">%s এর হোস্ট কী পরিবর্তিত হয়েছে — নিরাপত্তার কারণে সংযোগ প্রত্যাখ্যাত</string>
     <string name="terminal_new_tab_connection_failed">সংযোগ করা যায়নি: %s</string>
     <string name="terminal_new_tab_shell_failed">শেল খোলা যায়নি: %s</string>
-    <string name="terminal_new_tab_reticulum_no_session">ক্লোন করার মতো সক্রিয় Reticulum সেশন নেই</string>
     <string name="terminal_new_tab_connecting">সংযোগ করা হচ্ছে…</string>
     <!-- Backfilled translations (i18n drift fix) -->
     <string name="terminal_no_contact">সার্ভার থেকে %1$d সেকেন্ড ধরে সাড়া নেই — পুনরায় চেষ্টা চলছে</string>
@@ -87,23 +80,11 @@
     <!-- i18n sweep #210 -->
     <string name="terminal_link_open_failed">এই লিংক খোলার জন্য কোনো অ্যাপ নেই</string>
     <string name="terminal_link_scheme_blocked">ব্লক করা লিংক (অসমর্থিত scheme)</string>
-    <string name="terminal_local_vnc_failed">স্থানীয় ডেস্কটপ শুরু করা যায়নি</string>
     <string name="terminal_attach_title">সংযুক্ত করুন</string>
     <string name="terminal_attach_send_file">একটি ফাইল পাঠান</string>
     <string name="terminal_attach_send_file_desc">রিমোটে আপলোড করুন এবং এর path পেস্ট করুন</string>
     <string name="terminal_attach_take_photo">ছবি তুলুন</string>
     <string name="terminal_attach_take_photo_desc">একটি ছবি তুলে ফাইলের মতো পাঠান</string>
-    <string name="terminal_attach_scan_camera">কোড স্ক্যান (ক্যামেরা)</string>
-    <string name="terminal_attach_scan_camera_desc">একটি QR বা barcode ছবি তুলুন এবং এর বিষয়বস্তু পেস্ট করুন</string>
-    <string name="terminal_attach_scan_gallery">কোড স্ক্যান (Photos)</string>
-    <string name="terminal_attach_scan_gallery_desc">একটি QR বা barcode-এর ছবি বেছে নিন এবং এর বিষয়বস্তু পেস্ট করুন</string>
-    <string name="terminal_attach_ocr_camera">টেক্সট শনাক্ত করুন (ক্যামেরা)</string>
-    <string name="terminal_attach_ocr_camera_desc">মুদ্রিত টেক্সটের ছবি তুলুন এবং শনাক্ত হওয়া অংশ পেস্ট করুন</string>
-    <string name="terminal_attach_ocr_gallery">টেক্সট শনাক্ত করুন (Photos)</string>
-    <string name="terminal_attach_ocr_gallery_desc">মুদ্রিত টেক্সটের ছবি বেছে নিন এবং শনাক্ত হওয়া অংশ পেস্ট করুন</string>
-    <string name="terminal_scan_no_code">ছবিতে কোনো কোড পাওয়া যায়নি</string>
-    <string name="terminal_scan_no_text">ছবিতে কোনো টেক্সট পাওয়া যায়নি</string>
-    <string name="terminal_scan_failed">স্ক্যান ব্যর্থ: %s</string>
     <string name="terminal_scan_no_camera">কোনো ক্যামেরা অ্যাপ পাওয়া যায়নি</string>
     <string name="terminal_selection_copy">কপি</string>
     <string name="terminal_selection_paste">পেস্ট</string>

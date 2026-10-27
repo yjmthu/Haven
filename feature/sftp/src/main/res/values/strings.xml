@@ -10,10 +10,7 @@
     <string name="common_edit">Edit</string>
     <string name="common_rename">Rename</string>
     <string name="common_create">Create</string>
-    <string name="common_connect">Connect</string>
-    <string name="common_disconnect">Disconnect</string>
     <string name="common_copy">Copy</string>
-    <string name="common_paste">Paste</string>
     <string name="common_label">Label</string>
     <string name="common_password">Password</string>
     <string name="common_port">Port</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">Reset</string>
     <string name="common_allow">Allow</string>
     <string name="common_not_now">Not now</string>
-    <string name="common_import">Import</string>
-    <string name="common_add">Add</string>
-    <string name="common_download">Download</string>
     <string name="common_unlock">Unlock</string>
 
     <!-- SftpScreen navigation -->
@@ -63,9 +57,6 @@
     <string name="sftp_path_copied">Path copied</string>
 
     <!-- Folder sync -->
-    <string name="sftp_dry_run_results">Dry Run Results</string>
-    <string name="sftp_start_for_real">Start for real</string>
-    <string name="sftp_sync_cancelled">Sync cancelled</string>
 
     <!-- FileListItem -->
     <string name="sftp_directory">Directory</string>
@@ -73,9 +64,7 @@
     <string name="sftp_file_icon">File</string>
     <string name="sftp_download">Download</string>
     <string name="sftp_encrypt">Encrypt (age)</string>
-    <string name="sftp_encrypt_sub">Encrypt to an age key — readable anywhere with the age tool</string>
     <string name="sftp_decrypt">Decrypt (age)</string>
-    <string name="sftp_decrypt_sub">Decrypt with a stored age identity</string>
     <string name="sftp_encrypt_title">Encrypt with age</string>
     <string name="sftp_encrypt_recipient_hint">Or paste a recipient (age1…)</string>
     <string name="sftp_encrypt_action">Encrypt</string>
@@ -126,7 +115,6 @@
     <!-- EmptyState -->
     <string name="sftp_file_browser_title">SFTP File Browser</string>
     <string name="sftp_connect_to_browse">Connect to a server to browse files</string>
-    <string name="sftp_open_usb_drive">Open a USB drive…</string>
 
     <!-- New Folder dialog -->
     <string name="sftp_new_folder_title">New Folder</string>
@@ -146,7 +134,6 @@
     <string name="sftp_new_name">New name</string>
 
     <!-- Share link -->
-    <string name="sftp_link_copied">Link copied</string>
 
     <!-- Filter -->
     <string name="sftp_filter">Filter files</string>
@@ -156,8 +143,6 @@
     <string name="sftp_attach_pick_profile">Pick a connected profile to use</string>
     <string name="sftp_attach_local_no_upload">Pick a remote profile — local can\'t accept uploads</string>
     <string name="sftp_attach_will_upload_into">Will upload into: %1$s</string>
-    <string name="sftp_chat_attach_pick_file">Attach a file to chat</string>
-    <string name="sftp_chat_attach_will_pick_from">Pick from: %1$s</string>
     <string name="sftp_attach_sending">Sending %1$s…</string>
 
     <!-- Storage permission banner -->
@@ -168,7 +153,6 @@
     <string name="sftp_paste_unfinished">Unfinished paste</string>
 
     <!-- Agent-served file chip -->
-    <string name="sftp_agent_chip">Agent</string>
 
     <!-- Filter chip labels (Glob/Regex) -->
     <string name="sftp_filter_mode_glob">Glob</string>

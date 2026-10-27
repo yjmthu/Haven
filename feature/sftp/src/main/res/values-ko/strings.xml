@@ -10,10 +10,7 @@
     <string name="common_edit">편집</string>
     <string name="common_rename">이름 변경</string>
     <string name="common_create">생성</string>
-    <string name="common_connect">연결</string>
-    <string name="common_disconnect">연결 해제</string>
     <string name="common_copy">복사</string>
-    <string name="common_paste">붙여넣기</string>
     <string name="common_label">라벨</string>
     <string name="common_password">비밀번호</string>
     <string name="common_port">포트</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">재설정</string>
     <string name="common_allow">허용</string>
     <string name="common_not_now">나중에</string>
-    <string name="common_import">가져오기</string>
-    <string name="common_add">추가</string>
-    <string name="common_download">다운로드</string>
     <string name="common_unlock">잠금 해제</string>
 
     <!-- SftpScreen navigation -->
@@ -84,9 +78,6 @@
     <string name="sftp_bandwidth_limit">대역폭 제한</string>
     <string name="sftp_dry_run">시험 실행(미리보기만)</string>
     <string name="sftp_start_sync">시작</string>
-    <string name="sftp_dry_run_results">시험 실행 결과</string>
-    <string name="sftp_start_for_real">실제로 시작</string>
-    <string name="sftp_sync_cancelled">동기화 취소됨</string>
 
     <!-- FileListItem -->
     <string name="sftp_directory">디렉터리</string>
@@ -164,7 +155,6 @@
 
     <!-- Share link -->
     <string name="sftp_share_link">링크 공유</string>
-    <string name="sftp_link_copied">링크가 복사되었습니다</string>
 
     <!-- Folder size -->
     <string name="sftp_folder_size">폴더 크기</string>
@@ -200,13 +190,10 @@
     <string name="sftp_attach_pick_profile">사용할 연결된 프로필 선택</string>
     <string name="sftp_attach_local_no_upload">원격 프로필을 선택하세요 — 로컬은 업로드를 받을 수 없습니다</string>
     <string name="sftp_attach_will_upload_into">업로드 위치: %1$s</string>
-    <string name="sftp_chat_attach_pick_file">채팅에 파일 첨부</string>
-    <string name="sftp_chat_attach_will_pick_from">선택 위치: %1$s</string>
     <string name="sftp_attach_sending">%1$s 전송 중…</string>
     <string name="sftp_storage_permission_title">저장소 접근 권한 필요</string>
     <string name="sftp_storage_permission_body">탭하여 로컬 파일 접근 권한 부여 — 미디어 기능, 파일 탐색 및 전송에 이 권한이 필요합니다.</string>
     <string name="sftp_paste_unfinished">완료되지 않은 붙여넣기</string>
-    <string name="sftp_agent_chip">에이전트</string>
     <string name="sftp_convert_dest_same_folder_cloud">클라우드로 (같은 폴더)</string>
     <string name="sftp_convert_download_first">먼저 다운로드</string>
     <string name="sftp_convert_download_first_on">트랜스코딩 전에 전체 파일을 다운로드합니다</string>
@@ -222,15 +209,12 @@
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
     <string name="sftp_new_sync">새 rclone 동기화</string>
     <string name="sftp_encrypt">암호화 (age)</string>
-    <string name="sftp_encrypt_sub">age 키로 암호화 — age 도구가 있으면 어디서나 읽을 수 있음</string>
     <string name="sftp_decrypt">복호화 (age)</string>
-    <string name="sftp_decrypt_sub">저장된 age ID로 복호화</string>
     <string name="sftp_encrypt_title">age로 암호화</string>
     <string name="sftp_encrypt_recipient_hint">또는 수신자 붙여넣기 (age1…)</string>
     <string name="sftp_encrypt_action">암호화</string>
     <string name="sftp_age_no_identity">age ID가 없습니다. 키 탭에서 만들거나 수신자를 붙여넣으세요.</string>
     <string name="sftp_age_failed">age 작업 실패 — 잘못된 키 또는 손상된 파일</string>
-    <string name="sftp_open_usb_drive">USB 드라이브 열기…</string>
     <string name="sftp_add_folder_location">폴더 위치 추가</string>
     <string name="sftp_saf_grant_failed">해당 폴더에 대한 액세스를 유지할 수 없습니다</string>
     <string name="sftp_remove_folder_location">폴더 위치 제거</string>

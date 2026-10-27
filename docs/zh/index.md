@@ -67,15 +67,7 @@ title: Haven
 
 - **[终端](../features/terminal.md)** — Mosh / Eternal Terminal / SSH、带串口↔TCP 桥接的 USB / 蓝牙 / BLE 串口控制台、tmux 会话恢复、可配置的键盘工具栏、OSC 7/8/9/52/133/777 集成。
 - **[桌面](../features/desktops.md)** — VNC（RFB 3.8 / VeNCrypt）、RDP（IronRDP + EGFX）、SPICE（QEMU/KVM、GLZ/QUIC）、一个 GPU 加速的原生 Wayland 合成器，以及一个多发行版本地桌面管理器。
-- **[文件与云](../features/files-and-cloud.md)** — SFTP/SCP、SMB、60 多个云服务商（rclone）、跨文件系统的复制/移动；外加 FFmpeg 转码、HLS 和 DLNA。
 - **[连接](../features/connections.md)** — 端口转发（-L/-R/-D/-J）、SOCKS/HTTP/Tor 代理、按应用的 WireGuard 与 Tailscale 隧道、端口敲门 + fwknop SPA、SSH 密钥与 FIDO2。
-- **[电子邮件](../features/email.md)** — ProtonMail + IMAP/SMTP、撰写/回复/转发、多账户、邮件规则自动化。
-- **[本地 Linux](../features/local-linux.md)** — 通过 PRoot 运行 Alpine / Debian / Ubuntu / Arch / Void，可并排运行，无需 root。
-- **[Linux 客户机（UML）](../features/uml-guest.md)** — 在任何 arm64 设备上无需 root、作为应用进程启动的完整 Linux 内核（用户态 Linux）：带 `apk` 的 Alpine，拥有独立的 ext4 磁盘和网络栈，适用于 PRoot 的系统调用模拟不够用的场景。
-- **[USB 存储卡救援控制台](../features/usb-recovery-live.md)** — 故障 SD 卡的原始设备数秒内即可接入 Linux 客户机，随时可运行 `ddrescue`。
-- **[USB 转发](../features/usb.md)** — 通过 USB/IP 将一个 USB 设备代理给智能体、Linux 客户机或远程主机。
-- **[Reticulum](../features/reticulum.md)** — 在网状网络上的 rnsh shell、文件传输以及 `-L`/`-D` 转发。这是唯一一种在完全没有互联网时仍能继续工作的传输方式。
-- **[智能体传输（MCP）](../mcp-tools.md)** — 约 230 个需经同意授权的工具；智能体甚至可以操作 Haven 自己的界面。
 - **[安全](../features/security.md)** — 生物识别锁、无遥测、加密的备份/恢复（AES-256-GCM）。
 
 浏览[完整功能索引](../FEATURES.md)。

@@ -10,10 +10,7 @@
     <string name="common_edit">編集</string>
     <string name="common_rename">名前変更</string>
     <string name="common_create">作成</string>
-    <string name="common_connect">接続</string>
-    <string name="common_disconnect">切断</string>
     <string name="common_copy">コピー</string>
-    <string name="common_paste">貼り付け</string>
     <string name="common_label">ラベル</string>
     <string name="common_password">パスワード</string>
     <string name="common_port">ポート</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">リセット</string>
     <string name="common_allow">許可</string>
     <string name="common_not_now">後で</string>
-    <string name="common_import">インポート</string>
-    <string name="common_add">追加</string>
-    <string name="common_download">ダウンロード</string>
     <string name="common_unlock">ロック解除</string>
 
     <!-- SftpScreen navigation -->
@@ -113,16 +107,12 @@
     <string name="sftp_bandwidth_limit">帯域制限</string>
     <string name="sftp_dry_run">ドライラン (プレビューのみ)</string>
     <string name="sftp_start_sync">開始</string>
-    <string name="sftp_dry_run_results">ドライランの結果</string>
-    <string name="sftp_start_for_real">実際に開始</string>
-    <string name="sftp_sync_cancelled">同期をキャンセルしました</string>
     <!-- Rename dialog -->
     <string name="sftp_rename_title">名前を変更</string>
     <string name="sftp_new_name">新しい名前</string>
 
     <!-- Share link -->
     <string name="sftp_share_link">リンクを共有</string>
-    <string name="sftp_link_copied">リンクをコピーしました</string>
 
     <!-- Folder size -->
     <string name="sftp_folder_size">フォルダーのサイズ</string>
@@ -186,13 +176,10 @@
     <string name="sftp_attach_pick_profile">使用する接続プロファイルを選択</string>
     <string name="sftp_attach_local_no_upload">リモートプロファイルを選択してください — ローカルはアップロードを受け付けません</string>
     <string name="sftp_attach_will_upload_into">アップロード先: %1$s</string>
-    <string name="sftp_chat_attach_pick_file">チャットにファイルを添付</string>
-    <string name="sftp_chat_attach_will_pick_from">選択元: %1$s</string>
     <string name="sftp_attach_sending">%1$s を送信中…</string>
     <string name="sftp_storage_permission_title">ストレージアクセスが必要です</string>
     <string name="sftp_storage_permission_body">ローカルファイルへのアクセスを許可するにはタップしてください — メディア機能、ブラウズ、転送にこの権限が必要です。</string>
     <string name="sftp_paste_unfinished">未完了の貼り付け</string>
-    <string name="sftp_agent_chip">エージェント</string>
     <string name="sftp_convert_dest_same_folder_cloud">クラウドに戻す（同じフォルダ）</string>
     <string name="sftp_convert_download_first">先にダウンロード</string>
     <string name="sftp_convert_download_first_on">トランスコード前にファイル全体をダウンロードします</string>
@@ -208,15 +195,12 @@
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
     <string name="sftp_new_sync">新しい rclone 同期</string>
     <string name="sftp_encrypt">暗号化 (age)</string>
-    <string name="sftp_encrypt_sub">age 鍵に対して暗号化 — age ツールがあればどこでも読めます</string>
     <string name="sftp_decrypt">復号 (age)</string>
-    <string name="sftp_decrypt_sub">保存済みの age アイデンティティで復号</string>
     <string name="sftp_encrypt_title">age で暗号化</string>
     <string name="sftp_encrypt_recipient_hint">または受信者を貼り付け (age1…)</string>
     <string name="sftp_encrypt_action">暗号化</string>
     <string name="sftp_age_no_identity">age アイデンティティがありません。「鍵」タブで作成するか、受信者を貼り付けてください。</string>
     <string name="sftp_age_failed">age の操作に失敗しました — 鍵が違うかファイルが破損しています</string>
-    <string name="sftp_open_usb_drive">USB ドライブを開く…</string>
     <string name="sftp_add_folder_location">フォルダーの場所を追加</string>
     <string name="sftp_saf_grant_failed">そのフォルダーへのアクセスを保持できませんでした</string>
     <string name="sftp_remove_folder_location">フォルダーの場所を削除</string>

@@ -10,10 +10,7 @@
     <string name="common_edit">Bearbeiten</string>
     <string name="common_rename">Umbenennen</string>
     <string name="common_create">Erstellen</string>
-    <string name="common_connect">Verbinden</string>
-    <string name="common_disconnect">Trennen</string>
     <string name="common_copy">Kopieren</string>
-    <string name="common_paste">Einfügen</string>
     <string name="common_label">Bezeichnung</string>
     <string name="common_password">Passwort</string>
     <string name="common_port">Port</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">Zurücksetzen</string>
     <string name="common_allow">Erlauben</string>
     <string name="common_not_now">Nicht jetzt</string>
-    <string name="common_import">Importieren</string>
-    <string name="common_add">Hinzufügen</string>
-    <string name="common_download">Herunterladen</string>
     <string name="common_unlock">Entsperren</string>
 
     <!-- Tab bar -->
@@ -68,7 +62,6 @@
     <string name="terminal_new_tab_host_key_changed">Hostschlüssel für %s geändert — Verbindung aus Sicherheitsgründen abgelehnt</string>
     <string name="terminal_new_tab_connection_failed">Verbindung fehlgeschlagen: %s</string>
     <string name="terminal_new_tab_shell_failed">Shell konnte nicht geöffnet werden: %s</string>
-    <string name="terminal_new_tab_reticulum_no_session">Keine aktive Reticulum-Sitzung zum Klonen</string>
     <string name="terminal_new_tab_connecting">Connecting…</string>
     <!-- Backfilled translations (i18n drift fix) -->
     <string name="terminal_no_contact">Seit %1$ds keine Serverantwort — erneuter Versuch</string>
@@ -87,23 +80,11 @@
     <!-- i18n sweep #210 -->
     <string name="terminal_link_open_failed">Kein App kann diesen Link öffnen</string>
     <string name="terminal_link_scheme_blocked">Blockierter Link (nicht unterstütztes Schema)</string>
-    <string name="terminal_local_vnc_failed">Lokaler Desktop konnte nicht gestartet werden</string>
     <string name="terminal_attach_title">Anhängen</string>
     <string name="terminal_attach_send_file">Datei senden</string>
     <string name="terminal_attach_send_file_desc">Auf Remote hochladen und Pfad einfügen</string>
     <string name="terminal_attach_take_photo">Foto aufnehmen</string>
     <string name="terminal_attach_take_photo_desc">Ein Foto aufnehmen und es wie eine Datei senden</string>
-    <string name="terminal_attach_scan_camera">Code scannen (Kamera)</string>
-    <string name="terminal_attach_scan_camera_desc">QR- oder Barcode fotografieren und Inhalt einfügen</string>
-    <string name="terminal_attach_scan_gallery">Code scannen (Fotos)</string>
-    <string name="terminal_attach_scan_gallery_desc">Foto eines QR- oder Barcodes auswählen und Inhalt einfügen</string>
-    <string name="terminal_attach_ocr_camera">Text erkennen (Kamera)</string>
-    <string name="terminal_attach_ocr_camera_desc">Gedruckten Text fotografieren und Erkanntes einfügen</string>
-    <string name="terminal_attach_ocr_gallery">Text erkennen (Fotos)</string>
-    <string name="terminal_attach_ocr_gallery_desc">Foto mit gedrucktem Text auswählen und Erkanntes einfügen</string>
-    <string name="terminal_scan_no_code">Kein Code im Bild erkannt</string>
-    <string name="terminal_scan_no_text">Kein Text im Bild erkannt</string>
-    <string name="terminal_scan_failed">Scan fehlgeschlagen: %s</string>
     <string name="terminal_scan_no_camera">Keine Kamera-App verfügbar</string>
     <string name="terminal_selection_copy">Kopieren</string>
     <string name="terminal_selection_paste">Einfügen</string>

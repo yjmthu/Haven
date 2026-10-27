@@ -10,10 +10,7 @@
     <string name="common_edit">Изменить</string>
     <string name="common_rename">Переименовать</string>
     <string name="common_create">Создать</string>
-    <string name="common_connect">Подключить</string>
-    <string name="common_disconnect">Отключить</string>
     <string name="common_copy">Копировать</string>
-    <string name="common_paste">Вставить</string>
     <string name="common_label">Метка</string>
     <string name="common_password">Пароль</string>
     <string name="common_port">Порт</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">Сбросить</string>
     <string name="common_allow">Разрешить</string>
     <string name="common_not_now">Не сейчас</string>
-    <string name="common_import">Импорт</string>
-    <string name="common_add">Добавить</string>
-    <string name="common_download">Скачать</string>
     <string name="common_unlock">Разблокировать</string>
 
     <!-- SftpScreen navigation -->
@@ -113,16 +107,12 @@
     <string name="sftp_bandwidth_limit">Ограничение скорости</string>
     <string name="sftp_dry_run">Пробный запуск (только просмотр)</string>
     <string name="sftp_start_sync">Начать</string>
-    <string name="sftp_dry_run_results">Результаты пробного запуска</string>
-    <string name="sftp_start_for_real">Запустить по-настоящему</string>
-    <string name="sftp_sync_cancelled">Синхронизация отменена</string>
     <!-- Rename dialog -->
     <string name="sftp_rename_title">Переименовать</string>
     <string name="sftp_new_name">Новое имя</string>
 
     <!-- Share link -->
     <string name="sftp_share_link">Поделиться ссылкой</string>
-    <string name="sftp_link_copied">Ссылка скопирована</string>
 
     <!-- Folder size -->
     <string name="sftp_folder_size">Размер папки</string>
@@ -186,13 +176,10 @@
     <string name="sftp_attach_pick_profile">Выберите подключённый профиль</string>
     <string name="sftp_attach_local_no_upload">Выберите удалённый профиль — локальный не принимает загрузки</string>
     <string name="sftp_attach_will_upload_into">Будет загружено в: %1$s</string>
-    <string name="sftp_chat_attach_pick_file">Прикрепить файл к чату</string>
-    <string name="sftp_chat_attach_will_pick_from">Выбрать из: %1$s</string>
     <string name="sftp_attach_sending">Отправка %1$s…</string>
     <string name="sftp_storage_permission_title">Требуется доступ к хранилищу</string>
     <string name="sftp_storage_permission_body">Нажмите для предоставления доступа к локальным файлам — для медиафункций, просмотра и передачи нужно это разрешение.</string>
     <string name="sftp_paste_unfinished">Незавершённая вставка</string>
-    <string name="sftp_agent_chip">Агент</string>
     <string name="sftp_convert_dest_same_folder_cloud">Обратно в облако (та же папка)</string>
     <string name="sftp_convert_download_first">Сначала скачать</string>
     <string name="sftp_convert_download_first_on">Загружает весь файл перед перекодированием</string>
@@ -209,15 +196,12 @@
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
     <string name="sftp_new_sync">Новая синхронизация rclone</string>
     <string name="sftp_encrypt">Зашифровать (age)</string>
-    <string name="sftp_encrypt_sub">Шифрует для ключа age — можно прочитать где угодно с помощью инструмента age</string>
     <string name="sftp_decrypt">Расшифровать (age)</string>
-    <string name="sftp_decrypt_sub">Расшифровывает с помощью сохранённого идентификатора age</string>
     <string name="sftp_encrypt_title">Зашифровать с помощью age</string>
     <string name="sftp_encrypt_recipient_hint">Или вставьте получателя (age1…)</string>
     <string name="sftp_encrypt_action">Зашифровать</string>
     <string name="sftp_age_no_identity">Нет идентификатора age. Создайте его на вкладке «Ключи» или вставьте получателя.</string>
     <string name="sftp_age_failed">Операция age не удалась — неверный ключ или повреждённый файл</string>
-    <string name="sftp_open_usb_drive">Открыть USB-накопитель…</string>
     <string name="sftp_add_folder_location">Добавить расположение папки</string>
     <string name="sftp_saf_grant_failed">Не удалось сохранить доступ к этой папке</string>
     <string name="sftp_remove_folder_location">Удалить расположение папки</string>

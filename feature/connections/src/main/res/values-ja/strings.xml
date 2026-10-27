@@ -10,11 +10,8 @@
     <string name="common_edit">編集</string>
     <string name="common_rename">名前変更</string>
     <string name="common_create">作成</string>
-    <string name="common_connect">接続</string>
     <string name="connections_connect_without_saving">保存せずに接続</string>
-    <string name="common_disconnect">切断</string>
     <string name="common_copy">コピー</string>
-    <string name="common_paste">貼り付け</string>
     <string name="common_label">ラベル</string>
     <string name="common_password">パスワード</string>
     <string name="common_port">ポート</string>
@@ -24,9 +21,6 @@
     <string name="common_reset">リセット</string>
     <string name="common_allow">許可</string>
     <string name="common_not_now">後で</string>
-    <string name="common_import">インポート</string>
-    <string name="common_add">追加</string>
-    <string name="common_download">ダウンロード</string>
     <string name="common_unlock">ロック解除</string>
 
     <!-- Common strings (shared across features) -->
@@ -51,9 +45,6 @@
     <string name="connections_status_disconnected">切断済み</string>
 
     <!-- Connection tree item -->
-    <string name="connections_proot_label">PRoot Alpine Linux</string>
-    <string name="connections_launch_desktop">デスクトップを起動</string>
-    <string name="connections_setup_desktop">デスクトップをセットアップ</string>
 
     <!-- Connection context menu -->
     <string name="connections_menu_port_forwards">ポート転送</string>
@@ -91,20 +82,8 @@
     <string name="connections_rename_title">接続名を変更</string>
 
     <!-- Linux VM card -->
-    <string name="connections_linux_vm">Linux VM</string>
-    <string name="connections_vm_tap_to_setup">タップしてセットアップ</string>
-    <string name="connections_vm_status_active">アクティブ</string>
-    <string name="connections_vm_refresh">VMステータスを更新</string>
 
     <!-- Desktop setup dialog -->
-    <string name="connections_desktop_setup_title">デスクトップのセットアップ</string>
-    <string name="connections_desktop_wayland_description">PRoot環境にWaylandコンポジタをインストールします。実験的機能 — ソフトウェアレンダリングを使用。</string>
-    <string name="connections_desktop_openbox_description">PRoot環境にデスクトップとVNCサーバーをインストールします。Openboxは最小構成 — デスクトップを右クリックでアプリメニュー。</string>
-    <string name="connections_desktop_vnc_description">PRoot環境にデスクトップとVNCサーバーをインストールします。</string>
-    <string name="connections_desktop_vnc_password">VNCパスワード</string>
-    <string name="connections_desktop_shell">シェル</string>
-    <string name="connections_desktop_installed">デスクトップがインストールされました。VNCに接続中\u2026</string>
-    <string name="connections_desktop_setup_failed">セットアップ失敗: %1$s</string>
 
     <!-- New group dialog -->
     <string name="connections_new_group_title">新しいグループ</string>
@@ -117,15 +96,7 @@
     <string name="connections_menu_launch_all">すべて起動</string>
     <string name="connections_menu_delete_group">グループを削除</string>
     <string name="connections_new_group_action">新しいグループ</string>
-    <string name="connections_desktop_addons_header">デスクトップ機能（オプション）</string>
     <string name="connections_menu_duplicate">複製</string>
-    <string name="connections_desktops_title">デスクトップ</string>
-    <string name="connections_desktop_start">開始</string>
-    <string name="connections_desktop_stop">停止</string>
-    <string name="connections_desktop_native_running">ネイティブ コンポジター</string>
-    <string name="connections_desktop_uninstall_title">デスクトップをアンインストールしますか？</string>
-    <string name="connections_desktop_uninstall_message">%1$s をアンインストールしますか？ パッケージは PRoot 環境から削除されます。</string>
-    <string name="connections_use_android_shell">ネイティブの Android シェルを使う</string>
     <!-- Backfilled translations (i18n drift fix) -->
     <string name="connections_new_session_create">作成</string>
 
@@ -137,26 +108,16 @@
     <string name="connections_helper_disable_alt_screen">screen/vim でスクロールバックが機能します。終了後もプログラムの出力はスクロールバックに残ります。</string>
     <string name="connections_toggle_forward_agent">SSH エージェントを転送</string>
     <string name="connections_helper_forward_agent">保存済みの暗号化されていない SSH 鍵をリモート ホストに公開します (git push など)。暗号化された鍵は対象外です。</string>
-    <string name="connections_field_ssh_key">SSH 鍵</string>
-    <string name="connections_ssh_key_any">任意 (すべての鍵を試す)</string>
     <string name="connections_field_vnc_port">VNC のポート</string>
     <string name="connections_field_vnc_password">VNC のパスワード</string>
     <string name="connections_field_vnc_color_depth">VNC の色深度</string>
     <string name="connections_action_clear_vnc">保存された VNC 設定を消去</string>
-    <string name="connections_toggle_local_sideband">ローカル Sideband</string>
-    <string name="connections_field_gateway_host">ゲートウェイ ホスト</string>
-    <string name="connections_field_network_name">ネットワーク名</string>
-    <string name="connections_helper_network_name">IFAC ネットワーク名 (任意)</string>
-    <string name="connections_action_scan_rnsh">rnsh ノードをスキャン</string>
-    <string name="connections_field_destination_hash">宛先ハッシュ</string>
-    <string name="connections_helper_destination_hash">16 進 32 文字</string>
     <string name="connections_field_color_scheme">ターミナルの配色</string>
     <string name="connections_color_scheme_inherit">既定を使う (全体設定)</string>
 
     <string name="connections_tunnel_dropdown_label">トンネル: %1$s</string>
     <string name="connections_session_default_with">既定 (%1$s)</string>
     <string name="connections_discovered_count">検出済み (%1$d)</string>
-    <string name="connections_discovered_count_filtered">検出済み (%2$d 件中 %1$d 件)</string>
 
     <!-- #135 third pass -->
 
@@ -192,26 +153,8 @@
 
     <string name="connections_ki_submit">送信</string>
 
-    <string name="connections_vm_title">Linux VM</string>
-    <string name="connections_vm_detected_services">検出されたサービス</string>
-    <string name="connections_vm_quick_setup">クイック セットアップ</string>
-    <string name="connections_vm_copy_install">インストール コマンドをコピー</string>
-    <string name="connections_vm_view_script">スクリプトを表示</string>
-    <string name="connections_vm_step_start">1. Linux VM を起動</string>
-    <string name="connections_vm_open_terminal">ターミナル アプリを開く</string>
-    <string name="connections_vm_step_open_port">2. ポート 8022 を開く</string>
-    <string name="connections_vm_step_password">3. パスワードを設定して SSH をインストール</string>
-    <string name="connections_vm_step_vnc">4. VNC サーバーをインストール (任意)</string>
-    <string name="connections_vm_step_desktop">5. デスクトップをインストール (任意)</string>
-    <string name="connections_vm_step_apps">6. デスクトップ アプリをインストール (任意)</string>
 
-    <string name="connections_section_desktops">デスクトップ</string>
-    <string name="connections_action_back">戻る</string>
-    <string name="connections_vnc_password_title">VNC のパスワード</string>
-    <string name="connections_action_local_terminal">ローカル ターミナル</string>
     <string name="connections_action_tunnels">トンネル</string>
-    <string name="connections_action_reauthenticate">再認証</string>
-    <string name="connections_action_cancel_oauth">OAuth をキャンセル</string>
 
     <string name="connections_hostkey_verify_hint">信頼する前に、このフィンガープリントがサーバーの鍵と一致することを確認してください。</string>
     <string name="connections_hostkey_changed_title">ホスト鍵が変更されました</string>
@@ -235,36 +178,11 @@
     <string name="connections_ki_response_fallback">応答</string>
     <string name="connections_ki_title_additional">追加の認証が必要です</string>
     <string name="connections_ki_title_server">サーバーからの入力要求</string>
-    <string name="connections_vm_install_blurb">SSH、VNC、Xfce4 デスクトップ、アプリ (ブラウザー、エディター、ファイル マネージャー) をインストールします:</string>
-    <string name="connections_vm_copied">クリップボードにコピーしました</string>
-    <string name="connections_vm_show_steps">セットアップ手順を表示</string>
-    <string name="connections_vm_hide_steps">セットアップ手順を隠す</string>
-    <string name="connections_vm_step_start_body">VM を起動するには Android のターミナル アプリを開きます。</string>
-    <string name="connections_vm_step_open_port_body">ターミナル アプリの設定で、待ち受けポートの一覧にポート 8022 を追加します。</string>
-    <string name="connections_vm_step_password_body">ターミナル アプリで実行します。droid ユーザーのパスワードを設定するよう求められます。</string>
-    <string name="connections_vm_step_password_hint">その後、droid@localhost:8022 で接続します</string>
-    <string name="connections_vm_step_vnc_body">Haven の Desktop タブからリモート デスクトップに接続するために使います。</string>
-    <string name="connections_vm_step_desktop_body">Xfce4 は軽量で、VNC 経由でも快適に動作します。</string>
-    <string name="connections_vm_step_apps_body">ファイル マネージャー、テキスト エディター、画像ビューアー、ブラウザー、電卓。</string>
 
     <!-- #133 phase 2b: cert renewal status banner (en fallback) -->
-    <string name="connections_renewing_cert">%2$s 経由で %1$s の証明書を更新中…</string>
     <string name="connections_open_plain_shell">プレーンシェルを開く</string>
 
     <!-- Port knocking -->
-    <string name="connections_section_port_knock">ポートノッキング</string>
-    <string name="connections_field_port_knock_sequence">ノックシーケンス (任意)</string>
-    <string name="connections_hint_port_knock_sequence">例: 7000 8000 9000 または 7000/tcp 8000/udp</string>
-    <string name="connections_helper_port_knock_active">直接接続のたびに送信されます。SSH/SOCKS トンネル経路ではスキップされます。</string>
-    <string name="connections_helper_port_knock_blank">空欄で無効になります。</string>
-    <string name="connections_field_port_knock_delay">ノック間の遅延 (ms)</string>
-    <string name="connections_button_test_knock">ノックをテスト</string>
-    <string name="connections_button_test_knock_running">ノック中…</string>
-    <string name="connections_knock_invalid_sequence">無効なシーケンス: %1$s</string>
-    <string name="connections_knock_empty">ノックシーケンスが空です</string>
-    <string name="connections_knock_host_blank">ホストが空です</string>
-    <string name="connections_knock_success">%2$d ms で %1$d 回ノックを送信しました</string>
-    <string name="connections_knock_failed">%1$d ms 後に失敗: %2$s</string>
     <string name="connections_dialog_new">新しい接続</string>
     <string name="connections_dialog_edit">接続を編集</string>
     <string name="connections_field_transport">トランスポート</string>
@@ -294,7 +212,6 @@
     <string name="connections_helper_post_login">ログイン後に送信されます。</string>
     <string name="connections_dropdown_none_direct">なし（直接）</string>
     <string name="connections_dropdown_cloudflare_tunnel">Cloudflare Tunnel</string>
-    <string name="connections_dropdown_default_none">既定（なし）</string>
     <string name="connections_dropdown_none">なし</string>
     <string name="connections_section_file_transport">ファイル転送</string>
     <string name="connections_helper_file_transport">「ファイル」タブがこのサーバーとの間でデータをどう転送するか。</string>
@@ -308,13 +225,11 @@
     <string name="connections_identity_hint">アイデンティティは接続時にユーザー名・パスワード・鍵を提供します。管理は「鍵」タブで行います。</string>
     <string name="connections_menu_group_identity">アイデンティティを設定</string>
     <string name="connections_group_identity_title">「%1$s」のアイデンティティ</string>
-    <string name="connections_field_provider">プロバイダー</string>
     <string name="connections_field_tunnel_through_ssh">SSH経由でトンネル</string>
     <string name="connections_field_ssh_connection">SSH接続</string>
     <string name="connections_field_username_vnc">ユーザー名（任意 — VeNCryptのみ）</string>
     <string name="connections_field_password_optional">パスワード（任意）</string>
     <string name="connections_field_domain_optional">ドメイン（任意）</string>
-    <string name="connections_field_share_name">共有名</string>
     <string name="connections_field_colour_depth">色深度</string>
     <string name="connections_field_proxy_host">プロキシホスト</string>
     <string name="connections_field_proxy_username">プロキシのユーザー名</string>
@@ -335,38 +250,16 @@
     <string name="connections_field_bind_address">ローカルバインドアドレス</string>
     <string name="connections_helper_bind_address">送信接続をこのローカルアドレスにバインドします（ssh -b）。直接接続のみ。</string>
     <string name="connections_section_general">全般</string>
-    <string name="connections_section_local_shell">ローカルシェル</string>
-    <string name="connections_section_guest">Linux ゲスト</string>
-    <string name="connections_guest_desc">この端末上で実際の Linux カーネルを起動します。独自のルートファイルシステムとネットワークを持ちます。初回使用時にルートファイルシステム (~512 MB) を展開します。ホストや資格情報は不要です。</string>
-    <string name="connections_section_cloud_storage">クラウドストレージ</string>
     <string name="connections_section_vnc">VNC設定</string>
     <string name="connections_section_rdp">RDP設定</string>
-    <string name="connections_section_smb">SMB設定</string>
     <string name="connections_section_connection">接続</string>
     <string name="connections_section_terminal">ターミナル</string>
     <string name="connections_section_authentication">認証</string>
     <string name="connections_section_embedded_vnc">埋め込みVNC</string>
-    <string name="connections_section_reticulum">Reticulum</string>
     <string name="connections_section_routing">ルーティング</string>
-    <string name="connections_toggle_mcp_tunnel">HavenのMCPサーバーを公開</string>
-    <string name="connections_helper_mcp_tunnel">Haven の MCP をこの接続のすべてのセッションに公開します。各セッションは http://127.0.0.1:8730/mcp に接続し、(ループバック経由で) ペアリングと同意をスキップします。接続時に適用されます。セッションを開かずに常時アクセスするには、設定 → エージェントエンドポイント で「常時接続のMCP接続」に設定してください。</string>
     <string name="connections_section_reconnect">再接続</string>
-    <string name="connections_local_shell_android_desc">ネイティブのAndroidシェル (/system/bin/sh) を実行します。Androidのコマンド、ファイルシステム、root（利用可能な場合）にアクセスできます。</string>
-    <string name="connections_local_shell_proot_desc">PRoot経由でAlpine Linuxシェルをローカルで実行します。初回使用時に最小限のrootfs（約4MB）をダウンロードします。rootやネットワーク接続は不要です。</string>
-    <string name="connections_dropdown_select_provider">プロバイダーを選択…</string>
-    <string name="connections_helper_rclone_signin">初回接続時にブラウザでサインインしてください。</string>
-    <string name="connections_helper_rclone_credentials">このプロバイダーのアカウント情報を入力し、「設定」をタップしてリモートを保存・確認します。</string>
-    <string name="connections_rclone_configure">設定して確認</string>
-    <string name="connections_rclone_configured_ok">リモートを設定し、確認しました。</string>
     <string name="connections_dropdown_select_ssh">SSH接続を選択</string>
     <string name="connections_helper_add_ssh_first">先にSSH接続を追加してください</string>
-    <string name="connections_ai_route_section">AIルート経由接続</string>
-    <string name="connections_ai_route_via_ssh">SSH 経由</string>
-    <string name="connections_ai_route_via_reticulum">Reticulum 経由</string>
-    <string name="connections_field_ai_route_carrier">経由接続先</string>
-    <string name="connections_dropdown_select_carrier">接続を選択</string>
-    <string name="connections_helper_ai_route">中継接続を経由してエンドポイントへ接続します: SSH は中継セッション経由でローカル転送を開き、Reticulum はメッシュ越しにブリッジします。Reticulum ルートには中継接続先が接続中である必要があります。</string>
-    <string name="connections_helper_add_reticulum_first">先に Reticulum 接続を追加してください</string>
     <string name="connections_toggle_rdp_nla">ネットワークレベル認証 (NLA)</string>
     <string name="connections_helper_run_before_session_manager">セッションマネージャーの起動前に実行されます。</string>
     <string name="connections_toggle_tunnel_only">トンネルのみ（ターミナルなし）</string>
@@ -374,8 +267,6 @@
     <string name="connections_toggle_auto_reconnect">切断時に自動再接続</string>
     <string name="connections_field_reconnect_max_attempts">最大試行回数（0 = 無制限）</string>
     <string name="connections_toggle_reconnect_on_network_change">ネットワーク変更時に再接続</string>
-    <string name="connections_field_passphrase">パスフレーズ</string>
-    <string name="connections_hint_ifac_passphrase">IFACパスフレーズ（任意）</string>
     <string name="connections_helper_vnc_host_via_ssh">SSHサーバーからVNCサーバーに到達できる場所 — 同じマシンの場合は通常127.0.0.1（wayvncなどはループバックのみにバインドします）。</string>
     <string name="connections_helper_vnc_auth">従来のVncAuth（8文字のパスワード）にはユーザー名を空欄のままにします。VeNCrypt（wayvnc、TigerVNC）にはユーザー名を入力します — より長いパスワードとTLS暗号化に対応します。</string>
     <string name="connections_helper_rdp_host_via_ssh">SSHサーバーからRDPサーバーに到達できる場所 — 同じマシンの場合は通常127.0.0.1。</string>
@@ -393,33 +284,8 @@
     <string name="connections_forget_password">保存済みパスワードを削除</string>
     <string name="connections_forget_password_title">保存済みパスワードを削除しますか？</string>
     <string name="connections_forget_password_message">\"%1$s\" の保存済み SSH パスワードをクリアしますか？次回接続時に再度入力を求めます。</string>
-    <string name="connections_desktop_installing">デスクトップをインストール中…</string>
     <string name="connections_toggle_password_only">パスワードのみを使用</string>
     <string name="connections_helper_password_only">保存済み SSH 鍵をこのサーバーに提示しません — パスワード（およびキーボードインタラクティブ）のみで認証します。鍵の試行が無音で失敗するパスワード専用サーバーに使用してください。</string>
-    <string name="connections_ssh_key_none_hint">SSH 鍵がまだありません — 鍵タブで追加または生成し、ここに添付してください。</string>
-    <string name="connections_section_spa">Single Packet Authorization (fwknop)</string>
-    <string name="connections_field_spa_key">SPA キー (Rijndael/AES)</string>
-    <string name="connections_field_spa_hmac_key">HMAC キー（任意）</string>
-    <string name="connections_toggle_spa_key_base64">キーは base64</string>
-    <string name="connections_toggle_spa_hmac_key_base64">HMAC キーは base64</string>
-    <string name="connections_field_spa_access_spec">アクセス（プロトコル/ポート）</string>
-    <string name="connections_hint_spa_access_spec">例: tcp/22 または tcp/22,udp/53</string>
-    <string name="connections_field_spa_allow_mode">許可 IP</string>
-    <string name="connections_spa_allow_source">ソース IP</string>
-    <string name="connections_spa_allow_resolve">パブリック IP を解決</string>
-    <string name="connections_spa_allow_explicit">明示的な IP</string>
-    <string name="connections_field_spa_explicit_ip">許可 IP / CIDR</string>
-    <string name="connections_field_spa_port">SPA UDP ポート</string>
-    <string name="connections_helper_spa_active">直接接続のたびに送信。SSH/SOCKS トンネル経由ではスキップされます。</string>
-    <string name="connections_helper_spa_blank">キーまたはアクセスを空欄にすると無効になります。</string>
-    <string name="connections_button_test_spa">SPA をテスト</string>
-    <string name="connections_button_test_spa_running">送信中…</string>
-    <string name="connections_spa_invalid">無効な SPA 設定: %1$s</string>
-    <string name="connections_spa_host_blank">ホストが空です</string>
-    <string name="connections_spa_success">%2$d ms で %1$d バイトの SPA パケットを送信しました</string>
-    <string name="connections_spa_failed">%1$d ms 後に失敗: %2$s</string>
-    <string name="connections_agent_active">エージェントがアクティブ</string>
-    <string name="connections_agent_activity">エージェントのアクティビティ</string>
     <string name="connections_pf_type_local">ローカル</string>
     <string name="connections_pf_type_remote">リモート</string>
     <string name="connections_pf_type_dynamic">ダイナミック (SOCKS5)</string>
@@ -447,7 +313,6 @@
     <string name="connections_pf_dynamic_explanation">デバイス上の SOCKS5 クライアントは %1$s:%2$s に接続して任意の宛先を要求できます。各リクエストは SSH サーバー経由で新しい direct-tcpip チャンネルを開きます。</string>
     <string name="connections_pf_dynamic_port_fallback">&lt;port&gt;</string>
     <string name="connections_hosts_discovered">%1$d 台のホストを検出</string>
-    <string name="connections_rclone_provider_cloud">クラウド</string>
     <string name="connections_list_via">%1$s 経由</string>
     <string name="connections_auth_methods_title">認証方法</string>
     <string name="connections_auth_methods_description">1 回の接続で順番に試行されます — 複数必要なサーバー（例: 鍵 + パスワード、PAM/OTP チェーン）向けです。</string>
@@ -464,50 +329,11 @@
     <string name="connections_auth_add_method">方法を追加</string>
     <string name="connections_auth_confirm_otp">送信前に OTP を確認</string>
     <string name="connections_auth_confirm_otp_desc">生成されたコードをワンタップで確認してから送信（自動送信しない）。</string>
-    <string name="connections_vm_copied_short">コピーしました</string>
-    <string name="connections_vm_terminal_not_found">ターミナルアプリが見つかりません</string>
-    <string name="connections_mcp_badge">MCP</string>
-    <string name="connections_local_distro_label">OSで開く</string>
-    <string name="connections_local_distro_active_default">アクティブなディストロ（デフォルト）</string>
 
-    <string name="connections_section_openai">AIエンドポイント</string>
-    <string name="connections_field_openai_host">サーバーアドレス</string>
-    <string name="connections_field_openai_host_hint">IP、ホスト名、または完全な http:// URL</string>
-    <string name="connections_field_openai_api_key">APIキー（任意）</string>
-    <string name="connections_field_openai_api_key_hint">Bearerトークンとして送信されます。キー不要のサーバーでは空欄にしてください。</string>
-    <string name="connections_field_openai_path_prefix">パスプレフィックス（任意）</string>
-    <string name="connections_field_openai_path_prefix_hint">/v1 の前に挿入 — 例: /api</string>    <string name="connections_field_openai_protocol">プロトコル</string>
-    <string name="connections_field_openai_protocol_hint">既定は OpenAI 互換。Ollama・Anthropic・Gemini はパスと認証が変わります。</string>
-
-    <string name="connections_openai_url_preview">エンドポイントURL: %1$s</string>
     <!-- Email accounts -->
-    <string name="connections_section_email">メールアカウント</string>
     <string name="connections_auth_method_proton_srp">ProtonMail SRP</string>
-    <string name="connections_email_provider_proton">プロバイダー: ProtonMail</string>
-    <string name="connections_email_proton_unofficial_warning">Proton の非公式 API を使用します。これはリバースエンジニアリングされたもので Proton の利用規約に反します — アカウントがレート制限されたりロックされたりする可能性があります。自己責任でご利用ください。</string>
-    <string name="connections_field_email_address">メールアドレス</string>
-    <string name="connections_field_email_password">パスワード</string>
-    <string name="connections_field_email_mailbox_password">メールボックスパスワード（2パスワードモードのみ）</string>
-    <string name="connections_email_mailbox_password_hint">Proton アカウントに別のメールボックスパスワードがある場合を除き、空欄のままにしてください。</string>
-    <string name="connections_email_2fa_hint">アカウントに 2FA がある場合は、SSH 鍵 / TOTP マネージャーでその TOTP シークレットを紐付けると自動的に適用されます。</string>
-    <string name="connections_email_provider_proton_short">ProtonMail</string>
-    <string name="connections_email_provider_imap_short">IMAP/SMTP</string>
-    <string name="connections_email_app_password_hint">パスワード、またはプロバイダーが要求する場合はアプリパスワードを使用してください（Fastmail、iCloud、Yahoo、Gmail/2FA）。</string>
-    <string name="connections_email_preset_label">プロバイダープリセット</string>
-    <string name="connections_email_app_password_link">%1$s 用のアプリパスワードを作成</string>
-    <string name="connections_field_imap_server">IMAP サーバー</string>
-    <string name="connections_field_smtp_server">SMTP サーバー</string>
-    <string name="connections_field_smtp_server_help">空欄にすると IMAP サーバーを使用します。</string>
-    <string name="connections_field_imap_port">IMAP ポート</string>
-    <string name="connections_field_smtp_port">SMTP ポート</string>
-    <string name="connections_toggle_imap_tls">TLS を使用（暗黙的 SSL）</string>
 
     <!-- USB forwarding, deploy password, FIDO auth, MCP toggle (#250) -->
-    <string name="connections_section_usb_forward">USB デバイスの転送</string>
-    <string name="connections_helper_usb_forward">接続時に、スマートフォンに接続された USB デバイスを USB/IP でこのホストにエクスポートします。YubiKey は ssh-keygen -t ed25519-sk 用にホスト側に表示され、タッチはスマートフォンで行います。自動アタッチにはホスト側で usbip とパスワード不要の sudo が必要です。そうでない場合はエクスポートとトンネルが確立され、表示されたアタッチコマンドを実行します。</string>
-    <string name="connections_field_usb_forward">USB デバイスを転送</string>
-    <string name="connections_usb_forward_none">なし</string>
-    <string name="connections_usb_forward_unattached">%1$s（未アタッチ）</string>
     <string name="connections_deploy_field_password_optional">パスワード（任意）</string>
     <string name="connections_deploy_password_hint">このプロファイルの保存済みキーでデプロイするには空のままにします。パスワードが必要なのは、サーバーがパスワードで認証する場合（またはキーのパスフレーズ／踏み台ホストのロック解除）だけです。</string>
     <string name="connections_fido_key_label">キー: %1$s</string>
@@ -515,83 +341,23 @@
     <string name="connections_fido_wrong_body">このキーにはサーバーが要求した認証情報がありません。要求されたキーを提示してタッチしてください。</string>
     <string name="connections_auth_key_picker">キー: %1$s ▾</string>
     <string name="connections_auth_key_only">✓ このキーのみ使用</string>
-    <string name="connections_mcp_active">エージェントがこの接続で動作中 — タップで MCP を無効化</string>
-    <string name="connections_mcp_disabled">この接続では MCP が無効 — タップで有効化</string>
-    <string name="connections_toggle_mcp_enabled">この接続で MCP エージェントを許可</string>
-    <string name="connections_helper_mcp_enabled">オフの場合、この接続を対象とする AI エージェント（MCP）ツールは拒否されます。接続自体は通常どおり使用できます。</string>
 
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
-    <string name="connections_android_shell_label">ネイティブ Android シェル</string>
     <string name="connections_field_background_opacity">背景の不透明度を上書き</string>
     <string name="connections_helper_background_opacity" formatted="false">100% 未満にすると、このプロファイルのターミナルが半透明になり、文字の背後にデバイスの壁紙が表示されます。オフ = グローバル設定を使用。</string>
     <string name="connections_background_opacity_value">不透明度: %1$d%%</string>
     <string name="connections_reveal_password_title">保存済みパスワードを表示</string>
     <string name="connections_reveal_password_subtitle">本人確認を行うと保存済みパスワードが表示されます</string>
-    <string name="rclone_import_title">rclone リモートをインポート</string>
-    <string name="rclone_import_intro">Linux の rclone.conf を貼り付けるか、ファイルを選択してください。リモート（OAuth トークンを含む）はそのままインポートされるため、再設定は不要です。</string>
-    <string name="rclone_import_pick_file">rclone.conf を選択…</string>
-    <string name="rclone_import_paste_label">rclone.conf の内容</string>
-    <string name="rclone_import_parse">リモートを検出</string>
-    <string name="rclone_import_encrypted">このファイルはパスワードで暗号化された rclone 設定です。デスクトップで「rclone config show」を実行し、復号された出力を貼り付けてください。</string>
-    <string name="rclone_import_already_added">追加済み</string>
-    <string name="rclone_import_no_type">タイプなし</string>
-    <string name="rclone_import_select_count">%1$d 件のリモートをインポート</string>
-    <string name="rclone_import_done">インポート %1$d 件、スキップ %2$d 件、失敗 %3$d 件。</string>
-    <string name="rclone_import_menu">rclone 設定をインポート…</string>
-    <string name="connections_section_spice">SPICE 設定</string>
-    <string name="connections_section_mcp">AI エージェント (MCP)</string>
-    <string name="connections_rclone_configure_first">接続を保存する前に、「設定して確認」をタップしてこのリモートを保存してください。</string>
-    <string name="connections_helper_spice_auth">SPICE は単一の任意のチケット／パスワードを使用します。チケットなしのサーバーの場合は空欄のままにしてください。</string>
     <string name="connections_auth_any_hardware_key">任意のハードウェアキー (FIDO)</string>
     <string name="connections_deeplink_confirm_title">接続しますか？</string>
     <string name="connections_deeplink_confirm_message">リンクが %1$s への接続を要求しています。</string>
     <string name="connections_deeplink_confirm_session">リンクが %1$s に接続し、セッション「%2$s」にアタッチしようとしています。</string>
     <string name="connections_deeplink_confirm_connect">接続</string>
     <!-- Serial-connection strings (#406 BTSERIAL, #408 USBSERIAL) -->
-    <string name="connections_section_btserial">Bluetoothシリアル</string>
-    <string name="connections_btserial_desc">ペアリング済みのBluetooth-シリアル変換アダプター（スイッチやルーターのコンソールポートなど）に接続します。</string>
-    <string name="connections_btserial_device">ペアリング済みデバイス</string>
-    <string name="connections_btserial_no_devices">ペアリング済みのBluetoothデバイスがありません。まずAndroidの設定 → Bluetoothでアダプターをペアリングしてから、これを開き直してください。</string>
-    <string name="connections_btserial_permission">ペアリング済みデバイスを一覧表示するにはBluetooth権限を許可してください</string>
-    <string name="connections_section_usbserial">USBシリアル</string>
-    <string name="connections_usbserial_desc">接続されたUSBシリアルアダプター（Arduino、Duet3DのG-codeボード、ESP32、USB-TTLケーブルなど）に接続します。</string>
-    <string name="connections_usbserial_device">USBデバイス</string>
-    <string name="connections_usbserial_no_devices">USBシリアルアダプターが検出されませんでした。接続してから、これを開き直してください。</string>
-    <string name="connections_usbserial_baud">ボーレート</string>
-    <string name="connections_section_bleserial">Bluetooth LE シリアル</string>
-    <string name="connections_bleserial_desc">Bluetooth-LE UART 周辺機器に接続します。Nordic UART Service デバイス、HM-10 モジュール、または BLE RS232 アダプターです。ペアリングは不要です。</string>
-    <string name="connections_bleserial_device">BLE デバイス</string>
-    <string name="connections_bleserial_no_devices">BLE デバイスが見つかりません。周辺機器の電源が入り、アドバタイズしていることを確認してから、もう一度スキャンしてください。</string>
-    <string name="connections_bleserial_permission">BLE デバイスを検出するには Bluetooth（スキャン）の権限を許可してください</string>
-    <string name="connections_bleserial_scan">BLE デバイスをスキャン</string>
-    <string name="connections_bleserial_scanning">スキャン中…</string>
-    <string name="connections_usbserial_databits">データビット</string>
-    <string name="connections_usbserial_parity">パリティ</string>
-    <string name="connections_usbserial_stopbits">ストップビット</string>
-    <string name="connections_usbserial_flowcontrol">フロー制御</string>
-    <string name="connections_usbserial_none">なし</string>
-    <string name="connections_usbserial_parity_odd">奇数</string>
-    <string name="connections_usbserial_parity_even">偶数</string>
-    <string name="connections_usbserial_parity_mark">マーク</string>
-    <string name="connections_usbserial_parity_space">スペース</string>
-    <string name="connections_usbserial_flow_rtscts">RTS/CTS</string>
-    <string name="connections_usbserial_flow_xonxoff">XON/XOFF</string>
     <string name="connections_section_ssh_engine">SSH エンジン</string>
     <string name="connections_helper_ssh_engine">この接続が使用する SSH 実装。sshlib は実験的機能です：SFTP だけでなく、ターミナル・ファイル転送・トンネルを含む接続全体を扱えるようになりました。</string>
     <string name="connections_ssh_engine_jsch_label">デフォルト（JSch）</string>
     <string name="connections_ssh_engine_jsch_desc">実績あるエンジン。全機能対応。</string>
     <string name="connections_ssh_engine_sshlib_label">sshlib（実験的）</string>
     <string name="connections_ssh_engine_sshlib_desc">Kotlin エンジン：1 つの接続でターミナル、SFTP、ポート転送。直接接続が必要 — 踏み台ホスト、プロキシ、ハードウェアキー、証明書、多要素ログインには非対応。</string>
-    <string name="connections_identity_label">この端末のアイデンティティ</string>
-    <string name="connections_identity_none">まだありません — 一度接続すると作成されます</string>
-    <string name="connections_identity_help">すべての Reticulum 接続で共有されます。許可リストに登録するサーバーはこのハッシュを見ます。</string>
-    <string name="connections_identity_import">アイデンティティファイルを読み込む…</string>
-    <string name="connections_identity_imported">アイデンティティを読み込みました: %1$s</string>
-    <string name="connections_identity_imported_restart">アイデンティティを読み込みました: %1$s。接続で使うには Haven を再起動してください。</string>
-    <string name="connections_identity_not_an_identity">このファイルは Reticulum のアイデンティティではありません。変更はありません。</string>
-    <string name="connections_identity_install_failed">アイデンティティを設定できませんでした: %1$s。以前のものがそのまま残っています。</string>
-    <string name="connections_identity_unreadable">このファイルを読み込めませんでした。</string>
-    <string name="connections_section_glkvm">GLKVM 設定</string>
-    <string name="connections_field_glkvm_layout">ターゲットのキーボードレイアウト</string>
-    <string name="connections_helper_glkvm">GLKVM（HTTPS 経由の PiKVM 風 KVM）— ターゲット機の物理マウスとキーボードを操作します。TLS は trust-on-first-use、タイピングされる文字はターゲット機のキーボードレイアウトで決まります。SSH トンネルか WireGuard/Tailscale プロファイル経由なら LAN の外からも届きます。</string>
 </resources>

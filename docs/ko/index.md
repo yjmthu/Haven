@@ -72,15 +72,7 @@ title: Haven
 
 - **[터미널](../features/terminal.md)** — Mosh / Eternal Terminal / SSH, 시리얼↔TCP 브리지가 포함된 USB / Bluetooth / BLE 시리얼 콘솔, tmux 세션 복원, 구성 가능한 키보드 툴바, OSC 7/8/9/52/133/777 통합.
 - **[데스크톱](../features/desktops.md)** — VNC(RFB 3.8 / VeNCrypt), RDP(IronRDP + EGFX), SPICE(QEMU/KVM, GLZ/QUIC), GPU 가속 네이티브 Wayland 컴포지터, 그리고 다중 배포판 로컬 데스크톱 관리자.
-- **[파일 & 클라우드](../features/files-and-cloud.md)** — SFTP/SCP, SMB, 60개 이상의 클라우드 제공업체(rclone), 파일시스템 간 복사/이동; 그리고 FFmpeg 트랜스코딩, HLS, DLNA.
 - **[연결](../features/connections.md)** — 포트 포워딩(-L/-R/-D/-J), SOCKS/HTTP/Tor 프록시, 앱별 WireGuard & Tailscale 터널, 포트 노킹 + fwknop SPA, SSH 키 & FIDO2.
-- **[이메일](../features/email.md)** — ProtonMail + IMAP/SMTP, 작성/회신/전달, 다중 계정, 메일 규칙 자동화.
-- **[로컬 Linux](../features/local-linux.md)** — PRoot를 통한 Alpine / Debian / Ubuntu / Arch / Void, 나란히 실행, root 불필요.
-- **[Linux 게스트(UML)](../features/uml-guest.md)** — 모든 arm64 기기에서 root 없이 앱 프로세스로 부팅되는 전체 Linux 커널(user-mode Linux): `apk`가 포함된 Alpine, 자체 ext4 디스크 및 네트워크 스택을 갖추어 PRoot의 시스템 콜 에뮬레이션만으로 부족할 때 사용.
-- **[USB 카드 복구 콘솔](../features/usb-recovery-live.md)** — 고장 난 SD 카드의 원시 장치가 몇 초 만에 Linux 게스트에 연결되어 바로 `ddrescue`를 실행할 준비가 됨.
-- **[USB 포워딩](../features/usb.md)** — USB/IP를 통해 USB 장치를 에이전트, Linux 게스트, 또는 원격 호스트에 중개.
-- **[Reticulum](../features/reticulum.md)** — 메시 위에서 rnsh 셸, 파일 전송, 그리고 `-L`/`-D` 포워딩. 인터넷이 전혀 없어도 계속 작동하는 유일한 전송 수단.
-- **[에이전트 전송(MCP)](../mcp-tools.md)** — 동의 게이트가 적용된 약 230개의 도구; 에이전트가 Haven 자체 UI를 조작할 수도 있습니다.
 - **[보안](../features/security.md)** — 생체 인증 잠금, 텔레메트리 없음, 암호화된 백업/복원(AES-256-GCM).
 
 [전체 기능 색인](../FEATURES.md)을 둘러보세요.

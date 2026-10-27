@@ -6,8 +6,6 @@
     <string name="nav_desktop">데스크톱</string>
     <string name="nav_keys">키</string>
     <string name="nav_sftp">파일</string>
-    <string name="nav_mail">메일</string>
-    <string name="nav_chat">채팅</string>
     <string name="nav_settings">설정</string>
 
     <!-- Common strings shared across all feature modules -->
@@ -20,10 +18,7 @@
     <string name="common_edit">편집</string>
     <string name="common_rename">이름 변경</string>
     <string name="common_create">생성</string>
-    <string name="common_connect">연결</string>
-    <string name="common_disconnect">연결 해제</string>
     <string name="common_copy">복사</string>
-    <string name="common_paste">붙여넣기</string>
     <string name="common_label">라벨</string>
     <string name="common_password">비밀번호</string>
     <string name="common_port">포트</string>
@@ -33,16 +28,7 @@
     <string name="common_reset">재설정</string>
     <string name="common_allow">허용</string>
     <string name="common_not_now">나중에</string>
-    <string name="common_import">가져오기</string>
-    <string name="common_add">추가</string>
-    <string name="common_download">다운로드</string>
     <string name="common_github">GitHub</string>
     <string name="common_support">지원</string>
     <string name="common_unlock">잠금 해제</string>
-    <string name="wayland_cd_session_menu">세션 메뉴</string>
-    <string name="wayland_cd_reset_zoom">확대/축소 초기화</string>
-    <string name="wayland_cd_exit_fullscreen">전체 화면 종료</string>
-    <string name="wayland_cd_toggle_keyboard">키보드 표시 전환</string>
-    <string name="wayland_cd_fullscreen">전체 화면</string>
-    <string name="wayland_cd_desktop_resolution">데스크톱 해상도</string>
 </resources>

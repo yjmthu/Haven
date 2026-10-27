@@ -5,8 +5,6 @@
     <string name="nav_desktop">Десктопи</string>
     <string name="nav_keys">Кључеви</string>
     <string name="nav_sftp">Фајлови</string>
-    <string name="nav_mail">Пошта</string>
-    <string name="nav_chat">Ћаскање</string>
     <string name="nav_settings">Подешавања</string>
     <string name="common_cancel">Откажи</string>
     <string name="common_save">Сачувај</string>
@@ -17,10 +15,7 @@
     <string name="common_edit">Уреди</string>
     <string name="common_rename">Преименуј</string>
     <string name="common_create">Креирај</string>
-    <string name="common_connect">Повежи</string>
-    <string name="common_disconnect">Прекини везу</string>
     <string name="common_copy">Копирај</string>
-    <string name="common_paste">Налепи</string>
     <string name="common_label">Ознака</string>
     <string name="common_password">Лозинка</string>
     <string name="common_port">Порт</string>
@@ -30,16 +25,7 @@
     <string name="common_reset">Ресетуј</string>
     <string name="common_allow">Дозволи</string>
     <string name="common_not_now">Не сада</string>
-    <string name="common_import">Увези</string>
-    <string name="common_add">Додај</string>
-    <string name="common_download">Преузми</string>
     <string name="common_github">GitHub</string>
     <string name="common_support">Подршка</string>
     <string name="common_unlock">Откључај</string>
-    <string name="wayland_cd_session_menu">Мени сесије</string>
-    <string name="wayland_cd_reset_zoom">Ресетуј зумирање</string>
-    <string name="wayland_cd_exit_fullscreen">Напусти пуни екран</string>
-    <string name="wayland_cd_toggle_keyboard">Укљ./искљ. тастатуру</string>
-    <string name="wayland_cd_fullscreen">Пуни екран</string>
-    <string name="wayland_cd_desktop_resolution">Резолуција десктопа</string>
 </resources>

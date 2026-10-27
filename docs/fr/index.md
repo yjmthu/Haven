@@ -72,15 +72,7 @@ installations manuelles directes suivent la clé des versions GitHub.
 
 - **[Terminal](../features/terminal.md)** — Mosh / Eternal Terminal / SSH, consoles série USB / Bluetooth / BLE avec un pont série↔TCP, restauration de session tmux, barre d'outils clavier configurable, intégration OSC 7/8/9/52/133/777.
 - **[Bureaux](../features/desktops.md)** — VNC (RFB 3.8 / VeNCrypt), RDP (IronRDP + EGFX), SPICE (QEMU/KVM, GLZ/QUIC), un compositeur Wayland natif accéléré par GPU, et un gestionnaire de bureaux locaux multi-distributions.
-- **[Fichiers & cloud](../features/files-and-cloud.md)** — SFTP/SCP, SMB, plus de 60 fournisseurs cloud (rclone), copie/déplacement entre systèmes de fichiers ; plus le transcodage FFmpeg, HLS et DLNA.
 - **[Connexions](../features/connections.md)** — redirection de ports (-L/-R/-D/-J), proxys SOCKS/HTTP/Tor, tunnels WireGuard & Tailscale par application, port knocking + SPA fwknop, clés SSH & FIDO2.
-- **[E-mail](../features/email.md)** — ProtonMail + IMAP/SMTP, rédaction/réponse/transfert, multi-comptes, automatisation par règles de courrier.
-- **[Linux local](../features/local-linux.md)** — Alpine / Debian / Ubuntu / Arch / Void via PRoot, côte à côte, sans accès root requis.
-- **[Invité Linux (UML)](../features/uml-guest.md)** — un noyau Linux complet (user-mode Linux) démarré en tant que processus d'application sur tout appareil arm64, sans root : Alpine avec `apk`, son propre disque ext4 et sa pile réseau, lorsque l'émulation des appels système de PRoot ne suffit pas.
-- **[Console de secours pour cartes USB](../features/usb-recovery-live.md)** — le périphérique brut d'une carte SD défaillante atteint un invité Linux en quelques secondes, prêt pour `ddrescue`.
-- **[Redirection USB](../features/usb.md)** — partagez un périphérique USB avec l'agent, l'invité Linux ou un hôte distant via USB/IP.
-- **[Reticulum](../features/reticulum.md)** — shell rnsh, transfert de fichiers, et redirection `-L`/`-D` sur le maillage. Le seul transport qui continue de fonctionner sans aucune connexion internet.
-- **[Transport agent (MCP)](../mcp-tools.md)** — environ 230 outils soumis à consentement ; l'agent peut même piloter l'interface de Haven elle-même.
 - **[Sécurité](../features/security.md)** — verrouillage biométrique, pas de télémétrie, sauvegarde/restauration chiffrée (AES-256-GCM).
 
 Parcourez l'[index complet des fonctionnalités](../FEATURES.md).

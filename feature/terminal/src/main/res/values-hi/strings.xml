@@ -10,10 +10,7 @@
     <string name="common_edit">संपादित करें</string>
     <string name="common_rename">नाम बदलें</string>
     <string name="common_create">बनाएँ</string>
-    <string name="common_connect">कनेक्ट करें</string>
-    <string name="common_disconnect">डिस्कनेक्ट करें</string>
     <string name="common_copy">कॉपी करें</string>
-    <string name="common_paste">पेस्ट करें</string>
     <string name="common_label">लेबल</string>
     <string name="common_password">पासवर्ड</string>
     <string name="common_port">पोर्ट</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">रीसेट करें</string>
     <string name="common_allow">अनुमति दें</string>
     <string name="common_not_now">अभी नहीं</string>
-    <string name="common_import">आयात करें</string>
-    <string name="common_add">जोड़ें</string>
-    <string name="common_download">डाउनलोड करें</string>
     <string name="common_unlock">अनलॉक करें</string>
 
     <!-- Tab bar -->
@@ -68,7 +62,6 @@
     <string name="terminal_new_tab_host_key_changed">%s के लिए होस्ट कुंजी बदल गई — सुरक्षा कारणों से कनेक्शन अस्वीकृत</string>
     <string name="terminal_new_tab_connection_failed">कनेक्ट नहीं हो सका: %s</string>
     <string name="terminal_new_tab_shell_failed">शेल नहीं खुल सका: %s</string>
-    <string name="terminal_new_tab_reticulum_no_session">क्लोन करने के लिए कोई सक्रिय Reticulum सत्र नहीं</string>
     <string name="terminal_new_tab_connecting">कनेक्ट हो रहा है…</string>
     <!-- Backfilled translations (i18n drift fix) -->
     <string name="terminal_no_contact">सर्वर से %1$d सेकंड से कोई प्रतिक्रिया नहीं — पुनः प्रयास जारी</string>
@@ -87,23 +80,11 @@
     <!-- i18n sweep #210 -->
     <string name="terminal_link_open_failed">इस link को खोलने के लिए कोई ऐप नहीं</string>
     <string name="terminal_link_scheme_blocked">अवरुद्ध link (असमर्थित scheme)</string>
-    <string name="terminal_local_vnc_failed">Local desktop शुरू नहीं हो सका</string>
     <string name="terminal_attach_title">Attach</string>
     <string name="terminal_attach_send_file">फ़ाइल भेजें</string>
     <string name="terminal_attach_send_file_desc">रिमोट पर upload करें और उसका path paste करें</string>
     <string name="terminal_attach_take_photo">फ़ोटो लें</string>
     <string name="terminal_attach_take_photo_desc">एक फ़ोटो लें और उसे फ़ाइल की तरह भेजें</string>
-    <string name="terminal_attach_scan_camera">Code स्कैन करें (Camera)</string>
-    <string name="terminal_attach_scan_camera_desc">QR या barcode की तस्वीर लें और उसकी सामग्री paste करें</string>
-    <string name="terminal_attach_scan_gallery">Code स्कैन करें (Photos)</string>
-    <string name="terminal_attach_scan_gallery_desc">QR या barcode की तस्वीर चुनें और उसकी सामग्री paste करें</string>
-    <string name="terminal_attach_ocr_camera">Text पहचानें (Camera)</string>
-    <string name="terminal_attach_ocr_camera_desc">मुद्रित text की तस्वीर लें और पहचाना गया text paste करें</string>
-    <string name="terminal_attach_ocr_gallery">Text पहचानें (Photos)</string>
-    <string name="terminal_attach_ocr_gallery_desc">मुद्रित text की तस्वीर चुनें और पहचाना गया text paste करें</string>
-    <string name="terminal_scan_no_code">छवि में कोई code नहीं मिला</string>
-    <string name="terminal_scan_no_text">छवि में कोई text नहीं मिला</string>
-    <string name="terminal_scan_failed">Scan विफल: %s</string>
     <string name="terminal_scan_no_camera">कोई camera ऐप उपलब्ध नहीं</string>
     <string name="terminal_selection_copy">कॉपी करें</string>
     <string name="terminal_selection_paste">पेस्ट करें</string>

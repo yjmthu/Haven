@@ -10,10 +10,7 @@
     <string name="common_edit">编辑</string>
     <string name="common_rename">重命名</string>
     <string name="common_create">创建</string>
-    <string name="common_connect">连接</string>
-    <string name="common_disconnect">断开</string>
     <string name="common_copy">复制</string>
-    <string name="common_paste">粘贴</string>
     <string name="common_label">标签</string>
     <string name="common_password">密码</string>
     <string name="common_port">端口</string>
@@ -23,9 +20,6 @@
     <string name="common_reset">重置</string>
     <string name="common_allow">允许</string>
     <string name="common_not_now">暂不</string>
-    <string name="common_import">导入</string>
-    <string name="common_add">添加</string>
-    <string name="common_download">下载</string>
     <string name="common_unlock">解锁</string>
 
     <!-- SftpScreen navigation -->
@@ -113,16 +107,12 @@
     <string name="sftp_bandwidth_limit">带宽限制</string>
     <string name="sftp_dry_run">试运行（仅预览）</string>
     <string name="sftp_start_sync">开始</string>
-    <string name="sftp_dry_run_results">试运行结果</string>
-    <string name="sftp_start_for_real">正式开始</string>
-    <string name="sftp_sync_cancelled">同步已取消</string>
     <!-- Rename dialog -->
     <string name="sftp_rename_title">重命名</string>
     <string name="sftp_new_name">新名称</string>
 
     <!-- Share link -->
     <string name="sftp_share_link">分享链接</string>
-    <string name="sftp_link_copied">已复制链接</string>
 
     <!-- Folder size -->
     <string name="sftp_folder_size">文件夹大小</string>
@@ -186,13 +176,10 @@
     <string name="sftp_attach_pick_profile">选取要使用的已连接配置文件</string>
     <string name="sftp_attach_local_no_upload">请选取远程配置文件——本地不支持上传</string>
     <string name="sftp_attach_will_upload_into">将上传到：%1$s</string>
-    <string name="sftp_chat_attach_pick_file">向聊天附加文件</string>
-    <string name="sftp_chat_attach_will_pick_from">选择位置：%1$s</string>
     <string name="sftp_attach_sending">正在发送 %1$s…</string>
     <string name="sftp_storage_permission_title">需要存储访问权限</string>
     <string name="sftp_storage_permission_body">点击授予本地文件访问权限——媒体功能、浏览和传输均需此权限。</string>
     <string name="sftp_paste_unfinished">未完成的粘贴</string>
-    <string name="sftp_agent_chip">代理</string>
     <string name="sftp_convert_dest_same_folder_cloud">回传云端（相同文件夹）</string>
     <string name="sftp_convert_download_first">先下载</string>
     <string name="sftp_convert_download_first_on">转码前下载完整文件</string>
@@ -208,15 +195,12 @@
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
     <string name="sftp_new_sync">新建 rclone 同步</string>
     <string name="sftp_encrypt">加密（age）</string>
-    <string name="sftp_encrypt_sub">加密到 age 密钥——任何装有 age 工具的地方都能读取</string>
     <string name="sftp_decrypt">解密（age）</string>
-    <string name="sftp_decrypt_sub">使用已存储的 age 身份解密</string>
     <string name="sftp_encrypt_title">使用 age 加密</string>
     <string name="sftp_encrypt_recipient_hint">或粘贴接收者（age1…）</string>
     <string name="sftp_encrypt_action">加密</string>
     <string name="sftp_age_no_identity">没有 age 身份。请在“密钥”标签页创建一个，或粘贴接收者。</string>
     <string name="sftp_age_failed">age 操作失败——密钥错误或文件损坏</string>
-    <string name="sftp_open_usb_drive">打开 USB 驱动器…</string>
     <string name="sftp_add_folder_location">添加文件夹位置</string>
     <string name="sftp_saf_grant_failed">无法保留对该文件夹的访问权限</string>
     <string name="sftp_remove_folder_location">移除文件夹位置</string>

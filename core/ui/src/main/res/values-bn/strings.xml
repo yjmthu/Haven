@@ -6,8 +6,6 @@
     <string name="nav_keys">কী</string>
     <string name="nav_sftp">ফাইল</string>
     <string name="nav_settings">সেটিংস</string>
-    <string name="nav_mail">মেইল</string>
-    <string name="nav_chat">চ্যাট</string>
     <string name="common_cancel">বাতিল</string>
     <string name="common_save">সংরক্ষণ</string>
     <string name="common_done">সম্পন্ন</string>
@@ -17,10 +15,7 @@
     <string name="common_edit">সম্পাদনা</string>
     <string name="common_rename">নাম পরিবর্তন</string>
     <string name="common_create">তৈরি</string>
-    <string name="common_connect">সংযোগ</string>
-    <string name="common_disconnect">সংযোগ বিচ্ছিন্ন</string>
     <string name="common_copy">কপি</string>
-    <string name="common_paste">পেস্ট</string>
     <string name="common_label">লেবেল</string>
     <string name="common_password">পাসওয়ার্ড</string>
     <string name="common_port">পোর্ট</string>
@@ -30,16 +25,7 @@
     <string name="common_reset">রিসেট</string>
     <string name="common_allow">অনুমতি</string>
     <string name="common_not_now">এখন নয়</string>
-    <string name="common_import">ইমপোর্ট</string>
-    <string name="common_add">যোগ</string>
-    <string name="common_download">ডাউনলোড</string>
     <string name="common_github">GitHub</string>
     <string name="common_support">সাপোর্ট</string>
     <string name="common_unlock">আনলক</string>
-    <string name="wayland_cd_session_menu">সেশন মেনু</string>
-    <string name="wayland_cd_reset_zoom">জুম রিসেট করুন</string>
-    <string name="wayland_cd_exit_fullscreen">পূর্ণস্ক্রিন থেকে বেরোন</string>
-    <string name="wayland_cd_toggle_keyboard">কীবোর্ড দেখান/লুকান</string>
-    <string name="wayland_cd_fullscreen">পূর্ণস্ক্রিন</string>
-    <string name="wayland_cd_desktop_resolution">ডেস্কটপ রেজোলিউশন</string>
 </resources>
