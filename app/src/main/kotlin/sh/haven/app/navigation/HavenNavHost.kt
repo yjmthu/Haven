@@ -4,6 +4,9 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.ime
@@ -67,6 +70,7 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.IntOffset
@@ -433,6 +437,16 @@ fun HavenNavHost(
     val desktopTouchpadSensitivity by preferencesRepository.desktopTouchpadSensitivity
         .collectAsState(initial = 1f)
 
+    // The built-in keyboard docks at the window bottom in portrait. Haven's own
+    // tab bar yields to it (see bottomBar) and so does the Scaffold's bottom
+    // inset (see the content lambda): with both out of the way the panel sits
+    // flush with the screen edge, the way a system IME does, instead of stopping
+    // one navigation-bar height above it.
+    val builtinKeyboardDocked = desktopBuiltinKeyboard && desktopKeyboardVisible &&
+            desktopAnyLiveTab && selectedScreen == Screen.Desktop &&
+            LocalConfiguration.current.orientation ==
+            android.content.res.Configuration.ORIENTATION_PORTRAIT
+
     // Profile ID to focus when navigating to terminal
     var pendingTerminalProfileId by rememberSaveable { mutableStateOf<String?>(null) }
     // Profile ID for opening a new session (new tab) on an existing connection
@@ -670,6 +684,11 @@ fun HavenNavHost(
                                 coroutineScope.launch { preferencesRepository.setRdpChipAnchor(it) }
                             },
                             builtinKeyboard = desktopBuiltinKeyboard,
+                            onSetBuiltinKeyboard = { enabled ->
+                                coroutineScope.launch {
+                                    preferencesRepository.setDesktopBuiltinKeyboard(enabled)
+                                }
+                            },
                             touchpadSensitivity = desktopTouchpadSensitivity,
                             onSetTouchpadSensitivity = { value ->
                                 coroutineScope.launch { preferencesRepository.setDesktopTouchpadSensitivity(value) }
@@ -793,14 +812,6 @@ fun HavenNavHost(
             // pager override gestures still switch screens, and the bar returns
             // as soon as the pager settles anywhere else.
             val hideForTerminalPref = hideNavBarInTerminal && selectedScreen == Screen.Terminal
-            // The built-in desktop keyboard docks at the window bottom in
-            // portrait, covering the tab bar. Yield to it so the keyboard can
-            // reach the bottom edge instead of stopping above the bar; the bar
-            // returns the moment the panel closes.
-            val builtinKeyboardDocked = desktopBuiltinKeyboard && desktopKeyboardVisible &&
-                    desktopAnyLiveTab && selectedScreen == Screen.Desktop &&
-                    LocalConfiguration.current.orientation ==
-                    android.content.res.Configuration.ORIENTATION_PORTRAIT
             if (!desktopFullscreen && !terminalFullscreen && !useSideNavigation &&
                 !hideForTerminalPref && !builtinKeyboardDocked
             ) {
@@ -905,10 +916,25 @@ fun HavenNavHost(
             }
         },
     ) { innerPadding ->
+        // The docked built-in keyboard owns the bottom edge: drop the window's
+        // bottom inset so the viewer, and the panel inside it, can reach the
+        // screen edge. (The tab bar yields in bottomBar too.) Every other
+        // screen, and the closed state, keeps the full Scaffold padding.
+        val pagerPadding = if (builtinKeyboardDocked) {
+            val layoutDirection = LocalLayoutDirection.current
+            PaddingValues(
+                start = innerPadding.calculateStartPadding(layoutDirection),
+                top = innerPadding.calculateTopPadding(),
+                end = innerPadding.calculateEndPadding(layoutDirection),
+                bottom = 0.dp,
+            )
+        } else {
+            innerPadding
+        }
         if (useSideNavigation) {
             Row(
                 modifier = Modifier
-                    .padding(innerPadding)
+                    .padding(pagerPadding)
                     .consumeWindowInsets(innerPadding)
                     .imePadding(),
             ) {
@@ -959,7 +985,7 @@ fun HavenNavHost(
         } else {
             pagerContent(
                 Modifier
-                    .padding(innerPadding)
+                    .padding(pagerPadding)
                     .consumeWindowInsets(innerPadding)
                     .imePadding(),
             )

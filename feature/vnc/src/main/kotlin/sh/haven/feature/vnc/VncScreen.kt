@@ -182,6 +182,8 @@ fun VncSessionContent(
     /** Panel visibility, hoisted to the host so a rotation can't drop it. */
     builtinKeyboardVisible: Boolean = false,
     onBuiltinKeyboardVisibleChange: (Boolean) -> Unit = {},
+    /** Toolbar switch between the system IME and the built-in panel. Null hides it. */
+    onToggleBuiltinKeyboard: (() -> Unit)? = null,
     /** TOUCHPAD-mode speed multiplier; gesture math scales deltas by it (#696). */
     touchpadSensitivity: Float = 1f,
     /** Persist trackpad sensitivity from the toolbar (#696). Null hides the control. */
@@ -300,6 +302,7 @@ fun VncSessionContent(
             useBuiltinKeyboard = useBuiltinKeyboard,
             builtinKeyboardVisible = builtinKeyboardVisible,
             onBuiltinKeyboardVisibleChange = onBuiltinKeyboardVisibleChange,
+            onToggleBuiltinKeyboard = onToggleBuiltinKeyboard,
             touchpadSensitivity = touchpadSensitivity,
             onSetTouchpadSensitivity = onSetTouchpadSensitivity,
             keyboardLayout = keyboardLayout,
@@ -598,6 +601,8 @@ private fun VncViewer(
     /** Panel visibility, hoisted to the host so a rotation can't drop it. */
     builtinKeyboardVisible: Boolean = false,
     onBuiltinKeyboardVisibleChange: (Boolean) -> Unit = {},
+    /** Toolbar switch between the system IME and the built-in panel. Null hides it. */
+    onToggleBuiltinKeyboard: (() -> Unit)? = null,
     onMinimize: (() -> Unit)? = null,
     onPictureInPicture: (() -> Unit)? = null,
     /**
@@ -1517,6 +1522,15 @@ private fun VncViewer(
                             )
                         }
 
+                        // System IME ↔ built-in panel (same setting as Settings →
+                        // Desktop, this is the shortcut).
+                        if (onToggleBuiltinKeyboard != null) {
+                            sh.haven.core.ui.RemoteKeyboardModeToggle(
+                                builtin = useBuiltinKeyboard,
+                                onToggle = onToggleBuiltinKeyboard,
+                            )
+                        }
+
                         // Paste from Android clipboard (#718): pushes text to remote RFB
                         // CutText (for Ctrl+V / middle-click paste via vncconfig) AND types
                         // it into the focused window.
@@ -1685,6 +1699,12 @@ private fun VncViewer(
                                 if (keyboardShown) Icons.Default.KeyboardHide
                                 else Icons.Default.Keyboard,
                                 contentDescription = stringResource(R.string.vnc_cd_toggle_keyboard),
+                            )
+                        }
+                        if (onToggleBuiltinKeyboard != null) {
+                            sh.haven.core.ui.RemoteKeyboardModeToggle(
+                                builtin = useBuiltinKeyboard,
+                                onToggle = onToggleBuiltinKeyboard,
                             )
                         }
                         IconButton(onClick = {

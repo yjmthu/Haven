@@ -3042,6 +3042,46 @@
       "sr": "Сакриј тастатуру",
       "zh": "隐藏键盘"
      }
+    },
+    {
+     "name": "remote_keyboard_use_builtin",
+     "en": "Switch to built-in keyboard",
+     "comment": "Built-in desktop keyboard (VNC/RDP)",
+     "args": [],
+     "t": {
+      "ar": "التبديل إلى لوحة المفاتيح المدمجة",
+      "bn": "অন্তর্নির্মিত কীবোর্ডে যান",
+      "de": "Zur integrierten Tastatur wechseln",
+      "es": "Cambiar al teclado integrado",
+      "fr": "Passer au clavier intégré",
+      "hi": "अंतर्निहित कीबोर्ड पर स्विच करें",
+      "ja": "内蔵キーボードに切り替え",
+      "ko": "내장 키보드로 전환",
+      "pt": "Mudar para o teclado integrado",
+      "ru": "Переключиться на встроенную клавиатуру",
+      "sr": "Prebaci na ugrađenu tastaturu",
+      "zh": "切换到内置键盘"
+     }
+    },
+    {
+     "name": "remote_keyboard_use_system",
+     "en": "Switch to system keyboard",
+     "comment": "Built-in desktop keyboard (VNC/RDP)",
+     "args": [],
+     "t": {
+      "ar": "التبديل إلى لوحة مفاتيح النظام",
+      "bn": "সিস্টেম কীবোর্ডে যান",
+      "de": "Zur Systemtastatur wechseln",
+      "es": "Cambiar al teclado del sistema",
+      "fr": "Passer au clavier du système",
+      "hi": "सिस्टम कीबोर्ड पर स्विच करें",
+      "ja": "システムキーボードに切り替え",
+      "ko": "시스템 키보드로 전환",
+      "pt": "Mudar para o teclado do sistema",
+      "ru": "Переключиться на системную клавиатуру",
+      "sr": "Prebaci na sistemsku tastaturu",
+      "zh": "切换到系统键盘"
+     }
     }
    ]
   },

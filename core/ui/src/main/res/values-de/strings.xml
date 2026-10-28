@@ -30,4 +30,6 @@
     <string name="common_unlock">Entsperren</string>
     <!-- Built-in desktop keyboard (VNC/RDP) -->
     <string name="remote_keyboard_hide">Tastatur ausblenden</string>
+    <string name="remote_keyboard_use_builtin">Zur integrierten Tastatur wechseln</string>
+    <string name="remote_keyboard_use_system">Zur Systemtastatur wechseln</string>
 </resources>

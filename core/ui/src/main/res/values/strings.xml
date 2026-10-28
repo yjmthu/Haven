@@ -33,4 +33,6 @@
     <string name="common_unlock">Unlock</string>
     <!-- Built-in desktop keyboard (VNC/RDP) -->
     <string name="remote_keyboard_hide">Hide keyboard</string>
+    <string name="remote_keyboard_use_builtin">Switch to built-in keyboard</string>
+    <string name="remote_keyboard_use_system">Switch to system keyboard</string>
 </resources>

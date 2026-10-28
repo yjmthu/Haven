@@ -30,4 +30,6 @@
     <string name="common_unlock">ロック解除</string>
     <!-- Built-in desktop keyboard (VNC/RDP) -->
     <string name="remote_keyboard_hide">キーボードを隠す</string>
+    <string name="remote_keyboard_use_builtin">内蔵キーボードに切り替え</string>
+    <string name="remote_keyboard_use_system">システムキーボードに切り替え</string>
 </resources>

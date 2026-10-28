@@ -33,4 +33,6 @@
     <string name="common_unlock">잠금 해제</string>
     <!-- Built-in desktop keyboard (VNC/RDP) -->
     <string name="remote_keyboard_hide">키보드 숨기기</string>
+    <string name="remote_keyboard_use_builtin">내장 키보드로 전환</string>
+    <string name="remote_keyboard_use_system">시스템 키보드로 전환</string>
 </resources>

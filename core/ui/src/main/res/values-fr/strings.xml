@@ -30,4 +30,6 @@
     <string name="common_unlock">Déverrouiller</string>
     <!-- Built-in desktop keyboard (VNC/RDP) -->
     <string name="remote_keyboard_hide">Masquer le clavier</string>
+    <string name="remote_keyboard_use_builtin">Passer au clavier intégré</string>
+    <string name="remote_keyboard_use_system">Passer au clavier du système</string>
 </resources>

@@ -85,6 +85,8 @@ fun DesktopScreen(
     /** Desktop keyboard source from Settings: system IME (false) or the
      *  built-in floating panel (true). */
     builtinKeyboard: Boolean = false,
+    /** Persist a new keyboard source from the toolbar's system/built-in switch. */
+    onSetBuiltinKeyboard: (Boolean) -> Unit = {},
     /** TOUCHPAD-mode speed multiplier; viewer-side gesture math scales by it (#696). */
     touchpadSensitivity: Float = 1f,
     /** Persist trackpad sensitivity changes from the toolbar (#696); null hides the control. */
@@ -258,6 +260,9 @@ fun DesktopScreen(
                                 onBuiltinKeyboardVisibleChange = {
                                     desktopViewModel.setBuiltinKeyboardVisible(it)
                                 },
+                                onToggleBuiltinKeyboard = {
+                                    onSetBuiltinKeyboard(!builtinKeyboard)
+                                },
                                 touchpadSensitivity = touchpadSensitivity,
                                 onSetTouchpadSensitivity = onSetTouchpadSensitivity,
                                 keyboardLayout = keyboardLayout,
@@ -307,6 +312,9 @@ fun DesktopScreen(
                             builtinKeyboardVisible = builtinKeyboardVisible,
                             onBuiltinKeyboardVisibleChange = {
                                 desktopViewModel.setBuiltinKeyboardVisible(it)
+                            },
+                            onToggleBuiltinKeyboard = {
+                                onSetBuiltinKeyboard(!builtinKeyboard)
                             },
                             touchpadSensitivity = touchpadSensitivity,
                             onSetTouchpadSensitivity = onSetTouchpadSensitivity,

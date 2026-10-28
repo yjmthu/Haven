@@ -30,4 +30,6 @@
     <string name="common_unlock">अनलॉक करें</string>
     <!-- Built-in desktop keyboard (VNC/RDP) -->
     <string name="remote_keyboard_hide">कीबोर्ड छिपाएँ</string>
+    <string name="remote_keyboard_use_builtin">अंतर्निहित कीबोर्ड पर स्विच करें</string>
+    <string name="remote_keyboard_use_system">सिस्टम कीबोर्ड पर स्विच करें</string>
 </resources>

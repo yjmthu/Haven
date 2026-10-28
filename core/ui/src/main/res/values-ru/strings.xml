@@ -30,4 +30,6 @@
     <string name="common_unlock">Разблокировать</string>
     <!-- Built-in desktop keyboard (VNC/RDP) -->
     <string name="remote_keyboard_hide">Скрыть клавиатуру</string>
+    <string name="remote_keyboard_use_builtin">Переключиться на встроенную клавиатуру</string>
+    <string name="remote_keyboard_use_system">Переключиться на системную клавиатуру</string>
 </resources>

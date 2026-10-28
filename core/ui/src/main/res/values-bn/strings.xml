@@ -30,4 +30,6 @@
     <string name="common_unlock">আনলক</string>
     <!-- Built-in desktop keyboard (VNC/RDP) -->
     <string name="remote_keyboard_hide">কীবোর্ড লুকান</string>
+    <string name="remote_keyboard_use_builtin">অন্তর্নির্মিত কীবোর্ডে যান</string>
+    <string name="remote_keyboard_use_system">সিস্টেম কীবোর্ডে যান</string>
 </resources>

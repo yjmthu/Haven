@@ -184,6 +184,8 @@ fun RdpSessionContent(
     /** Panel visibility, hoisted to the host so a rotation can't drop it. */
     builtinKeyboardVisible: Boolean = false,
     onBuiltinKeyboardVisibleChange: (Boolean) -> Unit = {},
+    /** Toolbar switch between the system IME and the built-in panel. Null hides it. */
+    onToggleBuiltinKeyboard: (() -> Unit)? = null,
     /** TOUCHPAD-mode speed multiplier; gesture math scales deltas by it (#696). */
     touchpadSensitivity: Float = 1f,
     /** Persist trackpad sensitivity from the toolbar (#696). Null hides the control. */
@@ -268,6 +270,7 @@ fun RdpSessionContent(
             useBuiltinKeyboard = useBuiltinKeyboard,
             builtinKeyboardVisible = builtinKeyboardVisible,
             onBuiltinKeyboardVisibleChange = onBuiltinKeyboardVisibleChange,
+            onToggleBuiltinKeyboard = onToggleBuiltinKeyboard,
             touchpadSensitivity = touchpadSensitivity,
             onSetTouchpadSensitivity = onSetTouchpadSensitivity,
             keyboardLayout = keyboardLayout,
@@ -461,6 +464,8 @@ private fun RdpViewer(
     /** Panel visibility, hoisted to the host so a rotation can't drop it. */
     builtinKeyboardVisible: Boolean = false,
     onBuiltinKeyboardVisibleChange: (Boolean) -> Unit = {},
+    /** Toolbar switch between the system IME and the built-in panel. Null hides it. */
+    onToggleBuiltinKeyboard: (() -> Unit)? = null,
     /** TOUCHPAD-mode speed multiplier; gesture math scales deltas by it (#696). */
     touchpadSensitivity: Float = 1f,
     /** Persist trackpad sensitivity from the toolbar (#696). Null hides the control. */
@@ -1224,6 +1229,16 @@ private fun RdpViewer(
                             )
                         }
 
+                        // System IME ↔ built-in panel. Lives in Settings →
+                        // Desktop; this is the shortcut, and it sits right next
+                        // to the button it changes the meaning of.
+                        if (onToggleBuiltinKeyboard != null) {
+                            sh.haven.core.ui.RemoteKeyboardModeToggle(
+                                builtin = softKeyboardPanel,
+                                onToggle = onToggleBuiltinKeyboard,
+                            )
+                        }
+
                         IconButton(onClick = { onSetOrientation(orientationTarget) }) {
                             Icon(Icons.Default.ScreenRotation, contentDescription = orientationDesc)
                         }
@@ -1364,6 +1379,12 @@ private fun RdpViewer(
                                 if (keyboardShown) Icons.Default.KeyboardHide
                                 else Icons.Default.Keyboard,
                                 contentDescription = stringResource(R.string.rdp_cd_toggle_keyboard),
+                            )
+                        }
+                        if (onToggleBuiltinKeyboard != null) {
+                            sh.haven.core.ui.RemoteKeyboardModeToggle(
+                                builtin = softKeyboardPanel,
+                                onToggle = onToggleBuiltinKeyboard,
                             )
                         }
                         IconButton(onClick = { onSetOrientation(orientationTarget) }) {

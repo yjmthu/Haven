@@ -30,4 +30,6 @@
     <string name="common_unlock">Откључај</string>
     <!-- Built-in desktop keyboard (VNC/RDP) -->
     <string name="remote_keyboard_hide">Сакриј тастатуру</string>
+    <string name="remote_keyboard_use_builtin">Prebaci na ugrađenu tastaturu</string>
+    <string name="remote_keyboard_use_system">Prebaci na sistemsku tastaturu</string>
 </resources>

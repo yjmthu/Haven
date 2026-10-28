@@ -30,4 +30,6 @@
     <string name="common_unlock">解锁</string>
     <!-- Built-in desktop keyboard (VNC/RDP) -->
     <string name="remote_keyboard_hide">隐藏键盘</string>
+    <string name="remote_keyboard_use_builtin">切换到内置键盘</string>
+    <string name="remote_keyboard_use_system">切换到系统键盘</string>
 </resources>

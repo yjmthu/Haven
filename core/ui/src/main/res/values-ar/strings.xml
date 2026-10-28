@@ -30,4 +30,6 @@
     <string name="common_unlock">فتح القفل</string>
     <!-- Built-in desktop keyboard (VNC/RDP) -->
     <string name="remote_keyboard_hide">إخفاء لوحة المفاتيح</string>
+    <string name="remote_keyboard_use_builtin">التبديل إلى لوحة المفاتيح المدمجة</string>
+    <string name="remote_keyboard_use_system">التبديل إلى لوحة مفاتيح النظام</string>
 </resources>

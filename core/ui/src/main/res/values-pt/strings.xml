@@ -30,4 +30,6 @@
     <string name="common_unlock">Desbloquear</string>
     <!-- Built-in desktop keyboard (VNC/RDP) -->
     <string name="remote_keyboard_hide">Ocultar teclado</string>
+    <string name="remote_keyboard_use_builtin">Mudar para o teclado integrado</string>
+    <string name="remote_keyboard_use_system">Mudar para o teclado do sistema</string>
 </resources>
