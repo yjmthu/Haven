@@ -810,6 +810,35 @@ private fun VncViewer(
         }
     }
 
+    // Switching the keyboard source must not change whether a keyboard is up:
+    // a visible keyboard stays visible in the new mode, a closed one stays
+    // closed. Flipping the setting alone left the IME behind the newly opened
+    // panel — two keyboards at once — and closed a panel the user had open.
+    val switchKeyboardSource: (() -> Unit)? = onToggleBuiltinKeyboard?.let { toggle ->
+        {
+            val wasShown = keyboardShown
+            if (softKeyboardPanel) {
+                // Panel -> IME.
+                onBuiltinKeyboardVisibleChange(false)
+                keyboardVisible = wasShown
+                if (wasShown) {
+                    focusRequester.requestFocus()
+                    keyboardController?.show()
+                } else {
+                    keyboardController?.hide()
+                    hardwareKeyFocus.requestFocus()
+                }
+            } else {
+                // IME -> panel.
+                keyboardController?.hide()
+                keyboardVisible = false
+                onBuiltinKeyboardVisibleChange(wasShown)
+                if (wasShown) hardwareKeyFocus.requestFocus()
+            }
+            toggle()
+        }
+    }
+
     // The system re-shows the IME across a configuration change even when the
     // user dismissed it; enforce the invariant that the IME is up only when we
     // asked for it. Scoped to this screen's own focus holders so the terminal
@@ -1523,11 +1552,12 @@ private fun VncViewer(
                         }
 
                         // System IME ↔ built-in panel (same setting as Settings →
-                        // Desktop, this is the shortcut).
-                        if (onToggleBuiltinKeyboard != null) {
+                        // Desktop, this is the shortcut). Switching keeps
+                        // whatever was on screen on screen.
+                        if (switchKeyboardSource != null) {
                             sh.haven.core.ui.RemoteKeyboardModeToggle(
-                                builtin = useBuiltinKeyboard,
-                                onToggle = onToggleBuiltinKeyboard,
+                                builtin = softKeyboardPanel,
+                                onToggle = switchKeyboardSource,
                             )
                         }
 
@@ -1701,10 +1731,10 @@ private fun VncViewer(
                                 contentDescription = stringResource(R.string.vnc_cd_toggle_keyboard),
                             )
                         }
-                        if (onToggleBuiltinKeyboard != null) {
+                        if (switchKeyboardSource != null) {
                             sh.haven.core.ui.RemoteKeyboardModeToggle(
-                                builtin = useBuiltinKeyboard,
-                                onToggle = onToggleBuiltinKeyboard,
+                                builtin = softKeyboardPanel,
+                                onToggle = switchKeyboardSource,
                             )
                         }
                         IconButton(onClick = {

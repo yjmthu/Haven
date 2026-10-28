@@ -273,9 +273,10 @@ fun RemoteKeyboard(
     // server.
     //
     // They are independent: arming Ctrl does not clear Alt/Win, and a chord
-    // presses every armed modifier at once (Ctrl+Alt+Win+key works). The flags
-    // deliberately survive the chord, so a modifier keeps applying until it is
-    // tapped again — tapping a modifier only ever cancels that modifier.
+    // presses every armed modifier at once (Ctrl+Alt+Win+key works). An armed
+    // modifier can only be cancelled by itself — but only while it has not been
+    // used: the first key that consumes it clears it, so a modifier never keeps
+    // applying to keys the user did not mean to combine it with.
     // One-shot Shift (not the caps lock) is a real modifier for chords, so
     // Shift+Tab and Win+Shift+S reach the server with the shift state set.
     fun pressModifiers(includeShift: Boolean) {
@@ -292,6 +293,15 @@ fun RemoteKeyboard(
         if (win) onKeyUp(keyCodes.win)
     }
 
+    /** A sent key consumes the armed modifiers: they fired together and are done. */
+    fun consumeModifiers() {
+        ctrl = false
+        alt = false
+        win = false
+        // Caps lock is a latching state, not an armed modifier.
+        if (!capsLock) shift = false
+    }
+
     fun type(c: Char) {
         // A plain armed Shift upper-cases the character itself (safest for every
         // protocol). With another modifier in play the character goes out
@@ -302,7 +312,7 @@ fun RemoteKeyboard(
         val out = if (!chordShift && (shift || capsLock)) c.uppercaseChar() else c
         onTypeChar(out)
         releaseModifiers(includeShift = chordShift)
-        if (shift && !capsLock) shift = false
+        consumeModifiers()
     }
 
     /**
@@ -347,7 +357,7 @@ fun RemoteKeyboard(
         onKeyDown(code)
         onKeyUp(code)
         releaseModifiers(includeShift = chordShift)
-        if (shift && !capsLock) shift = false
+        consumeModifiers()
     }
 
     val width = if (portrait) {

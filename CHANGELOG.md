@@ -5,6 +5,11 @@ the corresponding GitHub Release; a release can't ship without its section
 (enforced by `scripts/check-changelog.sh` in CI). The GitHub "Full Changelog"
 compare link is appended automatically — don't add it here.
 
+## v5.89.61
+
+- **An armed modifier is consumed by the key it modifies.** Ctrl, Alt, Win and one-shot Shift stayed armed after a chord, so the next key was silently modified too. They now clear the moment a key uses them; only a modifier that has not been used still has to be cancelled by tapping it again.
+- **The toolbar's keyboard switch no longer changes whether a keyboard is up.** Switching between the system IME and the built-in panel left the IME open behind the newly shown panel (two keyboards at once) and closed panels that were open. A visible keyboard is now replaced by the other one, and a hidden one stays hidden.
+
 ## v5.89.60
 
 - **Desktop sessions get their own keyboard, so typing into a remote machine no longer depends on the IME (#183).** Settings → Desktop → "Use built-in keyboard" replaces the system keyboard in the RDP viewer, the VNC viewer and the terminal (off by default). In portrait the panel docks to the bottom edge like a regular IME — over the navigation bar, never over the toolbar — and the remote image moves up with it; in landscape it floats, draggable by its grip and pinch-zoomable, and its position and scale come back with the next session. Both bottom corners carry a resize arc that stays invisible until a finger touches it, resizes from the corner opposite the one being dragged, and fades out again after the finger lifts.

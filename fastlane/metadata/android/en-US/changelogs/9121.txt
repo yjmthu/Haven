@@ -1,0 +1,1 @@
+Armed Ctrl/Alt/Win/Shift are now consumed by the key they modify instead of staying armed for the next one, and the toolbar's keyboard switch keeps whatever keyboard was on screen: a visible one is replaced, a hidden one stays hidden (it used to leave the IME open behind the built-in panel).

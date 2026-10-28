@@ -697,6 +697,35 @@ private fun RdpViewer(
         }
     }
 
+    // Switching the keyboard source must not change whether a keyboard is up:
+    // a visible keyboard stays visible in the new mode, a closed one stays
+    // closed. Flipping the setting alone left the IME behind the newly opened
+    // panel — two keyboards at once — and closed a panel the user had open.
+    val switchKeyboardSource: (() -> Unit)? = onToggleBuiltinKeyboard?.let { toggle ->
+        {
+            val wasShown = keyboardShown
+            if (softKeyboardPanel) {
+                // Panel -> IME.
+                onBuiltinKeyboardVisibleChange(false)
+                keyboardVisible = wasShown
+                if (wasShown) {
+                    focusRequester.requestFocus()
+                    keyboardController?.show()
+                } else {
+                    keyboardController?.hide()
+                    hardwareKeyFocus.requestFocus()
+                }
+            } else {
+                // IME -> panel.
+                keyboardController?.hide()
+                keyboardVisible = false
+                onBuiltinKeyboardVisibleChange(wasShown)
+                if (wasShown) hardwareKeyFocus.requestFocus()
+            }
+            toggle()
+        }
+    }
+
     // The system re-shows the IME across a configuration change (rotation)
     // even when the user dismissed it: this activity handles orientation in
     // configChanges, so `keyboardVisible` survives the rotation, but the
@@ -1231,11 +1260,12 @@ private fun RdpViewer(
 
                         // System IME ↔ built-in panel. Lives in Settings →
                         // Desktop; this is the shortcut, and it sits right next
-                        // to the button it changes the meaning of.
-                        if (onToggleBuiltinKeyboard != null) {
+                        // to the button it changes the meaning of. Switching
+                        // keeps whatever was on screen on screen.
+                        if (switchKeyboardSource != null) {
                             sh.haven.core.ui.RemoteKeyboardModeToggle(
                                 builtin = softKeyboardPanel,
-                                onToggle = onToggleBuiltinKeyboard,
+                                onToggle = switchKeyboardSource,
                             )
                         }
 
@@ -1381,10 +1411,10 @@ private fun RdpViewer(
                                 contentDescription = stringResource(R.string.rdp_cd_toggle_keyboard),
                             )
                         }
-                        if (onToggleBuiltinKeyboard != null) {
+                        if (switchKeyboardSource != null) {
                             sh.haven.core.ui.RemoteKeyboardModeToggle(
                                 builtin = softKeyboardPanel,
-                                onToggle = onToggleBuiltinKeyboard,
+                                onToggle = switchKeyboardSource,
                             )
                         }
                         IconButton(onClick = { onSetOrientation(orientationTarget) }) {
