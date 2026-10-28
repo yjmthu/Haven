@@ -223,9 +223,6 @@
     <string name="settings_section_terminal">टर्मिनल</string>
     <string name="settings_show_terminal_tab_bar_subtitle">टर्मिनल के ऊपर सत्र टैब दिखाएँ</string>
     <string name="settings_show_terminal_tab_bar_title">टर्मिनल टैब बार दिखाएँ</string>
-    <string name="settings_touchpad_input_direct_subtitle">सीधा स्पर्श — उँगली की स्थिति ही पॉइंटर है। ट्रैकपैड-शैली इनपुट के लिए चालू करें।</string>
-    <string name="settings_touchpad_input_title">टचपैड इनपुट</string>
-    <string name="settings_touchpad_input_touchpad_subtitle">खींचने से रिमोट कर्सर हिलता है; टैप करने से कर्सर पर क्लिक होता है। ज़ूम करने पर व्यूपोर्ट कर्सर का अनुसरण करता है।</string>
 
     <!-- i18n sweep #210 -->
     <string name="settings_color_scheme_auto_switch_title">System theme के साथ auto-switch</string>
@@ -417,4 +414,7 @@ Haven में पहले से संग्रहीत प्रत्य�
     <string name="settings_ambiwidth_mode_auto_wide_desc">सक्रिय फ़ॉन्ट प्रोफाइल करें; फ़ॉलबैक 2 सेल (CJK)</string>
     <string name="settings_bell_notification_title">घंटी सूचना</string>
     <string name="settings_bell_notification_subtitle">जब Haven पृष्ठभूमि में हो और कोई टर्मिनल प्रोग्राम घंटी बजाए, तो टैब का नाम बताते हुए एक सूचना भेजी जाती है। जब आप टर्मिनल देख रहे हों तो कुछ नहीं दिखता।</string>
+    <!-- Built-in floating keyboard for desktop sessions. -->
+    <string name="settings_builtin_keyboard_title">अंतर्निहित कीबोर्ड का उपयोग करें</string>
+    <string name="settings_builtin_keyboard_subtitle">सिस्टम कीबोर्ड के बजाय डेस्कटॉप और टर्मिनल सत्रों में Haven का अपना फ़्लोटिंग कीबोर्ड दिखाएँ</string>
 </resources>

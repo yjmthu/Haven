@@ -223,9 +223,6 @@
     <string name="settings_section_terminal">Terminal</string>
     <string name="settings_show_terminal_tab_bar_subtitle">Sitzungs-Tabs über dem Terminal anzeigen</string>
     <string name="settings_show_terminal_tab_bar_title">Terminal-Tableiste anzeigen</string>
-    <string name="settings_touchpad_input_direct_subtitle">Direkte Berührung — die Fingerposition ist der Zeiger. Für Trackpad-artige Eingabe einschalten.</string>
-    <string name="settings_touchpad_input_title">Touchpad-Eingabe</string>
-    <string name="settings_touchpad_input_touchpad_subtitle">Ziehen bewegt den Cursor der Gegenstelle; Tippen klickt an der Cursorposition. Der sichtbare Bereich folgt dem Cursor beim Zoomen.</string>
 
     <!-- i18n sweep #210 -->
     <string name="settings_color_scheme_auto_switch_title">Automatisch mit Systemdesign wechseln</string>
@@ -417,4 +414,7 @@ Jeder bereits in Haven gespeicherte private Schlüssel muss erneut importiert od
     <string name="settings_ambiwidth_mode_auto_wide_desc">Aktive Schrift vermessen; Fallback auf 2 Spalten (CJK)</string>
     <string name="settings_bell_notification_title">Glocken-Benachrichtigung</string>
     <string name="settings_bell_notification_subtitle">Wenn ein Terminalprogramm klingelt, während Haven im Hintergrund ist, wird eine Benachrichtigung mit dem Tab-Namen gesendet. Während du das Terminal siehst, erscheint nichts.</string>
+    <!-- Built-in floating keyboard for desktop sessions. -->
+    <string name="settings_builtin_keyboard_title">Integrierte Tastatur verwenden</string>
+    <string name="settings_builtin_keyboard_subtitle">Havens eigene schwebende Tastatur in Desktop- und Terminal-Sitzungen statt der Systemtastatur anzeigen</string>
 </resources>

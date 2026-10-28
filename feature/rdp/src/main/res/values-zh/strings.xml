@@ -14,12 +14,11 @@
     <string name="rdp_cd_fullscreen">全屏</string>
     <string name="rdp_cd_session_menu">会话菜单</string>
     <string name="rdp_cd_exit_fullscreen">退出全屏</string>
-    <string name="rdp_cd_input_mode_trackpad_on">触控板模式已开启（点击切换为直接触摸）</string>
-    <string name="rdp_cd_input_mode_direct">直接触摸模式（点击切换为触控板）</string>
+    <string name="rdp_cd_pan_mode_off">鼠标模式（点击切换为移动模式）</string>
+    <string name="rdp_cd_pan_mode_on">移动模式（点击切换为鼠标模式）</string>
     <string name="rdp_cd_trackpad_sensitivity">触控板灵敏度</string>
-    <string name="rdp_orientation_landscape_desc">锁定横屏（点击切换为竖屏）</string>
-    <string name="rdp_orientation_portrait_desc">锁定竖屏（点击切换为自动）</string>
-    <string name="rdp_orientation_auto_desc">自动旋转（点击切换为横屏）</string>
+    <string name="rdp_orientation_landscape_desc">切换到竖屏</string>
+    <string name="rdp_orientation_portrait_desc">切换到横屏</string>
 
     <!-- i18n sweep #210 (follow-up batch) -->
     <string name="rdp_hint_legacy_rdp_title">服务器正在使用过时的未加密 RDP</string>
@@ -38,8 +37,6 @@
     <string name="rdp_hint_tls_ciphers_body">Haven 使用 rustls/ring TLS 栈，其加密套件覆盖范围比 Microsoft 的 RDP 客户端（SChannel）或 OpenSSL 更窄。兼容性最好的服务器端设置是基于 TLS 1.2 或 1.3 的 ECDHE-RSA + AES-GCM。</string>
 
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
-    <string name="rdp_cd_two_finger_viewport">双指平移视图（点按切换为滚动远程端）</string>
-    <string name="rdp_cd_two_finger_scroll_on">双指滚动远程端（点按切换为平移视图）</string>
     <string name="rdp_hint_nla_required_title">服务器要求网络级别身份验证 (NLA)</string>
     <string name="rdp_hint_nla_required_body">服务器配置为仅接受使用 NLA 认证的客户端，而此连接配置中未勾选 NLA。请在配置中勾选“Network Level Authentication (NLA)”，或在电脑上放宽此要求：设置 → 系统 → 远程桌面 → 高级设置 → 取消勾选“Require devices to use Network Level Authentication”。</string>
     <string name="rdp_hint_mixed_username_title">NLA 无法使用这种格式的用户名</string>

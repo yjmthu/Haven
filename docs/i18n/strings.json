@@ -3022,6 +3022,26 @@
       "sr": "Откључај",
       "zh": "解锁"
      }
+    },
+    {
+     "name": "remote_keyboard_hide",
+     "en": "Hide keyboard",
+     "comment": "Built-in desktop keyboard (VNC/RDP)",
+     "args": [],
+     "t": {
+      "ar": "إخفاء لوحة المفاتيح",
+      "bn": "কীবোর্ড লুকান",
+      "de": "Tastatur ausblenden",
+      "es": "Ocultar teclado",
+      "fr": "Masquer le clavier",
+      "hi": "कीबोर्ड छिपाएँ",
+      "ja": "キーボードを隠す",
+      "ko": "키보드 숨기기",
+      "pt": "Ocultar teclado",
+      "ru": "Скрыть клавиатуру",
+      "sr": "Сакриј тастатуру",
+      "zh": "隐藏键盘"
+     }
     }
    ]
   },
@@ -12439,43 +12459,43 @@
      }
     },
     {
-     "name": "rdp_cd_input_mode_trackpad_on",
-     "en": "Trackpad mode on (tap for direct touch)",
+     "name": "rdp_cd_pan_mode_off",
+     "en": "Mouse mode (tap for pan mode)",
      "comment": "",
      "args": [],
      "t": {
-      "ar": "وضع لوحة التتبع مفعّل (اضغط للمس المباشر)",
-      "bn": "Trackpad মোড চালু (সরাসরি স্পর্শের জন্য ট্যাপ করুন)",
-      "de": "Trackpad-Modus aktiv (Tippen für direkte Berührung)",
-      "es": "Modo trackpad activado (toca para toque directo)",
-      "fr": "Mode pavé tactile activé (appuyer pour toucher direct)",
-      "hi": "Trackpad mode चालू (सीधे touch के लिए टैप करें)",
-      "ja": "トラックパッドモード オン（タップでダイレクトタッチ）",
-      "ko": "트랙패드 모드 켜짐 (직접 터치로 전환하려면 탭)",
-      "pt": "Modo trackpad ativado (toque para toque direto)",
-      "ru": "Режим трекпада включён (нажмите для прямого касания)",
-      "sr": "Укључен је режим трекпеда (тап за директни додир)",
-      "zh": "触控板模式已开启（点击切换为直接触摸）"
+      "ar": "وضع الفأرة (اضغط لوضع التحريك)",
+      "bn": "মাউস মোড (প্যান মোডের জন্য ট্যাপ করুন)",
+      "de": "Mausmodus (tippen für Verschieben)",
+      "es": "Modo ratón (toca para desplazar)",
+      "fr": "Mode souris (toucher pour déplacer)",
+      "hi": "माउस मोड (पैन मोड के लिए टैप करें)",
+      "ja": "マウスモード（タップで移動モード）",
+      "ko": "마우스 모드(탭하여 이동 모드)",
+      "pt": "Modo rato (toque para mover)",
+      "ru": "Режим мыши (нажмите для перемещения)",
+      "sr": "Режим миша (тапни за режим померања)",
+      "zh": "鼠标模式（点击切换为移动模式）"
      }
     },
     {
-     "name": "rdp_cd_input_mode_direct",
-     "en": "Direct touch mode (tap for trackpad)",
+     "name": "rdp_cd_pan_mode_on",
+     "en": "Pan mode (tap for mouse mode)",
      "comment": "",
      "args": [],
      "t": {
-      "ar": "وضع اللمس المباشر (اضغط للوحة التتبع)",
-      "bn": "সরাসরি স্পর্শ মোড (trackpad-এর জন্য ট্যাপ করুন)",
-      "de": "Direktberührungs-Modus (Tippen für Trackpad)",
-      "es": "Modo de toque directo (toca para trackpad)",
-      "fr": "Mode toucher direct (appuyer pour pavé tactile)",
-      "hi": "Direct touch mode (trackpad के लिए टैप करें)",
-      "ja": "ダイレクトタッチモード（タップでトラックパッド）",
-      "ko": "직접 터치 모드 (트랙패드로 전환하려면 탭)",
-      "pt": "Modo toque direto (toque para trackpad)",
-      "ru": "Режим прямого касания (нажмите для трекпада)",
-      "sr": "Режим директног додира (тап за трекпед)",
-      "zh": "直接触摸模式（点击切换为触控板）"
+      "ar": "وضع التحريك (اضغط لوضع الفأرة)",
+      "bn": "প্যান মোড (মাউস মোডের জন্য ট্যাপ করুন)",
+      "de": "Verschiebemodus (tippen für Mausmodus)",
+      "es": "Modo desplazamiento (toca para ratón)",
+      "fr": "Mode déplacement (toucher pour souris)",
+      "hi": "पैन मोड (माउस मोड के लिए टैप करें)",
+      "ja": "移動モード（タップでマウスモード）",
+      "ko": "이동 모드(탭하여 마우스 모드)",
+      "pt": "Modo mover (toque para rato)",
+      "ru": "Режим перемещения (нажмите для режима мыши)",
+      "sr": "Режим померања (тапни за режим миша)",
+      "zh": "移动模式（点击切换为鼠标模式）"
      }
     },
     {
@@ -12499,103 +12519,43 @@
      }
     },
     {
-     "name": "rdp_cd_two_finger_viewport",
-     "en": "Two-finger pans the view (tap to scroll the remote)",
-     "comment": "",
-     "args": [],
-     "t": {
-      "ar": "إصبعان يحرّكان العرض (اضغط لتمرير الشاشة البعيدة)",
-      "bn": "দুই আঙুলে ভিউ প্যান হয় (রিমোট স্ক্রোল করতে ট্যাপ করুন)",
-      "de": "Zwei Finger verschieben die Ansicht (tippen, um den entfernten Bildschirm zu scrollen)",
-      "es": "Dos dedos mueven la vista (toca para desplazar la pantalla remota)",
-      "fr": "Deux doigts déplacent la vue (toucher pour faire défiler l\\'écran distant)",
-      "hi": "दो उँगलियाँ व्यू पैन करती हैं (रिमोट स्क्रॉल करने के लिए टैप करें)",
-      "ja": "2 本指でビューをパン（タップでリモート側のスクロールに切替）",
-      "ko": "두 손가락으로 화면 이동 (원격 스크롤로 전환하려면 탭)",
-      "pt": "Dois dedos deslocam a visualização (toque para rolar o remoto)",
-      "ru": "Два пальца перемещают вид (нажмите, чтобы прокручивать удалённый экран)",
-      "sr": "Два прста померају приказ (тапните да скролујете удаљени)",
-      "zh": "双指平移视图（点按切换为滚动远程端）"
-     }
-    },
-    {
-     "name": "rdp_cd_two_finger_scroll_on",
-     "en": "Two-finger scrolls the remote (tap to pan the view)",
-     "comment": "",
-     "args": [],
-     "t": {
-      "ar": "إصبعان يمرّران الشاشة البعيدة (اضغط لتحريك العرض)",
-      "bn": "দুই আঙুলে রিমোট স্ক্রোল হয় (ভিউ প্যান করতে ট্যাপ করুন)",
-      "de": "Zwei Finger scrollen den entfernten Bildschirm (tippen, um die Ansicht zu verschieben)",
-      "es": "Dos dedos desplazan la pantalla remota (toca para mover la vista)",
-      "fr": "Deux doigts font défiler l\\'écran distant (toucher pour déplacer la vue)",
-      "hi": "दो उँगलियाँ रिमोट स्क्रॉल करती हैं (व्यू पैन करने के लिए टैप करें)",
-      "ja": "2 本指でリモート側をスクロール（タップでビューのパンに切替）",
-      "ko": "두 손가락으로 원격 스크롤 (화면 이동으로 전환하려면 탭)",
-      "pt": "Dois dedos rolam o remoto (toque para deslocar a visualização)",
-      "ru": "Два пальца прокручивают удалённый экран (нажмите, чтобы перемещать вид)",
-      "sr": "Два прста скролују удаљени (тапните да померате приказ)",
-      "zh": "双指滚动远程端（点按切换为平移视图）"
-     }
-    },
-    {
      "name": "rdp_orientation_landscape_desc",
-     "en": "Lock landscape (tap to switch to portrait)",
+     "en": "Switch to portrait",
      "comment": "",
      "args": [],
      "t": {
-      "ar": "تثبيت أفقي (اضغط للتبديل إلى عمودي)",
-      "bn": "Landscape লক (portrait-এ যেতে ট্যাপ করুন)",
-      "de": "Querformat sperren (Tippen zum Wechsel in Hochformat)",
-      "es": "Bloquear horizontal (toca para cambiar a vertical)",
-      "fr": "Bloquer en paysage (appuyer pour passer en portrait)",
-      "hi": "Landscape लॉक (portrait पर स्विच करने के लिए टैप करें)",
-      "ja": "横向きにロック（タップで縦向きに切替）",
-      "ko": "가로 고정 (세로로 전환하려면 탭)",
-      "pt": "Fixar paisagem (toque para retrato)",
-      "ru": "Заблокировать альбомную (нажмите для переключения на портретную)",
-      "sr": "Закључај положено (тап да пређете на усправно)",
-      "zh": "锁定横屏（点击切换为竖屏）"
+      "ar": "التبديل إلى الوضع الطولي",
+      "bn": "পোর্ট্রেট মোডে যান",
+      "de": "Zum Hochformat wechseln",
+      "es": "Cambiar a vertical",
+      "fr": "Passer en portrait",
+      "hi": "पोर्ट्रेट में बदलें",
+      "ja": "縦向きに切り替え",
+      "ko": "세로 모드로 전환",
+      "pt": "Mudar para vertical",
+      "ru": "Переключить на книжную ориентацию",
+      "sr": "Пребаци на усправно",
+      "zh": "切换到竖屏"
      }
     },
     {
      "name": "rdp_orientation_portrait_desc",
-     "en": "Lock portrait (tap to switch to auto)",
+     "en": "Switch to landscape",
      "comment": "",
      "args": [],
      "t": {
-      "ar": "تثبيت عمودي (اضغط للتبديل إلى تلقائي)",
-      "bn": "Portrait লক (auto-তে যেতে ট্যাপ করুন)",
-      "de": "Hochformat sperren (Tippen zum Wechsel in Automatik)",
-      "es": "Bloquear vertical (toca para cambiar a automático)",
-      "fr": "Bloquer en portrait (appuyer pour passer en automatique)",
-      "hi": "Portrait लॉक (auto पर स्विच करने के लिए टैप करें)",
-      "ja": "縦向きにロック（タップで自動回転に切替）",
-      "ko": "세로 고정 (자동으로 전환하려면 탭)",
-      "pt": "Fixar retrato (toque para automático)",
-      "ru": "Заблокировать портретную (нажмите для переключения на авто)",
-      "sr": "Закључај усправно (тап да пређете на ауто)",
-      "zh": "锁定竖屏（点击切换为自动）"
-     }
-    },
-    {
-     "name": "rdp_orientation_auto_desc",
-     "en": "Auto rotate (tap to switch to landscape)",
-     "comment": "",
-     "args": [],
-     "t": {
-      "ar": "دوران تلقائي (اضغط للتبديل إلى أفقي)",
-      "bn": "স্বয়ংক্রিয় ঘোরানো (landscape-এ যেতে ট্যাপ করুন)",
-      "de": "Automatisch drehen (Tippen zum Wechsel in Querformat)",
-      "es": "Rotación automática (toca para cambiar a horizontal)",
-      "fr": "Rotation automatique (appuyer pour passer en paysage)",
-      "hi": "Auto rotate (landscape पर स्विच करने के लिए टैप करें)",
-      "ja": "自動回転（タップで横向きに切替）",
-      "ko": "자동 회전 (가로로 전환하려면 탭)",
-      "pt": "Rotação automática (toque para paisagem)",
-      "ru": "Авто-поворот (нажмите для переключения на альбомную)",
-      "sr": "Ауто ротација (тап да пређете на положено)",
-      "zh": "自动旋转（点击切换为横屏）"
+      "ar": "التبديل إلى الوضع العرضي",
+      "bn": "ল্যান্ডস্কেপ মোডে যান",
+      "de": "Zum Querformat wechseln",
+      "es": "Cambiar a horizontal",
+      "fr": "Passer en paysage",
+      "hi": "लैंडस्केप में बदलें",
+      "ja": "横向きに切り替え",
+      "ko": "가로 모드로 전환",
+      "pt": "Mudar para horizontal",
+      "ru": "Переключить на альбомную ориентацию",
+      "sr": "Пребаци на положено",
+      "zh": "切换到横屏"
      }
     },
     {
@@ -17915,66 +17875,6 @@
      }
     },
     {
-     "name": "settings_touchpad_input_title",
-     "en": "Touchpad input",
-     "comment": "RDP desktop size (#422): Haven asked every server for 1920x1080 with no way to change it, so a server drawing a different size had its updates discarded. %1$d and %2$d are the width and height in pixels.",
-     "args": [],
-     "t": {
-      "ar": "إدخال لوحة اللمس",
-      "bn": "টাচপ্যাড ইনপুট",
-      "de": "Touchpad-Eingabe",
-      "es": "Entrada de panel táctil",
-      "fr": "Saisie par pavé tactile",
-      "hi": "टचपैड इनपुट",
-      "ja": "タッチパッド入力",
-      "ko": "터치패드 입력",
-      "pt": "Entrada de touchpad",
-      "ru": "Ввод с тачпада",
-      "sr": "Унос тачпедом",
-      "zh": "触控板输入"
-     }
-    },
-    {
-     "name": "settings_touchpad_input_direct_subtitle",
-     "en": "Direct touch — finger position is the pointer. Toggle on for trackpad-style input.",
-     "comment": "RDP desktop size (#422): Haven asked every server for 1920x1080 with no way to change it, so a server drawing a different size had its updates discarded. %1$d and %2$d are the width and height in pixels.",
-     "args": [],
-     "t": {
-      "ar": "لمس مباشر — موضع الإصبع هو المؤشر. فعّله للإدخال على نمط لوحة اللمس.",
-      "bn": "সরাসরি স্পর্শ — আঙুলের অবস্থানই পয়েন্টার। ট্র্যাকপ্যাড-স্টাইল ইনপুটের জন্য চালু করুন।",
-      "de": "Direkte Berührung — die Fingerposition ist der Zeiger. Für Trackpad-artige Eingabe einschalten.",
-      "es": "Toque directo: la posición del dedo es el puntero. Actívalo para una entrada tipo trackpad.",
-      "fr": "Toucher direct — la position du doigt est le pointeur. Activez pour une saisie de type pavé tactile.",
-      "hi": "सीधा स्पर्श — उँगली की स्थिति ही पॉइंटर है। ट्रैकपैड-शैली इनपुट के लिए चालू करें।",
-      "ja": "ダイレクトタッチ — 指の位置がポインターになります。トラックパッド風の入力にはオンにしてください。",
-      "ko": "직접 터치 — 손가락 위치가 포인터입니다. 트랙패드 방식 입력을 사용하려면 켜세요.",
-      "pt": "Toque direto — a posição do dedo é o ponteiro. Ative para entrada estilo trackpad.",
-      "ru": "Прямое касание — положение пальца является указателем. Включите для ввода в стиле трекпада.",
-      "sr": "Директни додир — позиција прста је показивач. Укључите за унос у стилу трекпеда.",
-      "zh": "直接触摸 — 手指位置即指针。开启可切换为触控板风格输入。"
-     }
-    },
-    {
-     "name": "settings_touchpad_input_touchpad_subtitle",
-     "en": "Drag moves the remote cursor; tap clicks at the cursor. The viewport follows the cursor when zoomed.",
-     "comment": "RDP desktop size (#422): Haven asked every server for 1920x1080 with no way to change it, so a server drawing a different size had its updates discarded. %1$d and %2$d are the width and height in pixels.",
-     "args": [],
-     "t": {
-      "ar": "السحب يحرّك المؤشر البعيد؛ النقر ينقر عند المؤشر. تتبع منطقة العرض المؤشر عند التكبير.",
-      "bn": "টেনে আনলে রিমোট কার্সার সরে; ট্যাপ করলে কার্সারের অবস্থানে ক্লিক হয়। জুম করলে ভিউপোর্ট কার্সার অনুসরণ করে।",
-      "de": "Ziehen bewegt den Cursor der Gegenstelle; Tippen klickt an der Cursorposition. Der sichtbare Bereich folgt dem Cursor beim Zoomen.",
-      "es": "Arrastrar mueve el cursor remoto; tocar hace clic en el cursor. La vista sigue al cursor al ampliar.",
-      "fr": "Le glissement déplace le curseur distant ; le toucher clique à la position du curseur. La vue suit le curseur lors du zoom.",
-      "hi": "खींचने से रिमोट कर्सर हिलता है; टैप करने से कर्सर पर क्लिक होता है। ज़ूम करने पर व्यूपोर्ट कर्सर का अनुसरण करता है।",
-      "ja": "ドラッグでリモートカーソルを移動し、タップでカーソル位置をクリックします。ズーム時はビューポートがカーソルに追従します。",
-      "ko": "드래그하면 원격 커서가 움직이고, 탭하면 커서 위치를 클릭합니다. 확대 시 뷰포트가 커서를 따라갑니다.",
-      "pt": "Arrastar move o cursor remoto; tocar clica na posição do cursor. A área visível segue o cursor ao ampliar.",
-      "ru": "Перетаскивание перемещает удалённый курсор; касание выполняет щелчок в позиции курсора. При увеличении область просмотра следует за курсором.",
-      "sr": "Превлачење помера удаљени курсор; тап кликће на позицију курсора. Прозор приказа следи курсор када је зумирано.",
-      "zh": "拖动移动远程光标；点击在光标处单击。缩放时视口跟随光标。"
-     }
-    },
-    {
      "name": "settings_bandwidth_suggest_title",
      "en": "Suggest 256 colours on slow VNC links",
      "comment": "RDP desktop size (#422): Haven asked every server for 1920x1080 with no way to change it, so a server drawing a different size had its updates discarded. %1$d and %2$d are the width and height in pixels.",
@@ -19963,6 +19863,46 @@
       "ru": "Всегда",
       "sr": "Увек",
       "zh": "总是"
+     }
+    },
+    {
+     "name": "settings_builtin_keyboard_title",
+     "en": "Use built-in keyboard",
+     "comment": "Built-in floating keyboard for desktop sessions.",
+     "args": [],
+     "t": {
+      "ar": "استخدام لوحة المفاتيح المدمجة",
+      "bn": "অন্তর্নির্মিত কীবোর্ড ব্যবহার করুন",
+      "de": "Integrierte Tastatur verwenden",
+      "es": "Usar teclado integrado",
+      "fr": "Utiliser le clavier intégré",
+      "hi": "अंतर्निहित कीबोर्ड का उपयोग करें",
+      "ja": "内蔵キーボードを使用",
+      "ko": "내장 키보드 사용",
+      "pt": "Usar teclado integrado",
+      "ru": "Использовать встроенную клавиатуру",
+      "sr": "Користи уграђену тастатуру",
+      "zh": "使用内置键盘"
+     }
+    },
+    {
+     "name": "settings_builtin_keyboard_subtitle",
+     "en": "Show Haven\\'s own floating keyboard in desktop and terminal sessions instead of the system keyboard",
+     "comment": "Built-in floating keyboard for desktop sessions.",
+     "args": [],
+     "t": {
+      "ar": "إظهار لوحة مفاتيح Haven العائمة في جلسات سطح المكتب والطرفية بدلاً من لوحة مفاتيح النظام",
+      "bn": "সিস্টেম কীবোর্ডের বদলে ডেস্কটপ ও টার্মিনাল সেশনে Haven-এর নিজস্ব ভাসমান কীবোর্ড দেখান",
+      "de": "Havens eigene schwebende Tastatur in Desktop- und Terminal-Sitzungen statt der Systemtastatur anzeigen",
+      "es": "Muestra el teclado flotante de Haven en sesiones de escritorio y terminal en lugar del teclado del sistema",
+      "fr": "Afficher le clavier flottant de Haven dans les sessions bureau et terminal au lieu du clavier système",
+      "hi": "सिस्टम कीबोर्ड के बजाय डेस्कटॉप और टर्मिनल सत्रों में Haven का अपना फ़्लोटिंग कीबोर्ड दिखाएँ",
+      "ja": "デスクトップとターミナルのセッションで、システムキーボードの代わりにHavenのフローティングキーボードを表示します",
+      "ko": "데스크톱 및 터미널 세션에서 시스템 키보드 대신 Haven의 플로팅 키보드를 표시합니다",
+      "pt": "Mostrar o teclado flutuante do Haven em sessões de área de trabalho e terminal em vez do teclado do sistema",
+      "ru": "Показывать плавающую клавиатуру Haven в сеансах рабочего стола и терминала вместо системной клавиатуры",
+      "sr": "Прикажи Haven-ову плутајућу тастатуру у сесијама радне површи и терминала уместо системске тастатуре",
+      "zh": "在桌面和终端会话中使用 Haven 自带的悬浮键盘，而不是系统键盘"
      }
     }
    ]
@@ -26889,43 +26829,43 @@
      }
     },
     {
-     "name": "vnc_cd_input_mode_trackpad_on",
-     "en": "Trackpad mode on (tap for direct touch)",
+     "name": "vnc_cd_pan_mode_off",
+     "en": "Mouse mode (tap for pan mode)",
      "comment": "",
      "args": [],
      "t": {
-      "ar": "وضع لوحة التتبع مفعّل (اضغط للمس المباشر)",
-      "bn": "Trackpad মোড চালু (সরাসরি স্পর্শের জন্য ট্যাপ করুন)",
-      "de": "Trackpad-Modus aktiv (Tippen für direkte Berührung)",
-      "es": "Modo trackpad activado (toca para toque directo)",
-      "fr": "Mode pavé tactile activé (appuyer pour toucher direct)",
-      "hi": "Trackpad mode चालू (सीधे touch के लिए टैप करें)",
-      "ja": "トラックパッドモード オン（タップでダイレクトタッチ）",
-      "ko": "트랙패드 모드 켜짐 (직접 터치로 전환하려면 탭)",
-      "pt": "Modo trackpad ativado (toque para toque direto)",
-      "ru": "Режим трекпада включён (нажмите для прямого касания)",
-      "sr": "Укључен је режим трекпеда (тап за директни додир)",
-      "zh": "触控板模式已开启（点击切换为直接触摸）"
+      "ar": "وضع الفأرة (اضغط لوضع التحريك)",
+      "bn": "মাউস মোড (প্যান মোডের জন্য ট্যাপ করুন)",
+      "de": "Mausmodus (tippen für Verschieben)",
+      "es": "Modo ratón (toca para desplazar)",
+      "fr": "Mode souris (toucher pour déplacer)",
+      "hi": "माउस मोड (पैन मोड के लिए टैप करें)",
+      "ja": "マウスモード（タップで移動モード）",
+      "ko": "마우스 모드(탭하여 이동 모드)",
+      "pt": "Modo rato (toque para mover)",
+      "ru": "Режим мыши (нажмите для перемещения)",
+      "sr": "Режим миша (тапни за режим померања)",
+      "zh": "鼠标模式（点击切换为移动模式）"
      }
     },
     {
-     "name": "vnc_cd_input_mode_direct",
-     "en": "Direct touch mode (tap for trackpad)",
+     "name": "vnc_cd_pan_mode_on",
+     "en": "Pan mode (tap for mouse mode)",
      "comment": "",
      "args": [],
      "t": {
-      "ar": "وضع اللمس المباشر (اضغط للوحة التتبع)",
-      "bn": "সরাসরি স্পর্শ মোড (trackpad-এর জন্য ট্যাপ করুন)",
-      "de": "Direktberührungs-Modus (Tippen für Trackpad)",
-      "es": "Modo de toque directo (toca para trackpad)",
-      "fr": "Mode toucher direct (appuyer pour pavé tactile)",
-      "hi": "Direct touch mode (trackpad के लिए टैप करें)",
-      "ja": "ダイレクトタッチモード（タップでトラックパッド）",
-      "ko": "직접 터치 모드 (트랙패드로 전환하려면 탭)",
-      "pt": "Modo toque direto (toque para trackpad)",
-      "ru": "Режим прямого касания (нажмите для трекпада)",
-      "sr": "Режим директног додира (тап за трекпед)",
-      "zh": "直接触摸模式（点击切换为触控板）"
+      "ar": "وضع التحريك (اضغط لوضع الفأرة)",
+      "bn": "প্যান মোড (মাউস মোডের জন্য ট্যাপ করুন)",
+      "de": "Verschiebemodus (tippen für Mausmodus)",
+      "es": "Modo desplazamiento (toca para ratón)",
+      "fr": "Mode déplacement (toucher pour souris)",
+      "hi": "पैन मोड (माउस मोड के लिए टैप करें)",
+      "ja": "移動モード（タップでマウスモード）",
+      "ko": "이동 모드(탭하여 마우스 모드)",
+      "pt": "Modo mover (toque para rato)",
+      "ru": "Режим перемещения (нажмите для режима мыши)",
+      "sr": "Режим померања (тапни за режим миша)",
+      "zh": "移动模式（点击切换为鼠标模式）"
      }
     },
     {
@@ -26949,103 +26889,43 @@
      }
     },
     {
-     "name": "vnc_cd_two_finger_viewport",
-     "en": "Two-finger pans the view (tap to scroll the remote)",
-     "comment": "",
-     "args": [],
-     "t": {
-      "ar": "إصبعان يحرّكان العرض (اضغط لتمرير الشاشة البعيدة)",
-      "bn": "দুই আঙুলে ভিউ প্যান হয় (রিমোট স্ক্রোল করতে ট্যাপ করুন)",
-      "de": "Zwei Finger verschieben die Ansicht (tippen, um den entfernten Bildschirm zu scrollen)",
-      "es": "Dos dedos mueven la vista (toca para desplazar la pantalla remota)",
-      "fr": "Deux doigts déplacent la vue (toucher pour faire défiler l\\'écran distant)",
-      "hi": "दो उँगलियाँ व्यू पैन करती हैं (रिमोट स्क्रॉल करने के लिए टैप करें)",
-      "ja": "2 本指でビューをパン（タップでリモート側のスクロールに切替）",
-      "ko": "두 손가락으로 화면 이동 (원격 스크롤로 전환하려면 탭)",
-      "pt": "Dois dedos deslocam a visualização (toque para rolar o remoto)",
-      "ru": "Два пальца перемещают вид (нажмите, чтобы прокручивать удалённый экран)",
-      "sr": "Два прста померају приказ (тап за скроловање удаљеног)",
-      "zh": "双指平移视图（点按切换为滚动远程端）"
-     }
-    },
-    {
-     "name": "vnc_cd_two_finger_scroll_on",
-     "en": "Two-finger scrolls the remote (tap to pan the view)",
-     "comment": "",
-     "args": [],
-     "t": {
-      "ar": "إصبعان يمرّران الشاشة البعيدة (اضغط لتحريك العرض)",
-      "bn": "দুই আঙুলে রিমোট স্ক্রোল হয় (ভিউ প্যান করতে ট্যাপ করুন)",
-      "de": "Zwei Finger scrollen den entfernten Bildschirm (tippen, um die Ansicht zu verschieben)",
-      "es": "Dos dedos desplazan la pantalla remota (toca para mover la vista)",
-      "fr": "Deux doigts font défiler l\\'écran distant (toucher pour déplacer la vue)",
-      "hi": "दो उँगलियाँ रिमोट स्क्रॉल करती हैं (व्यू पैन करने के लिए टैप करें)",
-      "ja": "2 本指でリモート側をスクロール（タップでビューのパンに切替）",
-      "ko": "두 손가락으로 원격 스크롤 (화면 이동으로 전환하려면 탭)",
-      "pt": "Dois dedos rolam o remoto (toque para deslocar a visualização)",
-      "ru": "Два пальца прокручивают удалённый экран (нажмите, чтобы перемещать вид)",
-      "sr": "Два прста скролују удаљени (тап за померање приказа)",
-      "zh": "双指滚动远程端（点按切换为平移视图）"
-     }
-    },
-    {
      "name": "vnc_orientation_landscape_desc",
-     "en": "Lock landscape (tap to switch to portrait)",
+     "en": "Switch to portrait",
      "comment": "",
      "args": [],
      "t": {
-      "ar": "تثبيت أفقي (اضغط للتبديل إلى عمودي)",
-      "bn": "Landscape লক (portrait-এ যেতে ট্যাপ করুন)",
-      "de": "Querformat sperren (Tippen zum Wechsel in Hochformat)",
-      "es": "Bloquear horizontal (toca para cambiar a vertical)",
-      "fr": "Bloquer en paysage (appuyer pour passer en portrait)",
-      "hi": "Landscape लॉक (portrait पर स्विच करने के लिए टैप करें)",
-      "ja": "横向きにロック（タップで縦向きに切替）",
-      "ko": "가로 고정 (세로로 전환하려면 탭)",
-      "pt": "Fixar paisagem (toque para retrato)",
-      "ru": "Заблокировать альбомную (нажмите для переключения на портретную)",
-      "sr": "Закључано положено (тап за прелаз на усправно)",
-      "zh": "锁定横屏（点击切换为竖屏）"
+      "ar": "التبديل إلى الوضع الطولي",
+      "bn": "পোর্ট্রেট মোডে যান",
+      "de": "Zum Hochformat wechseln",
+      "es": "Cambiar a vertical",
+      "fr": "Passer en portrait",
+      "hi": "पोर्ट्रेट में बदलें",
+      "ja": "縦向きに切り替え",
+      "ko": "세로 모드로 전환",
+      "pt": "Mudar para vertical",
+      "ru": "Переключить на книжную ориентацию",
+      "sr": "Пребаци на усправно",
+      "zh": "切换到竖屏"
      }
     },
     {
      "name": "vnc_orientation_portrait_desc",
-     "en": "Lock portrait (tap to switch to auto)",
+     "en": "Switch to landscape",
      "comment": "",
      "args": [],
      "t": {
-      "ar": "تثبيت عمودي (اضغط للتبديل إلى تلقائي)",
-      "bn": "Portrait লক (auto-তে যেতে ট্যাপ করুন)",
-      "de": "Hochformat sperren (Tippen zum Wechsel in Automatik)",
-      "es": "Bloquear vertical (toca para cambiar a automático)",
-      "fr": "Bloquer en portrait (appuyer pour passer en automatique)",
-      "hi": "Portrait लॉक (auto पर स्विच करने के लिए टैप करें)",
-      "ja": "縦向きにロック（タップで自動回転に切替）",
-      "ko": "세로 고정 (자동으로 전환하려면 탭)",
-      "pt": "Fixar retrato (toque para automático)",
-      "ru": "Заблокировать портретную (нажмите для переключения на авто)",
-      "sr": "Закључано усправно (тап за прелаз на ауто)",
-      "zh": "锁定竖屏（点击切换为自动）"
-     }
-    },
-    {
-     "name": "vnc_orientation_auto_desc",
-     "en": "Auto rotate (tap to switch to landscape)",
-     "comment": "",
-     "args": [],
-     "t": {
-      "ar": "دوران تلقائي (اضغط للتبديل إلى أفقي)",
-      "bn": "স্বয়ংক্রিয় ঘোরানো (landscape-এ যেতে ট্যাপ করুন)",
-      "de": "Automatisch drehen (Tippen zum Wechsel in Querformat)",
-      "es": "Rotación automática (toca para cambiar a horizontal)",
-      "fr": "Rotation automatique (appuyer pour passer en paysage)",
-      "hi": "Auto rotate (landscape पर स्विच करने के लिए टैप करें)",
-      "ja": "自動回転（タップで横向きに切替）",
-      "ko": "자동 회전 (가로로 전환하려면 탭)",
-      "pt": "Rotação automática (toque para paisagem)",
-      "ru": "Авто-поворот (нажмите для переключения на альбомную)",
-      "sr": "Ауто ротација (тап за прелаз на положено)",
-      "zh": "自动旋转（点击切换为横屏）"
+      "ar": "التبديل إلى الوضع العرضي",
+      "bn": "ল্যান্ডস্কেপ মোডে যান",
+      "de": "Zum Querformat wechseln",
+      "es": "Cambiar a horizontal",
+      "fr": "Passer en paysage",
+      "hi": "लैंडस्केप में बदलें",
+      "ja": "横向きに切り替え",
+      "ko": "가로 모드로 전환",
+      "pt": "Mudar para horizontal",
+      "ru": "Переключить на альбомную ориентацию",
+      "sr": "Пребаци на положено",
+      "zh": "切换到横屏"
      }
     },
     {

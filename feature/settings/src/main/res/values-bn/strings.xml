@@ -223,9 +223,6 @@
     <string name="settings_section_terminal">টার্মিনাল</string>
     <string name="settings_show_terminal_tab_bar_subtitle">টার্মিনালের উপরে সেশন ট্যাব দেখান</string>
     <string name="settings_show_terminal_tab_bar_title">টার্মিনাল ট্যাব বার দেখান</string>
-    <string name="settings_touchpad_input_direct_subtitle">সরাসরি স্পর্শ — আঙুলের অবস্থানই পয়েন্টার। ট্র্যাকপ্যাড-স্টাইল ইনপুটের জন্য চালু করুন।</string>
-    <string name="settings_touchpad_input_title">টাচপ্যাড ইনপুট</string>
-    <string name="settings_touchpad_input_touchpad_subtitle">টেনে আনলে রিমোট কার্সার সরে; ট্যাপ করলে কার্সারের অবস্থানে ক্লিক হয়। জুম করলে ভিউপোর্ট কার্সার অনুসরণ করে।</string>
 
     <!-- i18n sweep #210 -->
     <string name="settings_color_scheme_auto_switch_title">সিস্টেম থিমের সাথে স্বয়ংক্রিয় পরিবর্তন</string>
@@ -417,4 +414,7 @@ Haven-এ ইম্মদ্য সংরক্ষিত প্রত্যে�
     <string name="settings_ambiwidth_mode_auto_wide_desc">সক্রিয় ফন্ট পরিমাপ করুন; অন্যথায় ২টি ঘর (CJK)</string>
     <string name="settings_bell_notification_title">ঘণ্টির বিজ্ঞপ্তি</string>
     <string name="settings_bell_notification_subtitle">Haven পটভূমিতে থাকার সময় কোনো টার্মিনাল প্রোগ্রাম ঘণ্টি বাজালে ট্যাবের নাম উল্লেখ করে একটি বিজ্ঞপ্তি পাঠানো হয়। আপনি টার্মিনাল দেখার সময় কিছু দেখানো হয় না।</string>
+    <!-- Built-in floating keyboard for desktop sessions. -->
+    <string name="settings_builtin_keyboard_title">অন্তর্নির্মিত কীবোর্ড ব্যবহার করুন</string>
+    <string name="settings_builtin_keyboard_subtitle">সিস্টেম কীবোর্ডের বদলে ডেস্কটপ ও টার্মিনাল সেশনে Haven-এর নিজস্ব ভাসমান কীবোর্ড দেখান</string>
 </resources>

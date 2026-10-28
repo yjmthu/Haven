@@ -82,12 +82,16 @@ fun DesktopScreen(
     toolbarUniformGrid: Boolean = false,
     /** Same toolbar_key_scale pref the terminal toolbar reads; wires the wayland desktop toolbar to #641's key scale. */
     toolbarKeyScale: Float = 1f,
-    inputMode: String = "DIRECT",
-    onSetInputMode: ((String) -> Unit)? = null,
+    /** Desktop keyboard source from Settings: system IME (false) or the
+     *  built-in floating panel (true). */
+    builtinKeyboard: Boolean = false,
     /** TOUCHPAD-mode speed multiplier; viewer-side gesture math scales by it (#696). */
     touchpadSensitivity: Float = 1f,
     /** Persist trackpad sensitivity changes from the toolbar (#696); null hides the control. */
     onSetTouchpadSensitivity: ((Float) -> Unit)? = null,
+    /** Saved scale/position of the built-in keyboard's floating panel. */
+    keyboardLayout: sh.haven.core.ui.RemoteKeyboardLayout = sh.haven.core.ui.RemoteKeyboardLayout(),
+    onKeyboardLayoutChange: (sh.haven.core.ui.RemoteKeyboardLayout) -> Unit = {},
     isActive: Boolean = true,
     /** When the active viewer is fullscreen, the manager's own chrome (the
      *  compact Manage row + tab bar) is hidden too, so a small-screen RDP/VNC
@@ -101,6 +105,7 @@ fun DesktopScreen(
     val activeTabIndex by desktopViewModel.activeTabIndex.collectAsState()
     val activeTab by desktopViewModel.activeTab.collectAsState()
     val anyConnected by desktopViewModel.activeTabConnected.collectAsState()
+    val anyLiveTab by desktopViewModel.anyLiveTab.collectAsState()
 
     LaunchedEffect(anyConnected) { onConnectedChanged(anyConnected) }
 
@@ -129,6 +134,7 @@ fun DesktopScreen(
     // child).
     val activity = androidx.activity.compose.LocalActivity.current
     val desktopOrientation by desktopViewModel.desktopOrientation.collectAsState()
+    val builtinKeyboardVisible by desktopViewModel.builtinKeyboardVisible.collectAsState()
     // Apply the desktop's chosen orientation only when this page is the
     // settled pager destination. HorizontalPager composes adjacent pages
     // during a swipe gesture; without an `isActive` gate, briefly drifting
@@ -137,19 +143,25 @@ fun DesktopScreen(
     // LaunchedEffect on entry, snap the activity to landscape, and the
     // DisposableEffect.onDispose would snap it back to UNSPECIFIED — a
     // visible orientation flash with no Desktop interaction at all.
-    LaunchedEffect(desktopOrientation, activity, isActive) {
-        activity?.requestedOrientation = if (isActive) {
+    LaunchedEffect(desktopOrientation, activity, isActive, anyLiveTab) {
+        // Only hold the chosen orientation while a desktop is actually open:
+        // the empty Desktop page used to keep the last session's landscape
+        // after the tab was closed, and an already-failed tab (its error panel
+        // still shows until the user closes it) must not do the same.
+        val applyOrientation = isActive && anyLiveTab
+        activity?.requestedOrientation = if (applyOrientation) {
             desktopOrientation
         } else {
             android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         }
     }
-    androidx.compose.runtime.DisposableEffect(activity) {
-        onDispose {
-            activity?.requestedOrientation =
-                android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-        }
-    }
+    // No reset-on-dispose: the Desktop page is torn down and rebuilt during a
+    // rotation (the pager re-lays out), and resetting to UNSPECIFIED there
+    // flipped the activity back to the device orientation, which re-ran the
+    // effect above and made the screen oscillate between the two orientations
+    // for a few passes. The effect above already releases the lock in the two
+    // cases that matter — the page is no longer selected, or no session is
+    // alive.
 
     Column(modifier = Modifier.fillMaxSize()) {
         // Compact action row at the very top — surfaces the Manage
@@ -222,8 +234,8 @@ fun DesktopScreen(
                                 error = tab.error,
                                 toolbarLayout = toolbarLayout,
                                 onTap = { x, y -> desktopViewModel.sendClick(x, y) },
+                                onRightClick = { x, y -> desktopViewModel.sendClick(x, y, button = 3) },
                                 onMiddleClick = { x, y -> desktopViewModel.sendClick(x, y, button = 2) },
-                                onLongPress = { x, y -> desktopViewModel.sendClick(x, y, button = 3) },
                                 onDragStart = { x, y ->
                                     desktopViewModel.sendPointer(x, y)
                                     desktopViewModel.pressButton(1)
@@ -232,8 +244,6 @@ fun DesktopScreen(
                                 onDragEnd = { desktopViewModel.releaseButton(1) },
                                 onScrollUp = { desktopViewModel.scrollUp() },
                                 onScrollDown = { desktopViewModel.scrollDown() },
-                                onPressButton = { btn -> desktopViewModel.pressButton(btn) },
-                                onReleaseButton = { btn -> desktopViewModel.releaseButton(btn) },
                                 onTypeChar = { ch -> desktopViewModel.typeVncKey(charToKeySym(ch)) },
                                 onTypeText = { text -> desktopViewModel.typeVncText(text) },
                                 onSendClipboard = { text -> desktopViewModel.sendVncClipboardText(text) },
@@ -243,15 +253,19 @@ fun DesktopScreen(
                                 onFullscreenChanged = onFullscreenChanged,
                                 cursor = tab.cursor,
                                 pointerPos = tab.pointerPos,
-                                inputMode = inputMode,
-                                onSetInputMode = onSetInputMode,
+                                useBuiltinKeyboard = builtinKeyboard,
+                                builtinKeyboardVisible = builtinKeyboardVisible,
+                                onBuiltinKeyboardVisibleChange = {
+                                    desktopViewModel.setBuiltinKeyboardVisible(it)
+                                },
                                 touchpadSensitivity = touchpadSensitivity,
                                 onSetTouchpadSensitivity = onSetTouchpadSensitivity,
+                                keyboardLayout = keyboardLayout,
+                                onKeyboardLayoutChange = onKeyboardLayoutChange,
                                 bandwidthSuggestion = tab.bandwidthSuggestion,
                                 onAcceptBandwidthSuggestion = { desktopViewModel.acceptBandwidthSuggestion(tab.id) },
                                 onDismissBandwidthSuggestion = { desktopViewModel.dismissBandwidthSuggestion(tab.id) },
-                                currentOrientation = desktopOrientation,
-                                onCycleOrientation = { desktopViewModel.cycleDesktopOrientation() },
+                                onSetOrientation = { desktopViewModel.setDesktopOrientation(it) },
                                 onRetry = { desktopViewModel.retryTab(tab.id) },
                                 onClose = { desktopViewModel.closeTab(tab.id) },
                             )
@@ -266,6 +280,7 @@ fun DesktopScreen(
                             chipAnchor = rdpChipAnchor,
                             onChipAnchorChange = onRdpChipAnchorChange,
                             onTap = { x, y -> desktopViewModel.sendClick(x, y) },
+                            onRightClick = { x, y -> desktopViewModel.sendClick(x, y, button = 3) },
                             onMiddleClick = { x, y -> desktopViewModel.sendClick(x, y, button = 2) },
                             onDragStart = { x, y ->
                                 desktopViewModel.sendPointer(x, y)
@@ -288,12 +303,16 @@ fun DesktopScreen(
                             onFullscreenChanged = onFullscreenChanged,
                             cursor = tab.cursor,
                             pointerPos = tab.pointerPos,
-                            inputMode = inputMode,
-                            onSetInputMode = onSetInputMode,
+                            useBuiltinKeyboard = builtinKeyboard,
+                            builtinKeyboardVisible = builtinKeyboardVisible,
+                            onBuiltinKeyboardVisibleChange = {
+                                desktopViewModel.setBuiltinKeyboardVisible(it)
+                            },
                             touchpadSensitivity = touchpadSensitivity,
                             onSetTouchpadSensitivity = onSetTouchpadSensitivity,
-                            currentOrientation = desktopOrientation,
-                            onCycleOrientation = { desktopViewModel.cycleDesktopOrientation() },
+                            keyboardLayout = keyboardLayout,
+                            onKeyboardLayoutChange = onKeyboardLayoutChange,
+                            onSetOrientation = { desktopViewModel.setDesktopOrientation(it) },
                             onRetry = { desktopViewModel.retryTab(tab.id) },
                         )
 
@@ -407,14 +426,22 @@ private fun DesktopTabBar(
                                 enabled = index > 0,
                                 modifier = Modifier.size(36.dp),
                             ) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.app_desktop_move_tab_left_cd), modifier = Modifier.size(18.dp))
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    stringResource(R.string.app_desktop_move_tab_left_cd),
+                                    modifier = Modifier.size(18.dp)
+                                )
                             }
                             IconButton(
                                 onClick = { onMoveTab(index, 1); showTabMenu = false },
                                 enabled = index < tabs.size - 1,
                                 modifier = Modifier.size(36.dp),
                             ) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowForward, stringResource(R.string.app_desktop_move_tab_right_cd), modifier = Modifier.size(18.dp))
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowForward,
+                                    stringResource(R.string.app_desktop_move_tab_right_cd),
+                                    modifier = Modifier.size(18.dp)
+                                )
                             }
                         }
                         TextButton(

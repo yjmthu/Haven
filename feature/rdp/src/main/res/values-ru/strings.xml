@@ -13,12 +13,11 @@
     <string name="rdp_cd_fullscreen">Полный экран</string>
     <string name="rdp_cd_session_menu">Меню сессии</string>
     <string name="rdp_cd_exit_fullscreen">Выйти из полного экрана</string>
-    <string name="rdp_cd_input_mode_trackpad_on">Режим трекпада включён (нажмите для прямого касания)</string>
-    <string name="rdp_cd_input_mode_direct">Режим прямого касания (нажмите для трекпада)</string>
+    <string name="rdp_cd_pan_mode_off">Режим мыши (нажмите для перемещения)</string>
+    <string name="rdp_cd_pan_mode_on">Режим перемещения (нажмите для режима мыши)</string>
     <string name="rdp_cd_trackpad_sensitivity">Чувствительность трекпада</string>
-    <string name="rdp_orientation_landscape_desc">Заблокировать альбомную (нажмите для переключения на портретную)</string>
-    <string name="rdp_orientation_portrait_desc">Заблокировать портретную (нажмите для переключения на авто)</string>
-    <string name="rdp_orientation_auto_desc">Авто-поворот (нажмите для переключения на альбомную)</string>
+    <string name="rdp_orientation_landscape_desc">Переключить на книжную ориентацию</string>
+    <string name="rdp_orientation_portrait_desc">Переключить на альбомную ориентацию</string>
 
     <!-- i18n sweep #210 (follow-up batch) -->
     <string name="rdp_hint_legacy_rdp_title">Сервер использует устаревший незашифрованный RDP</string>
@@ -37,8 +36,6 @@
     <string name="rdp_hint_tls_ciphers_body">Haven использует TLS-стек rustls/ring, у которого охват шифров уже, чем у RDP-клиента Microsoft (SChannel) или OpenSSL. Наиболее совместимая настройка на стороне сервера — ECDHE-RSA + AES-GCM поверх TLS 1.2 или 1.3.</string>
 
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
-    <string name="rdp_cd_two_finger_viewport">Два пальца перемещают вид (нажмите, чтобы прокручивать удалённый экран)</string>
-    <string name="rdp_cd_two_finger_scroll_on">Два пальца прокручивают удалённый экран (нажмите, чтобы перемещать вид)</string>
     <string name="rdp_hint_nla_required_title">Сервер требует проверку подлинности на уровне сети (NLA)</string>
     <string name="rdp_hint_nla_required_body">Сервер настроен принимать только клиентов, проходящих проверку по NLA, а в этом профиле подключения NLA не отмечен. Либо включите «Network Level Authentication (NLA)» в профиле, либо ослабьте требование на ПК: Параметры → Система → Удалённый рабочий стол → Дополнительные параметры → снимите флажок «Require devices to use Network Level Authentication».</string>
     <string name="rdp_hint_mixed_username_title">NLA не поддерживает такой формат имени пользователя</string>

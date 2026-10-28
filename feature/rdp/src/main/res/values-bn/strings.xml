@@ -14,12 +14,11 @@
     <string name="rdp_cd_fullscreen">ফুলস্ক্রিন</string>
     <string name="rdp_cd_session_menu">সেশন মেনু</string>
     <string name="rdp_cd_exit_fullscreen">ফুলস্ক্রিন থেকে বেরিয়ে আসুন</string>
-    <string name="rdp_cd_input_mode_trackpad_on">Trackpad মোড চালু (সরাসরি স্পর্শের জন্য ট্যাপ করুন)</string>
-    <string name="rdp_cd_input_mode_direct">সরাসরি স্পর্শ মোড (trackpad-এর জন্য ট্যাপ করুন)</string>
+    <string name="rdp_cd_pan_mode_off">মাউস মোড (প্যান মোডের জন্য ট্যাপ করুন)</string>
+    <string name="rdp_cd_pan_mode_on">প্যান মোড (মাউস মোডের জন্য ট্যাপ করুন)</string>
     <string name="rdp_cd_trackpad_sensitivity">Trackpad সংবেদনশীলতা</string>
-    <string name="rdp_orientation_landscape_desc">Landscape লক (portrait-এ যেতে ট্যাপ করুন)</string>
-    <string name="rdp_orientation_portrait_desc">Portrait লক (auto-তে যেতে ট্যাপ করুন)</string>
-    <string name="rdp_orientation_auto_desc">স্বয়ংক্রিয় ঘোরানো (landscape-এ যেতে ট্যাপ করুন)</string>
+    <string name="rdp_orientation_landscape_desc">পোর্ট্রেট মোডে যান</string>
+    <string name="rdp_orientation_portrait_desc">ল্যান্ডস্কেপ মোডে যান</string>
 
     <!-- i18n sweep #210 (follow-up batch) -->
     <string name="rdp_hint_legacy_rdp_title">সার্ভার পুরোনো, এনক্রিপশনহীন RDP ব্যবহার করছে</string>
@@ -38,8 +37,6 @@
     <string name="rdp_hint_tls_ciphers_body">Haven rustls/ring TLS স্ট্যাক ব্যবহার করে, যার cipher কভারেজ Microsoft-এর RDP ক্লায়েন্ট (SChannel) বা OpenSSL-এর চেয়ে সংকীর্ণ। সবচেয়ে সামঞ্জস্যপূর্ণ সার্ভার-সাইড সেটিং হলো TLS 1.2 বা 1.3-এর উপর ECDHE-RSA + AES-GCM।</string>
 
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
-    <string name="rdp_cd_two_finger_viewport">দুই আঙুলে ভিউ প্যান হয় (রিমোট স্ক্রোল করতে ট্যাপ করুন)</string>
-    <string name="rdp_cd_two_finger_scroll_on">দুই আঙুলে রিমোট স্ক্রোল হয় (ভিউ প্যান করতে ট্যাপ করুন)</string>
     <string name="rdp_hint_nla_required_title">সার্ভারের নেটওয়ার্ক লেভেল অথেনটিকেশন প্রয়োজন</string>
     <string name="rdp_hint_nla_required_body">সার্ভারটি কেবল NLA দিয়ে প্রমাণীকরণ করা ক্লায়েন্ট গ্রহণ করার জন্য কনফিগার করা, আর এই সংযোগ প্রোফাইলে NLA টিক দেওয়া নেই। হয় প্রোফাইলে “Network Level Authentication (NLA)” টিক দিন, নয়তো পিসিতে শর্তটি শিথিল করুন: Settings → System → Remote Desktop → Advanced settings → “Require devices to use Network Level Authentication” এর টিক তুলে দিন।</string>
     <string name="rdp_hint_mixed_username_title">NLA এই ধরনের ইউজারনেম ব্যবহার করতে পারে না</string>

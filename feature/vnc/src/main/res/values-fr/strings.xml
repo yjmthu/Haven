@@ -16,12 +16,11 @@
     <string name="vnc_cd_fullscreen">Plein écran</string>
     <string name="vnc_cd_session_menu">Menu de session</string>
     <string name="vnc_cd_exit_fullscreen">Quitter le plein écran</string>
-    <string name="vnc_cd_input_mode_trackpad_on">Mode pavé tactile activé (appuyer pour toucher direct)</string>
-    <string name="vnc_cd_input_mode_direct">Mode toucher direct (appuyer pour pavé tactile)</string>
+    <string name="vnc_cd_pan_mode_off">Mode souris (toucher pour déplacer)</string>
+    <string name="vnc_cd_pan_mode_on">Mode déplacement (toucher pour souris)</string>
     <string name="vnc_cd_trackpad_sensitivity">Sensibilité du pavé tactile</string>
-    <string name="vnc_orientation_landscape_desc">Bloquer en paysage (appuyer pour passer en portrait)</string>
-    <string name="vnc_orientation_portrait_desc">Bloquer en portrait (appuyer pour passer en automatique)</string>
-    <string name="vnc_orientation_auto_desc">Rotation automatique (appuyer pour passer en paysage)</string>
+    <string name="vnc_orientation_landscape_desc">Passer en portrait</string>
+    <string name="vnc_orientation_portrait_desc">Passer en paysage</string>
     <!-- Touch gesture help (#250) -->
     <string name="vnc_cd_gesture_help">Gestes tactiles</string>
     <string name="vnc_cd_save_default">Enregistrer la taille actuelle comme valeur par défaut de cette appli</string>
@@ -30,7 +29,5 @@
     <string name="vnc_gesture_help_three_finger">Pincez à trois doigts pour redimensionner l\'appli tout en restant en plein écran.</string>
 
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
-    <string name="vnc_cd_two_finger_viewport">Deux doigts déplacent la vue (toucher pour faire défiler l\'écran distant)</string>
-    <string name="vnc_cd_two_finger_scroll_on">Deux doigts font défiler l\'écran distant (toucher pour déplacer la vue)</string>
     <string name="vnc_cd_paste">Coller le presse-papiers</string>
 </resources>

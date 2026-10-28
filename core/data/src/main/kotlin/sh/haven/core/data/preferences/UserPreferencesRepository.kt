@@ -25,32 +25,40 @@ class UserPreferencesRepository @Inject constructor(
 ) {
     private val biometricEnabledKey = booleanPreferencesKey("biometric_enabled")
     private val terminalFontSizeKey = intPreferencesKey("terminal_font_size")
+
     // Horizontal margin around the terminal grid in dp (#745). Shrinking the
     // measured width makes termlib recompute columns and resize the PTY.
     private val terminalHorizontalPaddingKey = intPreferencesKey("terminal_horizontal_padding")
+
     // Mail message-list pinch-zoom factor, multiplied onto the terminal font size.
     private val mailFontScaleKey = floatPreferencesKey("mail_font_scale")
     private val terminalScrollbackRowsKey = intPreferencesKey("terminal_scrollback_rows")
     private val rdpDesktopWidthKey = intPreferencesKey("rdp_desktop_width")
     private val rdpDesktopHeightKey = intPreferencesKey("rdp_desktop_height")
     private val terminalTapToPositionCursorKey = booleanPreferencesKey("terminal_tap_to_position_cursor")
+
     // #753: raise a system notification when a terminal rings BEL while Haven
     // is backgrounded. Default on — the request's whole point is being told
     // about a finished build when you're not looking at the terminal.
     private val terminalBellNotificationKey = booleanPreferencesKey("terminal_bell_notification")
+
     // #418 debug: enable RemoteFX-Progressive WBT_TILE_UPGRADE refinement
     // decoding for RDP. Off by default while the upgrade path is verified.
     private val rdpProgressiveUpgradeKey = booleanPreferencesKey("rdp_progressive_upgrade")
+
     // #425: advertise EGFX H.264/AVC420 so H.264-only servers (KRDP) render.
     // Off by default while the MediaCodec decode path is verified on-device.
     private val rdpAvcEnabledKey = booleanPreferencesKey("rdp_avc_enabled")
+
     // Absolute path to a user-chosen Nerd Font (or any TTF/OTF). #123.
     private val terminalFontPathKey = stringPreferencesKey("terminal_font_path")
     private val terminalAmbiwidthModeKey = stringPreferencesKey("terminal_ambiwidth_mode")
     private val ambiwidthKey = booleanPreferencesKey("ambiwidth")
+
     // Extra trailing prompt characters (beyond $ # % > ❯) for command-on-attach
     // detection — supports custom prompts ending in e.g. » or 尺 (#280).
     private val terminalPromptCharsKey = stringPreferencesKey("terminal_prompt_chars")
+
     // LANG value exported into the local proot/Android shell (#282).
     private val terminalLocaleKey = stringPreferencesKey("terminal_locale")
     private val themeKey = stringPreferencesKey("theme")
@@ -94,22 +102,27 @@ class UserPreferencesRepository @Inject constructor(
     private val backupAutoSyncEnabledKey = booleanPreferencesKey("backup_auto_sync_enabled")
     private val backupAutoPullEnabledKey = booleanPreferencesKey("backup_auto_pull_enabled")
     private val backupAutoPullIntervalMinutesKey = intPreferencesKey("backup_auto_pull_interval_minutes")
+
     // CredentialEncryption-wrapped backup passphrase for background pushes (#359).
     private val backupSyncPassphraseKey = stringPreferencesKey("backup_sync_passphrase")
+
     // Session command for the Custom (X11) desktop (#361).
     private val customDesktopCommandKey = stringPreferencesKey("custom_desktop_command")
+
     // Which backend the Desktop screen's primary "Start" uses: "quick" (UML)
     // or "full" (proot). Unset = never chosen (falls back to quick when the
     // UML payload is present, else full). Set the moment the user starts a
     // desktop or taps the switch link, so the choice is last-used, not a
     // silent default flip for existing proot users.
     private val primaryDesktopBackendKey = stringPreferencesKey("primary_desktop_backend")
+
     // Last-started UML kind ("x11"/"wayland") and proot DE id, so the primary
     // Start re-launches what the user actually used rather than a fixed one.
     private val lastUmlKindKey = stringPreferencesKey("last_uml_kind")
     private val mailAutomationEnabledKey = booleanPreferencesKey("mail_automation_enabled")
     private val mailDeleteToBinKey = booleanPreferencesKey("mail_delete_to_bin")
     private val tabVisibilityKey = stringPreferencesKey("tab_visibility")
+
     // Legacy master toggle (#160), now superseded by per-tab [tabVisibilityKey].
     // Kept only for a read-time migration fallback; never written.
     private val alwaysShowAllTabsKey = booleanPreferencesKey("always_show_all_tabs")
@@ -121,6 +134,7 @@ class UserPreferencesRepository @Inject constructor(
     private val terminalRightClickKey = booleanPreferencesKey("terminal_right_click")
     private val allowStandardKeyboardKey = booleanPreferencesKey("allow_standard_keyboard")
     private val rawKeyboardModeKey = booleanPreferencesKey("raw_keyboard_mode")
+
     // Custom keyboard mode (#115 follow-up) — when on, overrides the
     // Secure/Standard inferential logic in ImeInputView and uses the
     // ime_flag_* toggles below to assemble EditorInfo manually.
@@ -143,9 +157,20 @@ class UserPreferencesRepository @Inject constructor(
     private val batteryPromptDismissedKey = booleanPreferencesKey("battery_prompt_dismissed")
     private val batteryPromptNeverAskKey = booleanPreferencesKey("battery_prompt_never_ask")
     private val batteryLastKnownExemptKey = booleanPreferencesKey("battery_last_known_exempt")
-    private val desktopInputModeKey = stringPreferencesKey("desktop_input_mode")
+
+    // Desktop (RDP/VNC) keyboard source: system IME (default) or Haven's own
+    // floating panel. See [desktopBuiltinKeyboard].
+    private val desktopBuiltinKeyboardKey = booleanPreferencesKey("desktop_builtin_keyboard")
+
     // Trackpad-mode speed multiplier (#696). 1f = the 1:1 finger→cursor ratio.
     private val desktopTouchpadSensitivityKey = floatPreferencesKey("desktop_touchpad_sensitivity")
+
+    // Built-in keyboard's floating-panel geometry (landscape): pinch scale and
+    // its position as fractions of the viewer, so it survives screen changes.
+    private val desktopKeyboardScaleKey = floatPreferencesKey("desktop_keyboard_scale")
+    private val desktopKeyboardXFractionKey = floatPreferencesKey("desktop_keyboard_x_fraction")
+    private val desktopKeyboardYFractionKey = floatPreferencesKey("desktop_keyboard_y_fraction")
+
     // Experimental GPU stack for accelerated Wayland/cage desktops. Off (default)
     // = virgl/virpipe (GL 2.1, present works on every path). On = venus
     // (Vulkan→Mali) + zink (modern GL, ~3.2 core) with the wl_shm CPU-copy WSI
@@ -591,19 +616,46 @@ class UserPreferencesRepository @Inject constructor(
     }
 
     /**
-     * VNC/RDP desktop input style. "DIRECT" (default) — finger position is
-     * the pointer position. "TOUCHPAD" — drag moves a remote cursor
-     * relatively (laptop-trackpad style), tap clicks at the *cursor*
-     * position. The cursor is also auto-followed by the viewport when
-     * zoomed.
+     * Desktop (RDP/VNC) keyboard: "system" (default) raises the IME, "builtin"
+     * shows Haven's own small floating keyboard instead. Android gives an app
+     * no way to make the IME float — that is entirely the input method's own
+     * decision — so the built-in panel is the only guarantee of a floating
+     * keyboard in both orientations, with no dependence on the user's IME.
      */
-    val desktopInputMode: Flow<String> = dataStore.data.map { prefs ->
-        prefs[desktopInputModeKey] ?: "DIRECT"
+    val desktopBuiltinKeyboard: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[desktopBuiltinKeyboardKey] ?: false
     }
 
-    suspend fun setDesktopInputMode(mode: String) {
+    suspend fun setDesktopBuiltinKeyboard(enabled: Boolean) {
         dataStore.edit { prefs ->
-            prefs[desktopInputModeKey] = mode
+            prefs[desktopBuiltinKeyboardKey] = enabled
+        }
+    }
+
+    /**
+     * Pinch zoom of the built-in keyboard's floating (landscape) panel.
+     * Remembered across sessions; the portrait panel is always docked full
+     * width and ignores it.
+     */
+    val desktopKeyboardScale: Flow<Float> = dataStore.data.map { prefs ->
+        prefs[desktopKeyboardScaleKey] ?: 1f
+    }
+
+    /** Horizontal placement of the floating panel, as a share of its travel. */
+    val desktopKeyboardXFraction: Flow<Float> = dataStore.data.map { prefs ->
+        prefs[desktopKeyboardXFractionKey] ?: 0f
+    }
+
+    /** Height of the floating panel above the bottom edge, as a share of the view. */
+    val desktopKeyboardYFraction: Flow<Float> = dataStore.data.map { prefs ->
+        prefs[desktopKeyboardYFractionKey] ?: 0.27f
+    }
+
+    suspend fun setDesktopKeyboardLayout(scale: Float, xFraction: Float, yFraction: Float) {
+        dataStore.edit { prefs ->
+            prefs[desktopKeyboardScaleKey] = scale
+            prefs[desktopKeyboardXFractionKey] = xFraction
+            prefs[desktopKeyboardYFractionKey] = yFraction
         }
     }
 
@@ -748,14 +800,32 @@ class UserPreferencesRepository @Inject constructor(
     val imeFlagAutoCorrect: Flow<Boolean> = dataStore.data.map { it[imeFlagAutoCorrectKey] ?: false }
     val imeFlagFullEditor: Flow<Boolean> = dataStore.data.map { it[imeFlagFullEditorKey] ?: false }
     val imeFlagNoExtractUi: Flow<Boolean> = dataStore.data.map { it[imeFlagNoExtractUiKey] ?: true }
-    val imeFlagNoPersonalizedLearning: Flow<Boolean> = dataStore.data.map { it[imeFlagNoPersonalizedLearningKey] ?: true }
+    val imeFlagNoPersonalizedLearning: Flow<Boolean> =
+        dataStore.data.map { it[imeFlagNoPersonalizedLearningKey] ?: true }
 
-    suspend fun setImeFlagNoSuggestions(v: Boolean) { dataStore.edit { it[imeFlagNoSuggestionsKey] = v } }
-    suspend fun setImeFlagVisiblePassword(v: Boolean) { dataStore.edit { it[imeFlagVisiblePasswordKey] = v } }
-    suspend fun setImeFlagAutoCorrect(v: Boolean) { dataStore.edit { it[imeFlagAutoCorrectKey] = v } }
-    suspend fun setImeFlagFullEditor(v: Boolean) { dataStore.edit { it[imeFlagFullEditorKey] = v } }
-    suspend fun setImeFlagNoExtractUi(v: Boolean) { dataStore.edit { it[imeFlagNoExtractUiKey] = v } }
-    suspend fun setImeFlagNoPersonalizedLearning(v: Boolean) { dataStore.edit { it[imeFlagNoPersonalizedLearningKey] = v } }
+    suspend fun setImeFlagNoSuggestions(v: Boolean) {
+        dataStore.edit { it[imeFlagNoSuggestionsKey] = v }
+    }
+
+    suspend fun setImeFlagVisiblePassword(v: Boolean) {
+        dataStore.edit { it[imeFlagVisiblePasswordKey] = v }
+    }
+
+    suspend fun setImeFlagAutoCorrect(v: Boolean) {
+        dataStore.edit { it[imeFlagAutoCorrectKey] = v }
+    }
+
+    suspend fun setImeFlagFullEditor(v: Boolean) {
+        dataStore.edit { it[imeFlagFullEditorKey] = v }
+    }
+
+    suspend fun setImeFlagNoExtractUi(v: Boolean) {
+        dataStore.edit { it[imeFlagNoExtractUiKey] = v }
+    }
+
+    suspend fun setImeFlagNoPersonalizedLearning(v: Boolean) {
+        dataStore.edit { it[imeFlagNoPersonalizedLearningKey] = v }
+    }
 
     /**
      * Intercept Ctrl+Shift+V from a hardware keyboard as "paste from Android
@@ -1837,9 +1907,17 @@ class UserPreferencesRepository @Inject constructor(
         val supportsScrollback: Boolean = true,
     ) {
         NONE("None", null, null, supportsScrollback = false),
-        TMUX("tmux", "https://github.com/tmux/tmux/wiki", { name -> "tmux new-session -A -s $name \\; set -gq allow-passthrough on \\; set -gq mouse on" }),
+        TMUX(
+            "tmux",
+            "https://github.com/tmux/tmux/wiki",
+            { name -> "tmux new-session -A -s $name \\; set -gq allow-passthrough on \\; set -gq mouse on" }),
         ZELLIJ("zellij", "https://zellij.dev", { name -> "zellij attach $name --create" }),
-        SCREEN("screen", "https://www.gnu.org/software/screen/", { name -> "screen -dRR $name" }, supportsScrollback = false),
+        SCREEN(
+            "screen",
+            "https://www.gnu.org/software/screen/",
+            { name -> "screen -dRR $name" },
+            supportsScrollback = false
+        ),
         BYOBU("byobu", "https://www.byobu.org", { name -> "byobu new-session -A -s $name \\; set -gq mouse on" }),
         HERDR("herdr", "https://herdr.dev", { name -> "herdr --session $name" }),
         PSMUX("psmux", "https://github.com/psmux/psmux", { name -> "psmux new-session -A -s $name" });
@@ -1871,7 +1949,8 @@ class UserPreferencesRepository @Inject constructor(
 
         companion object {
             fun fromString(value: String?): TerminalAmbiwidthMode =
-                entries.find { it.id.equals(value, ignoreCase = true) || it.name.equals(value, ignoreCase = true) } ?: NARROW
+                entries.find { it.id.equals(value, ignoreCase = true) || it.name.equals(value, ignoreCase = true) }
+                    ?: NARROW
         }
     }
 
@@ -1879,24 +1958,29 @@ class UserPreferencesRepository @Inject constructor(
         const val DEFAULT_FONT_SIZE = 14
         const val MIN_FONT_SIZE = 8
         const val MAX_FONT_SIZE = 32
+
         // #745: even steps so the slider has discrete detents; 0 keeps the
         // terminal edge-to-edge, the previous behaviour.
         const val DEFAULT_HORIZONTAL_PADDING_DP = 0
         const val MIN_HORIZONTAL_PADDING_DP = 0
         const val MAX_HORIZONTAL_PADDING_DP = 24
         const val HORIZONTAL_PADDING_STEP_DP = 2
+
         // Mail list pinch-zoom: 75% of the terminal font size up to 300%.
         const val DEFAULT_MAIL_FONT_SCALE = 1.0f
         const val MIN_MAIL_FONT_SCALE = 0.75f
         const val MAX_MAIL_FONT_SCALE = 3.0f
+
         // Terminal toolbar minimum key width (dp). Default 0 = keys hug content.
         const val DEFAULT_TOOLBAR_MIN_BUTTON_WIDTH = 0
         const val MIN_TOOLBAR_MIN_BUTTON_WIDTH = 0
         const val MAX_TOOLBAR_MIN_BUTTON_WIDTH = 64
+
         // Terminal toolbar key scale (#641). 1.0 = the un-scaled toolbar.
         const val DEFAULT_TOOLBAR_KEY_SCALE = 1.0f
         const val MIN_TOOLBAR_KEY_SCALE = 1.0f
         const val MAX_TOOLBAR_KEY_SCALE = 2.0f
+
         /** What Haven asked RDP servers for before it was configurable (#422). */
         const val DEFAULT_RDP_WIDTH = 1920
         const val DEFAULT_RDP_HEIGHT = 1080
@@ -1920,13 +2004,15 @@ class UserPreferencesRepository @Inject constructor(
         const val DEFAULT_SCROLLBACK_ROWS = 1000
         const val MIN_SCROLLBACK_ROWS = 100
         const val MAX_SCROLLBACK_ROWS = 25000
+
         /** Suggested presets surfaced by the Settings UI. */
         val SCROLLBACK_ROWS_PRESETS = listOf(1000, 5000, 10000, 25000)
         const val DEFAULT_TOOLBAR_ROWS = 2 // legacy
         const val DEFAULT_RETICULUM_HOST = "127.0.0.1"
         const val DEFAULT_RETICULUM_PORT = 37428
         const val DEFAULT_TOOLBAR_ROW1 = "keyboard,esc,tab,shift,ctrl,alt" // legacy
-        const val DEFAULT_TOOLBAR_ROW2 = "arrow_left,arrow_up,arrow_down,arrow_right,sym_pipe,sym_tilde,sym_slash,sym_backslash,sym_backtick" // legacy
+        const val DEFAULT_TOOLBAR_ROW2 =
+            "arrow_left,arrow_up,arrow_down,arrow_right,sym_pipe,sym_tilde,sym_slash,sym_backslash,sym_backtick" // legacy
         const val DEFAULT_TERMINAL_LOCALE = "en_US.UTF-8"
     }
 }

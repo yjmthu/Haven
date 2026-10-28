@@ -223,9 +223,6 @@
     <string name="settings_section_terminal">Terminal</string>
     <string name="settings_show_terminal_tab_bar_subtitle">Mostrar pestañas de sesión sobre el terminal</string>
     <string name="settings_show_terminal_tab_bar_title">Mostrar barra de pestañas del terminal</string>
-    <string name="settings_touchpad_input_direct_subtitle">Toque directo: la posición del dedo es el puntero. Actívalo para una entrada tipo trackpad.</string>
-    <string name="settings_touchpad_input_title">Entrada de panel táctil</string>
-    <string name="settings_touchpad_input_touchpad_subtitle">Arrastrar mueve el cursor remoto; tocar hace clic en el cursor. La vista sigue al cursor al ampliar.</string>
 
     <!-- i18n sweep #210 -->
     <string name="settings_color_scheme_auto_switch_title">Cambio automático con el tema del sistema</string>
@@ -417,4 +414,7 @@ Cada clave privada ya almacenada en Haven deberá importarse o generarse de nuev
     <string name="settings_ambiwidth_mode_auto_wide_desc">Medir la fuente activa; reserva en 2 celdas (CJK)</string>
     <string name="settings_bell_notification_title">Notificación de campana</string>
     <string name="settings_bell_notification_subtitle">Cuando un programa de terminal hace sonar la campana mientras Haven está en segundo plano, se publica una notificación con el nombre de la pestaña. No aparece nada mientras miras la terminal.</string>
+    <!-- Built-in floating keyboard for desktop sessions. -->
+    <string name="settings_builtin_keyboard_title">Usar teclado integrado</string>
+    <string name="settings_builtin_keyboard_subtitle">Muestra el teclado flotante de Haven en sesiones de escritorio y terminal en lugar del teclado del sistema</string>
 </resources>

@@ -13,14 +13,11 @@
     <string name="rdp_cd_fullscreen">Fullscreen</string>
     <string name="rdp_cd_session_menu">Session menu</string>
     <string name="rdp_cd_exit_fullscreen">Exit fullscreen</string>
-    <string name="rdp_cd_input_mode_trackpad_on">Trackpad mode on (tap for direct touch)</string>
-    <string name="rdp_cd_input_mode_direct">Direct touch mode (tap for trackpad)</string>
+    <string name="rdp_cd_pan_mode_off">Mouse mode (tap for pan mode)</string>
+    <string name="rdp_cd_pan_mode_on">Pan mode (tap for mouse mode)</string>
     <string name="rdp_cd_trackpad_sensitivity">Trackpad sensitivity</string>
-    <string name="rdp_cd_two_finger_viewport">Two-finger pans the view (tap to scroll the remote)</string>
-    <string name="rdp_cd_two_finger_scroll_on">Two-finger scrolls the remote (tap to pan the view)</string>
-    <string name="rdp_orientation_landscape_desc">Lock landscape (tap to switch to portrait)</string>
-    <string name="rdp_orientation_portrait_desc">Lock portrait (tap to switch to auto)</string>
-    <string name="rdp_orientation_auto_desc">Auto rotate (tap to switch to landscape)</string>
+    <string name="rdp_orientation_landscape_desc">Switch to portrait</string>
+    <string name="rdp_orientation_portrait_desc">Switch to landscape</string>
 
     <!-- Error hints (rdpErrorHint) -->
     <string name="rdp_hint_legacy_rdp_title">Server is using legacy unencrypted RDP</string>

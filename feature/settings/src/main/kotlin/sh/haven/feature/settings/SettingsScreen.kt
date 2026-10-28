@@ -34,7 +34,6 @@ import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Laptop
-import androidx.compose.material.icons.filled.Mouse
 import androidx.compose.material.icons.filled.InstallMobile
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.ContentCopy
@@ -219,7 +218,7 @@ fun SettingsScreen(
     val rdpAvcEnabled by viewModel.rdpAvcEnabled.collectAsState()
     val mouseInputEnabled by viewModel.mouseInputEnabled.collectAsState()
     val remoteClipboardToLocal by viewModel.remoteClipboardToLocalEnabled.collectAsState()
-    val desktopInputMode by viewModel.desktopInputMode.collectAsState()
+    val desktopBuiltinKeyboard by viewModel.desktopBuiltinKeyboard.collectAsState()
     val bandwidthAutoSuggest by viewModel.bandwidthAutoSuggest.collectAsState()
     val terminalRightClick by viewModel.terminalRightClick.collectAsState()
     val terminalSwipeArrows by viewModel.terminalSwipeArrows.collectAsState()
@@ -368,10 +367,12 @@ fun SettingsScreen(
                 Toast.makeText(context, status.message, Toast.LENGTH_SHORT).show()
                 viewModel.clearBackupStatus()
             }
+
             is SettingsViewModel.BackupStatus.Error -> {
                 Toast.makeText(context, status.message, Toast.LENGTH_LONG).show()
                 viewModel.clearBackupStatus()
             }
+
             else -> {}
         }
     }
@@ -396,6 +397,7 @@ fun SettingsScreen(
                                 String.format(fontInstalledToastTmpl, (r.bytesInstalled / 1024).toInt()),
                                 Toast.LENGTH_SHORT,
                             ).show()
+
                         is sh.haven.core.data.font.TerminalFontInstaller.Result.Failure ->
                             Toast.makeText(context, r.message, Toast.LENGTH_LONG).show()
                     }
@@ -417,6 +419,7 @@ fun SettingsScreen(
                                 String.format(fontNamedInstalledToastTmpl, name, (r.bytesInstalled / 1024).toInt()),
                                 Toast.LENGTH_SHORT,
                             ).show()
+
                         is sh.haven.core.data.font.TerminalFontInstaller.Result.Failure ->
                             Toast.makeText(context, r.message, Toast.LENGTH_LONG).show()
                     }
@@ -434,623 +437,663 @@ fun SettingsScreen(
     }
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(title = { Text(stringResource(R.string.settings_title)) })
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+        Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
 
-        CollapsibleSettingsSection(stringResource(R.string.settings_section_security_privacy), settingsExpanded[0], { settingsExpanded[0] = !settingsExpanded[0] }) {
-        if (viewModel.biometricAvailable) {
-            SettingsToggleItem(
-                icon = Icons.Filled.Fingerprint,
-                title = stringResource(R.string.settings_biometric_title),
-                subtitle = stringResource(R.string.settings_biometric_subtitle),
-                checked = biometricEnabled,
-                onCheckedChange = viewModel::setBiometricEnabled,
-            )
-            if (biometricEnabled) {
-                SettingsItem(
-                    icon = Icons.Filled.Timer,
-                    title = stringResource(R.string.settings_lock_timeout_title),
-                    subtitle = lockTimeout.label,
-                    onClick = { showLockTimeoutDialog = true },
+            CollapsibleSettingsSection(
+                stringResource(R.string.settings_section_security_privacy),
+                settingsExpanded[0],
+                { settingsExpanded[0] = !settingsExpanded[0] }) {
+                if (viewModel.biometricAvailable) {
+                    SettingsToggleItem(
+                        icon = Icons.Filled.Fingerprint,
+                        title = stringResource(R.string.settings_biometric_title),
+                        subtitle = stringResource(R.string.settings_biometric_subtitle),
+                        checked = biometricEnabled,
+                        onCheckedChange = viewModel::setBiometricEnabled,
+                    )
+                    if (biometricEnabled) {
+                        SettingsItem(
+                            icon = Icons.Filled.Timer,
+                            title = stringResource(R.string.settings_lock_timeout_title),
+                            subtitle = lockTimeout.label,
+                            onClick = { showLockTimeoutDialog = true },
+                        )
+                    }
+                }
+                SettingsToggleItem(
+                    icon = Icons.Filled.ScreenLockPortrait,
+                    title = stringResource(R.string.settings_prevent_screenshots_title),
+                    subtitle = stringResource(R.string.settings_prevent_screenshots_subtitle),
+                    checked = screenSecurity,
+                    onCheckedChange = viewModel::setScreenSecurity,
                 )
+                SettingsToggleItem(
+                    icon = Icons.Filled.ContentPaste,
+                    title = stringResource(R.string.settings_remote_clipboard_title),
+                    subtitle = stringResource(R.string.settings_remote_clipboard_subtitle),
+                    checked = remoteClipboardToLocal,
+                    onCheckedChange = viewModel::setRemoteClipboardToLocalEnabled,
+                )
+                // #579: only rendered when the Keystore has permanently lost Haven's
+                // credential master key. A control that wipes every saved password is
+                // not something to leave lying about in Settings on a healthy device,
+                // and on a TRANSIENT failure the credentials are still recoverable —
+                // offering the button then would be the thing that loses them.
+                if (sshKeyKeystore == CredentialEncryption.Failure.PERMANENT) {
+                    SettingsItem(
+                        icon = Icons.Filled.Warning,
+                        title = stringResource(R.string.settings_sshkey_keystore_broken_title),
+                        subtitle = stringResource(R.string.settings_sshkey_keystore_broken_subtitle),
+                        onClick = { showSshKeyResetDialog = true },
+                    )
+                }
+                if (credentialKeystore == CredentialEncryption.Failure.PERMANENT) {
+                    SettingsItem(
+                        icon = Icons.Filled.Warning,
+                        title = stringResource(R.string.settings_credential_keystore_broken_title),
+                        subtitle = stringResource(R.string.settings_credential_keystore_broken_subtitle),
+                        onClick = { showCredentialResetDialog = true },
+                    )
+                }
             }
-        }
-        SettingsToggleItem(
-            icon = Icons.Filled.ScreenLockPortrait,
-            title = stringResource(R.string.settings_prevent_screenshots_title),
-            subtitle = stringResource(R.string.settings_prevent_screenshots_subtitle),
-            checked = screenSecurity,
-            onCheckedChange = viewModel::setScreenSecurity,
-        )
-        SettingsToggleItem(
-            icon = Icons.Filled.ContentPaste,
-            title = stringResource(R.string.settings_remote_clipboard_title),
-            subtitle = stringResource(R.string.settings_remote_clipboard_subtitle),
-            checked = remoteClipboardToLocal,
-            onCheckedChange = viewModel::setRemoteClipboardToLocalEnabled,
-        )
-        // #579: only rendered when the Keystore has permanently lost Haven's
-        // credential master key. A control that wipes every saved password is
-        // not something to leave lying about in Settings on a healthy device,
-        // and on a TRANSIENT failure the credentials are still recoverable —
-        // offering the button then would be the thing that loses them.
-        if (sshKeyKeystore == CredentialEncryption.Failure.PERMANENT) {
-            SettingsItem(
-                icon = Icons.Filled.Warning,
-                title = stringResource(R.string.settings_sshkey_keystore_broken_title),
-                subtitle = stringResource(R.string.settings_sshkey_keystore_broken_subtitle),
-                onClick = { showSshKeyResetDialog = true },
-            )
-        }
-        if (credentialKeystore == CredentialEncryption.Failure.PERMANENT) {
-            SettingsItem(
-                icon = Icons.Filled.Warning,
-                title = stringResource(R.string.settings_credential_keystore_broken_title),
-                subtitle = stringResource(R.string.settings_credential_keystore_broken_subtitle),
-                onClick = { showCredentialResetDialog = true },
-            )
-        }
-        }
-        CollapsibleSettingsSection(stringResource(R.string.settings_section_appearance), settingsExpanded[1], { settingsExpanded[1] = !settingsExpanded[1] }) {
-        SettingsItem(
-            icon = Icons.Filled.ColorLens,
-            title = stringResource(R.string.settings_theme_title),
-            subtitle = theme.label,
-            onClick = { showThemeDialog = true },
-        )
-        SettingsItem(
-            icon = Icons.Filled.Reorder,
-            title = stringResource(R.string.settings_navigation_tabs_title),
-            subtitle = stringResource(R.string.settings_navigation_tabs_subtitle),
-            onClick = { showScreenOrderDialog = true },
-        )
-        SettingsToggleItem(
-            icon = Icons.Filled.Palette,
-            title = stringResource(R.string.settings_color_scheme_auto_switch_title),
-            subtitle = stringResource(R.string.settings_color_scheme_auto_switch_subtitle),
-            checked = autoSwitchColorScheme,
-            onCheckedChange = viewModel::setTerminalAutoSwitchScheme,
-        )
-        if (autoSwitchColorScheme) {
-            SettingsItem(
-                icon = Icons.Filled.Palette,
-                title = stringResource(R.string.settings_color_scheme_light_title),
-                subtitle = lightColorScheme.label,
-                onClick = { showLightColorSchemeDialog = true },
-            )
-            SettingsItem(
-                icon = Icons.Filled.Palette,
-                title = stringResource(R.string.settings_color_scheme_dark_title),
-                subtitle = darkColorScheme.label,
-                onClick = { showDarkColorSchemeDialog = true },
-            )
-        } else {
-            SettingsItem(
-                icon = Icons.Filled.Palette,
-                title = stringResource(R.string.settings_color_scheme_title),
-                subtitle = colorScheme.label,
-                onClick = { showColorSchemeDialog = true },
-            )
-        }
-        SettingsToggleItem(
-            icon = Icons.Filled.Palette,
-            title = stringResource(R.string.settings_color_scheme_apply_palette_title),
-            subtitle = stringResource(R.string.settings_color_scheme_apply_palette_subtitle),
-            checked = applySchemePalette,
-            onCheckedChange = viewModel::setTerminalApplySchemePalette,
-        )
-        SettingsItem(
-            icon = Icons.Filled.Opacity,
-            title = stringResource(R.string.settings_terminal_opacity_title),
-            subtitle = stringResource(
-                R.string.settings_terminal_opacity_value,
-                (backgroundOpacity * 100).roundToInt(),
-            ),
-            onClick = { showBackgroundOpacityDialog = true },
-        )
-        SettingsItem(
-            icon = Icons.Filled.TextFields,
-            title = stringResource(R.string.settings_font_size_title),
-            subtitle = stringResource(R.string.settings_font_size_subtitle, fontSize),
-            onClick = { showFontSizeDialog = true },
-        )
-        SettingsItem(
-            icon = Icons.Filled.HorizontalSplit,
-            title = stringResource(R.string.settings_horizontal_padding_title),
-            subtitle = stringResource(R.string.settings_horizontal_padding_subtitle, horizontalPadding),
-            onClick = { showHorizontalPaddingDialog = true },
-        )
-        run {
-            val ambiwidthMode by viewModel.terminalAmbiwidthMode.collectAsState()
-            val ambiwidthModeLabel = when (ambiwidthMode) {
-                UserPreferencesRepository.TerminalAmbiwidthMode.NARROW -> stringResource(R.string.settings_ambiwidth_mode_narrow)
-                UserPreferencesRepository.TerminalAmbiwidthMode.AUTO_NARROW -> stringResource(R.string.settings_ambiwidth_mode_auto_narrow)
-                UserPreferencesRepository.TerminalAmbiwidthMode.WIDE -> stringResource(R.string.settings_ambiwidth_mode_wide)
-                UserPreferencesRepository.TerminalAmbiwidthMode.AUTO_WIDE -> stringResource(R.string.settings_ambiwidth_mode_auto_wide)
-            }
-            SettingsItem(
-                icon = Icons.Filled.FormatSize,
-                title = stringResource(R.string.settings_ambiwidth_title),
-                subtitle = ambiwidthModeLabel,
-                onClick = { showAmbiwidthModeDialog = true },
-            )
-        }
-        SettingsItem(
-            icon = Icons.Filled.History,
-            title = stringResource(R.string.settings_scrollback_rows_title),
-            subtitle = stringResource(R.string.settings_scrollback_rows_subtitle, scrollbackRows),
-            onClick = { showScrollbackRowsDialog = true },
-        )
-        run {
-            val customFontPath by viewModel.terminalFontPath.collectAsState()
-            val activeFontLabel = if (customFontPath == null) {
-                stringResource(R.string.settings_terminal_font_default_label)
-            } else {
-                stringResource(R.string.settings_terminal_font_custom_fmt, java.io.File(customFontPath!!).nameWithoutExtension)
-            }
-            SettingsItem(
-                icon = Icons.Filled.FontDownload,
-                title = stringResource(R.string.settings_terminal_font_title),
-                subtitle = stringResource(R.string.settings_terminal_font_subtitle_fmt, activeFontLabel),
-                onClick = {
-                    // Loose MIME — many file managers report fonts as
-                    // application/octet-stream; we revalidate post-import.
-                    fontImportLauncher.launch(arrayOf("font/ttf", "font/otf", "application/octet-stream", "*/*"))
-                },
-            )
-            SettingsItem(
-                icon = Icons.Filled.FontDownload,
-                title = stringResource(R.string.settings_recommended_fonts_title),
-                subtitle = stringResource(R.string.settings_recommended_fonts_subtitle),
-                onClick = { showRecommendedFontsDialog = true },
-            )
-            SettingsItem(
-                icon = Icons.Filled.CloudDownload,
-                title = stringResource(R.string.settings_font_from_url_title),
-                subtitle = stringResource(R.string.settings_font_from_url_subtitle),
-                onClick = { showFontUrlDialog = true },
-            )
-            if (customFontPath != null) {
+            CollapsibleSettingsSection(
+                stringResource(R.string.settings_section_appearance),
+                settingsExpanded[1],
+                { settingsExpanded[1] = !settingsExpanded[1] }) {
                 SettingsItem(
-                    icon = Icons.Filled.RestartAlt,
-                    title = stringResource(R.string.settings_reset_font_title),
-                    subtitle = stringResource(R.string.settings_reset_font_subtitle),
-                    onClick = {
-                        viewModel.clearCustomTerminalFont()
-                        Toast.makeText(context, fontResetMsg, Toast.LENGTH_SHORT).show()
+                    icon = Icons.Filled.ColorLens,
+                    title = stringResource(R.string.settings_theme_title),
+                    subtitle = theme.label,
+                    onClick = { showThemeDialog = true },
+                )
+                SettingsItem(
+                    icon = Icons.Filled.Reorder,
+                    title = stringResource(R.string.settings_navigation_tabs_title),
+                    subtitle = stringResource(R.string.settings_navigation_tabs_subtitle),
+                    onClick = { showScreenOrderDialog = true },
+                )
+                SettingsToggleItem(
+                    icon = Icons.Filled.Palette,
+                    title = stringResource(R.string.settings_color_scheme_auto_switch_title),
+                    subtitle = stringResource(R.string.settings_color_scheme_auto_switch_subtitle),
+                    checked = autoSwitchColorScheme,
+                    onCheckedChange = viewModel::setTerminalAutoSwitchScheme,
+                )
+                if (autoSwitchColorScheme) {
+                    SettingsItem(
+                        icon = Icons.Filled.Palette,
+                        title = stringResource(R.string.settings_color_scheme_light_title),
+                        subtitle = lightColorScheme.label,
+                        onClick = { showLightColorSchemeDialog = true },
+                    )
+                    SettingsItem(
+                        icon = Icons.Filled.Palette,
+                        title = stringResource(R.string.settings_color_scheme_dark_title),
+                        subtitle = darkColorScheme.label,
+                        onClick = { showDarkColorSchemeDialog = true },
+                    )
+                } else {
+                    SettingsItem(
+                        icon = Icons.Filled.Palette,
+                        title = stringResource(R.string.settings_color_scheme_title),
+                        subtitle = colorScheme.label,
+                        onClick = { showColorSchemeDialog = true },
+                    )
+                }
+                SettingsToggleItem(
+                    icon = Icons.Filled.Palette,
+                    title = stringResource(R.string.settings_color_scheme_apply_palette_title),
+                    subtitle = stringResource(R.string.settings_color_scheme_apply_palette_subtitle),
+                    checked = applySchemePalette,
+                    onCheckedChange = viewModel::setTerminalApplySchemePalette,
+                )
+                SettingsItem(
+                    icon = Icons.Filled.Opacity,
+                    title = stringResource(R.string.settings_terminal_opacity_title),
+                    subtitle = stringResource(
+                        R.string.settings_terminal_opacity_value,
+                        (backgroundOpacity * 100).roundToInt(),
+                    ),
+                    onClick = { showBackgroundOpacityDialog = true },
+                )
+                SettingsItem(
+                    icon = Icons.Filled.TextFields,
+                    title = stringResource(R.string.settings_font_size_title),
+                    subtitle = stringResource(R.string.settings_font_size_subtitle, fontSize),
+                    onClick = { showFontSizeDialog = true },
+                )
+                SettingsItem(
+                    icon = Icons.Filled.HorizontalSplit,
+                    title = stringResource(R.string.settings_horizontal_padding_title),
+                    subtitle = stringResource(R.string.settings_horizontal_padding_subtitle, horizontalPadding),
+                    onClick = { showHorizontalPaddingDialog = true },
+                )
+                run {
+                    val ambiwidthMode by viewModel.terminalAmbiwidthMode.collectAsState()
+                    val ambiwidthModeLabel = when (ambiwidthMode) {
+                        UserPreferencesRepository.TerminalAmbiwidthMode.NARROW -> stringResource(R.string.settings_ambiwidth_mode_narrow)
+                        UserPreferencesRepository.TerminalAmbiwidthMode.AUTO_NARROW -> stringResource(R.string.settings_ambiwidth_mode_auto_narrow)
+                        UserPreferencesRepository.TerminalAmbiwidthMode.WIDE -> stringResource(R.string.settings_ambiwidth_mode_wide)
+                        UserPreferencesRepository.TerminalAmbiwidthMode.AUTO_WIDE -> stringResource(R.string.settings_ambiwidth_mode_auto_wide)
+                    }
+                    SettingsItem(
+                        icon = Icons.Filled.FormatSize,
+                        title = stringResource(R.string.settings_ambiwidth_title),
+                        subtitle = ambiwidthModeLabel,
+                        onClick = { showAmbiwidthModeDialog = true },
+                    )
+                }
+                SettingsItem(
+                    icon = Icons.Filled.History,
+                    title = stringResource(R.string.settings_scrollback_rows_title),
+                    subtitle = stringResource(R.string.settings_scrollback_rows_subtitle, scrollbackRows),
+                    onClick = { showScrollbackRowsDialog = true },
+                )
+                run {
+                    val customFontPath by viewModel.terminalFontPath.collectAsState()
+                    val activeFontLabel = if (customFontPath == null) {
+                        stringResource(R.string.settings_terminal_font_default_label)
+                    } else {
+                        stringResource(
+                            R.string.settings_terminal_font_custom_fmt,
+                            java.io.File(customFontPath!!).nameWithoutExtension
+                        )
+                    }
+                    SettingsItem(
+                        icon = Icons.Filled.FontDownload,
+                        title = stringResource(R.string.settings_terminal_font_title),
+                        subtitle = stringResource(R.string.settings_terminal_font_subtitle_fmt, activeFontLabel),
+                        onClick = {
+                            // Loose MIME — many file managers report fonts as
+                            // application/octet-stream; we revalidate post-import.
+                            fontImportLauncher.launch(
+                                arrayOf(
+                                    "font/ttf",
+                                    "font/otf",
+                                    "application/octet-stream",
+                                    "*/*"
+                                )
+                            )
+                        },
+                    )
+                    SettingsItem(
+                        icon = Icons.Filled.FontDownload,
+                        title = stringResource(R.string.settings_recommended_fonts_title),
+                        subtitle = stringResource(R.string.settings_recommended_fonts_subtitle),
+                        onClick = { showRecommendedFontsDialog = true },
+                    )
+                    SettingsItem(
+                        icon = Icons.Filled.CloudDownload,
+                        title = stringResource(R.string.settings_font_from_url_title),
+                        subtitle = stringResource(R.string.settings_font_from_url_subtitle),
+                        onClick = { showFontUrlDialog = true },
+                    )
+                    if (customFontPath != null) {
+                        SettingsItem(
+                            icon = Icons.Filled.RestartAlt,
+                            title = stringResource(R.string.settings_reset_font_title),
+                            subtitle = stringResource(R.string.settings_reset_font_subtitle),
+                            onClick = {
+                                viewModel.clearCustomTerminalFont()
+                                Toast.makeText(context, fontResetMsg, Toast.LENGTH_SHORT).show()
+                            },
+                        )
+                    }
+                }
+                run {
+                    val currentLocale = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
+                    val currentLang =
+                        if (currentLocale.isEmpty) stringResource(R.string.settings_language_system_default)
+                        else java.util.Locale.forLanguageTag(currentLocale.toLanguageTags()).displayLanguage
+                    SettingsItem(
+                        icon = Icons.Filled.Language,
+                        title = stringResource(R.string.settings_language_title),
+                        subtitle = currentLang,
+                        onClick = { showLanguageDialog = true },
+                    )
+                }
+
+            }
+            CollapsibleSettingsSection(
+                stringResource(R.string.settings_section_keyboard_input),
+                settingsExpanded[2],
+                { settingsExpanded[2] = !settingsExpanded[2] }) {
+                SettingsItem(
+                    icon = Icons.Filled.KeyboardAlt,
+                    title = stringResource(R.string.settings_toolbar_title),
+                    subtitle = stringResource(R.string.settings_toolbar_subtitle),
+                    onClick = { showToolbarConfigDialog = true },
+                )
+                // Keyboard mode tri-state picker. Replaces the previous binary
+                // "Voice input and autocomplete" toggle so users can find all
+                // three modes (Secure / Standard / Raw) from one settings entry
+                // — the Raw mode used to be reachable only via the keyboard
+                // toolbar's Raw key, which most users never added.
+                val keyboardModeId = when {
+                    rawKeyboardMode -> "RAW"
+                    keyboardCustomMode -> "CUSTOM"
+                    allowStandardKeyboard -> "STANDARD"
+                    else -> "SECURE"
+                }
+                val keyboardModeLabel = when (keyboardModeId) {
+                    "RAW" -> stringResource(R.string.settings_keyboard_mode_subtitle_raw)
+                    "STANDARD" -> stringResource(R.string.settings_keyboard_mode_subtitle_standard)
+                    "CUSTOM" -> stringResource(R.string.settings_keyboard_mode_subtitle_custom)
+                    else -> stringResource(R.string.settings_keyboard_mode_subtitle_secure)
+                }
+                SettingsItem(
+                    icon = Icons.Filled.Keyboard,
+                    title = stringResource(R.string.settings_keyboard_mode_title),
+                    subtitle = keyboardModeLabel,
+                    onClick = { showKeyboardModeDialog = true },
+                )
+                if (keyboardCustomMode) {
+                    SettingsItem(
+                        icon = Icons.Filled.Tune,
+                        title = stringResource(R.string.settings_ime_flags_title),
+                        subtitle = stringResource(R.string.settings_ime_flags_subtitle),
+                        onClick = { showImeFlagsDialog = true },
+                    )
+                }
+                SettingsToggleItem(
+                    icon = Icons.Filled.ContentPaste,
+                    title = stringResource(R.string.settings_ctrl_shift_v_title),
+                    subtitle = stringResource(R.string.settings_ctrl_shift_v_subtitle),
+                    checked = interceptCtrlShiftV,
+                    onCheckedChange = viewModel::setInterceptCtrlShiftV,
+                )
+                SettingsToggleItem(
+                    icon = Icons.Filled.Keyboard,
+                    title = stringResource(R.string.settings_auto_show_keyboard_title),
+                    subtitle = stringResource(R.string.settings_auto_show_keyboard_subtitle),
+                    checked = autoShowKeyboardInTerminal,
+                    onCheckedChange = viewModel::setAutoShowKeyboardInTerminal,
+                )
+
+            }
+            CollapsibleSettingsSection(
+                stringResource(R.string.settings_section_terminal),
+                settingsExpanded[3],
+                { settingsExpanded[3] = !settingsExpanded[3] }) {
+                SettingsItem(
+                    icon = Icons.Filled.Terminal,
+                    title = stringResource(R.string.settings_session_persistence_title),
+                    subtitle = if (sessionManager == UserPreferencesRepository.SessionManager.NONE) {
+                        stringResource(R.string.settings_session_persistence_none)
+                    } else {
+                        sessionManager.label
+                    },
+                    onClick = { showSessionManagerDialog = true },
+                )
+                SettingsItem(
+                    icon = Icons.Filled.Terminal,
+                    title = stringResource(R.string.settings_prompt_chars_title),
+                    subtitle = if (terminalPromptChars.isBlank()) {
+                        stringResource(R.string.settings_prompt_chars_subtitle)
+                    } else {
+                        terminalPromptChars
+                    },
+                    onClick = { showPromptCharsDialog = true },
+                )
+                SettingsItem(
+                    icon = Icons.Filled.Language,
+                    title = stringResource(R.string.settings_terminal_locale_title),
+                    subtitle = terminalLocale,
+                    onClick = { showLocaleDialog = true },
+                )
+                SettingsToggleItem(
+                    icon = Icons.Filled.Search,
+                    title = stringResource(R.string.settings_search_button_title),
+                    subtitle = stringResource(R.string.settings_search_button_subtitle),
+                    checked = showSearchButton,
+                    onCheckedChange = viewModel::setShowSearchButton,
+                )
+                SettingsToggleItem(
+                    icon = Icons.Filled.ContentCopy,
+                    title = stringResource(R.string.settings_copy_output_title),
+                    subtitle = stringResource(R.string.settings_copy_output_subtitle),
+                    checked = showCopyOutputButton,
+                    onCheckedChange = { enabled ->
+                        viewModel.setShowCopyOutputButton(enabled)
+                        if (enabled) showOsc133SetupDialog = true
                     },
                 )
+                SettingsToggleItem(
+                    icon = Icons.Filled.LightMode,
+                    title = stringResource(R.string.settings_keep_screen_on_title),
+                    subtitle = stringResource(R.string.settings_keep_screen_on_subtitle),
+                    checked = keepScreenOnInTerminal,
+                    onCheckedChange = viewModel::setKeepScreenOnInTerminal,
+                )
+                SettingsToggleItem(
+                    icon = Icons.Filled.Terminal,
+                    title = stringResource(R.string.settings_mouse_input_title),
+                    subtitle = stringResource(R.string.settings_mouse_input_subtitle),
+                    checked = mouseInputEnabled,
+                    onCheckedChange = viewModel::setMouseInputEnabled,
+                )
+                SettingsToggleItem(
+                    icon = Icons.Filled.Terminal,
+                    title = stringResource(R.string.settings_right_click_title),
+                    subtitle = stringResource(R.string.settings_right_click_subtitle),
+                    checked = terminalRightClick,
+                    onCheckedChange = viewModel::setTerminalRightClick,
+                )
+                SettingsToggleItem(
+                    icon = Icons.Filled.Terminal,
+                    title = stringResource(R.string.settings_tap_to_position_title),
+                    subtitle = stringResource(R.string.settings_tap_to_position_subtitle),
+                    checked = tapToPositionCursorOnPrompt,
+                    onCheckedChange = viewModel::setTerminalTapToPositionCursor,
+                )
+                SettingsToggleItem(
+                    icon = Icons.Filled.VolumeUp,
+                    title = stringResource(R.string.settings_bell_notification_title),
+                    subtitle = stringResource(R.string.settings_bell_notification_subtitle),
+                    checked = bellNotification,
+                    onCheckedChange = viewModel::setTerminalBellNotification,
+                )
+                SettingsToggleItem(
+                    icon = Icons.Filled.Terminal,
+                    title = stringResource(R.string.settings_swipe_arrows_title),
+                    subtitle = stringResource(R.string.settings_swipe_arrows_subtitle),
+                    checked = terminalSwipeArrows,
+                    onCheckedChange = viewModel::setTerminalSwipeArrows,
+                )
+                if (swipeArrowsExitHintVisible) {
+                    // #730: with the tab bar hidden, the toolbar's Swipe key is the
+                    // only way out of latched swipe-arrows — surface the exit path
+                    // right under the switch that causes it, and offer to add the key.
+                    SettingsHintItem(
+                        text = stringResource(R.string.settings_swipe_arrows_exit_hint),
+                        actionLabel = stringResource(R.string.settings_swipe_arrows_add_key),
+                        onAction = { viewModel.addSwipeKeyToToolbar() },
+                    )
+                }
+                SettingsToggleItem(
+                    icon = Icons.Filled.ListAlt,
+                    title = stringResource(R.string.settings_show_terminal_tab_bar_title),
+                    subtitle = stringResource(R.string.settings_show_terminal_tab_bar_subtitle),
+                    checked = showTerminalTabBar,
+                    onCheckedChange = viewModel::setShowTerminalTabBar,
+                )
+                SettingsToggleItem(
+                    icon = Icons.Filled.ListAlt,
+                    title = stringResource(R.string.settings_hide_nav_bar_in_terminal_title),
+                    subtitle = stringResource(R.string.settings_hide_nav_bar_in_terminal_subtitle),
+                    checked = hideNavBarInTerminal,
+                    onCheckedChange = viewModel::setHideNavBarInTerminal,
+                )
+                SettingsToggleItem(
+                    icon = Icons.Filled.Keyboard,
+                    title = stringResource(R.string.settings_reflow_on_keyboard_title),
+                    subtitle = stringResource(R.string.settings_reflow_on_keyboard_subtitle),
+                    checked = reflowTerminalOnKeyboard,
+                    onCheckedChange = viewModel::setReflowTerminalOnKeyboard,
+                )
+                SettingsToggleItem(
+                    icon = Icons.Filled.Label,
+                    title = stringResource(R.string.settings_tab_titles_follow_session_title),
+                    subtitle = stringResource(R.string.settings_tab_titles_follow_session_subtitle),
+                    checked = terminalTabTitlesFollowSession,
+                    onCheckedChange = viewModel::setTerminalTabTitlesFollowSession,
+                )
+                // Inline images from SSH programs (Kitty graphics / iTerm2, #583) —
+                // the consent policy: never render, ask per image, or always render.
+                SettingsChipsItem(
+                    icon = Icons.Filled.Image,
+                    title = stringResource(R.string.settings_inline_images_title),
+                    subtitle = stringResource(R.string.settings_inline_images_subtitle),
+                    options = UserPreferencesRepository.TerminalInlineImages.entries,
+                    selected = terminalInlineImages,
+                    label = { mode -> stringResource(terminalInlineImagesLabel(mode)) },
+                    onChange = viewModel::setTerminalInlineImages,
+                )
+
             }
-        }
-        run {
-            val currentLocale = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
-            val currentLang = if (currentLocale.isEmpty) stringResource(R.string.settings_language_system_default)
-                else java.util.Locale.forLanguageTag(currentLocale.toLanguageTags()).displayLanguage
-            SettingsItem(
-                icon = Icons.Filled.Language,
-                title = stringResource(R.string.settings_language_title),
-                subtitle = currentLang,
-                onClick = { showLanguageDialog = true },
-            )
-        }
+            CollapsibleSettingsSection(
+                stringResource(R.string.settings_section_desktop),
+                settingsExpanded[4],
+                { settingsExpanded[4] = !settingsExpanded[4] }) {
+                val rdpW by viewModel.rdpDesktopWidth.collectAsState()
+                val rdpH by viewModel.rdpDesktopHeight.collectAsState()
+                var showRdpSizeDialog by remember { mutableStateOf(false) }
+                // RDP-only: the size a remote desktop session negotiates.
+                if (nativeFeatures.rdp) {
+                    SettingsItem(
+                        icon = Icons.Filled.DesktopWindows,
+                        title = stringResource(R.string.settings_rdp_desktop_size_title),
+                        subtitle = stringResource(R.string.settings_rdp_desktop_size_subtitle, rdpW, rdpH),
+                        onClick = { showRdpSizeDialog = true },
+                    )
+                }
+                if (showRdpSizeDialog) {
+                    RdpDesktopSizeDialog(
+                        width = rdpW,
+                        height = rdpH,
+                        onDismiss = { showRdpSizeDialog = false },
+                        onApply = { w, h ->
+                            viewModel.setRdpDesktopSize(w, h)
+                            showRdpSizeDialog = false
+                        },
+                    )
+                }
+                SettingsToggleItem(
+                    icon = Icons.Filled.CloudDownload,
+                    title = stringResource(R.string.settings_bandwidth_suggest_title),
+                    subtitle = stringResource(R.string.settings_bandwidth_suggest_subtitle),
+                    checked = bandwidthAutoSuggest,
+                    onCheckedChange = viewModel::setBandwidthAutoSuggest,
+                )
+                // System IME vs Haven's own floating keyboard. The system keyboard is
+                // the default; the built-in panel exists because Android gives an app
+                // no way to ask the IME to float.
+                SettingsToggleItem(
+                    icon = Icons.Filled.Keyboard,
+                    title = stringResource(R.string.settings_builtin_keyboard_title),
+                    subtitle = stringResource(R.string.settings_builtin_keyboard_subtitle),
+                    checked = desktopBuiltinKeyboard,
+                    onCheckedChange = viewModel::setDesktopBuiltinKeyboard,
+                )
 
-        }
-        CollapsibleSettingsSection(stringResource(R.string.settings_section_keyboard_input), settingsExpanded[2], { settingsExpanded[2] = !settingsExpanded[2] }) {
-        SettingsItem(
-            icon = Icons.Filled.KeyboardAlt,
-            title = stringResource(R.string.settings_toolbar_title),
-            subtitle = stringResource(R.string.settings_toolbar_subtitle),
-            onClick = { showToolbarConfigDialog = true },
-        )
-        // Keyboard mode tri-state picker. Replaces the previous binary
-        // "Voice input and autocomplete" toggle so users can find all
-        // three modes (Secure / Standard / Raw) from one settings entry
-        // — the Raw mode used to be reachable only via the keyboard
-        // toolbar's Raw key, which most users never added.
-        val keyboardModeId = when {
-            rawKeyboardMode -> "RAW"
-            keyboardCustomMode -> "CUSTOM"
-            allowStandardKeyboard -> "STANDARD"
-            else -> "SECURE"
-        }
-        val keyboardModeLabel = when (keyboardModeId) {
-            "RAW" -> stringResource(R.string.settings_keyboard_mode_subtitle_raw)
-            "STANDARD" -> stringResource(R.string.settings_keyboard_mode_subtitle_standard)
-            "CUSTOM" -> stringResource(R.string.settings_keyboard_mode_subtitle_custom)
-            else -> stringResource(R.string.settings_keyboard_mode_subtitle_secure)
-        }
-        SettingsItem(
-            icon = Icons.Filled.Keyboard,
-            title = stringResource(R.string.settings_keyboard_mode_title),
-            subtitle = keyboardModeLabel,
-            onClick = { showKeyboardModeDialog = true },
-        )
-        if (keyboardCustomMode) {
-            SettingsItem(
-                icon = Icons.Filled.Tune,
-                title = stringResource(R.string.settings_ime_flags_title),
-                subtitle = stringResource(R.string.settings_ime_flags_subtitle),
-                onClick = { showImeFlagsDialog = true },
-            )
-        }
-        SettingsToggleItem(
-            icon = Icons.Filled.ContentPaste,
-            title = stringResource(R.string.settings_ctrl_shift_v_title),
-            subtitle = stringResource(R.string.settings_ctrl_shift_v_subtitle),
-            checked = interceptCtrlShiftV,
-            onCheckedChange = viewModel::setInterceptCtrlShiftV,
-        )
-        SettingsToggleItem(
-            icon = Icons.Filled.Keyboard,
-            title = stringResource(R.string.settings_auto_show_keyboard_title),
-            subtitle = stringResource(R.string.settings_auto_show_keyboard_subtitle),
-            checked = autoShowKeyboardInTerminal,
-            onCheckedChange = viewModel::setAutoShowKeyboardInTerminal,
-        )
-
-        }
-        CollapsibleSettingsSection(stringResource(R.string.settings_section_terminal), settingsExpanded[3], { settingsExpanded[3] = !settingsExpanded[3] }) {
-        SettingsItem(
-            icon = Icons.Filled.Terminal,
-            title = stringResource(R.string.settings_session_persistence_title),
-            subtitle = if (sessionManager == UserPreferencesRepository.SessionManager.NONE) {
-                stringResource(R.string.settings_session_persistence_none)
-            } else {
-                sessionManager.label
-            },
-            onClick = { showSessionManagerDialog = true },
-        )
-        SettingsItem(
-            icon = Icons.Filled.Terminal,
-            title = stringResource(R.string.settings_prompt_chars_title),
-            subtitle = if (terminalPromptChars.isBlank()) {
-                stringResource(R.string.settings_prompt_chars_subtitle)
-            } else {
-                terminalPromptChars
-            },
-            onClick = { showPromptCharsDialog = true },
-        )
-        SettingsItem(
-            icon = Icons.Filled.Language,
-            title = stringResource(R.string.settings_terminal_locale_title),
-            subtitle = terminalLocale,
-            onClick = { showLocaleDialog = true },
-        )
-        SettingsToggleItem(
-            icon = Icons.Filled.Search,
-            title = stringResource(R.string.settings_search_button_title),
-            subtitle = stringResource(R.string.settings_search_button_subtitle),
-            checked = showSearchButton,
-            onCheckedChange = viewModel::setShowSearchButton,
-        )
-        SettingsToggleItem(
-            icon = Icons.Filled.ContentCopy,
-            title = stringResource(R.string.settings_copy_output_title),
-            subtitle = stringResource(R.string.settings_copy_output_subtitle),
-            checked = showCopyOutputButton,
-            onCheckedChange = { enabled ->
-                viewModel.setShowCopyOutputButton(enabled)
-                if (enabled) showOsc133SetupDialog = true
-            },
-        )
-        SettingsToggleItem(
-            icon = Icons.Filled.LightMode,
-            title = stringResource(R.string.settings_keep_screen_on_title),
-            subtitle = stringResource(R.string.settings_keep_screen_on_subtitle),
-            checked = keepScreenOnInTerminal,
-            onCheckedChange = viewModel::setKeepScreenOnInTerminal,
-        )
-        SettingsToggleItem(
-            icon = Icons.Filled.Terminal,
-            title = stringResource(R.string.settings_mouse_input_title),
-            subtitle = stringResource(R.string.settings_mouse_input_subtitle),
-            checked = mouseInputEnabled,
-            onCheckedChange = viewModel::setMouseInputEnabled,
-        )
-        SettingsToggleItem(
-            icon = Icons.Filled.Terminal,
-            title = stringResource(R.string.settings_right_click_title),
-            subtitle = stringResource(R.string.settings_right_click_subtitle),
-            checked = terminalRightClick,
-            onCheckedChange = viewModel::setTerminalRightClick,
-        )
-        SettingsToggleItem(
-            icon = Icons.Filled.Terminal,
-            title = stringResource(R.string.settings_tap_to_position_title),
-            subtitle = stringResource(R.string.settings_tap_to_position_subtitle),
-            checked = tapToPositionCursorOnPrompt,
-            onCheckedChange = viewModel::setTerminalTapToPositionCursor,
-        )
-        SettingsToggleItem(
-            icon = Icons.Filled.VolumeUp,
-            title = stringResource(R.string.settings_bell_notification_title),
-            subtitle = stringResource(R.string.settings_bell_notification_subtitle),
-            checked = bellNotification,
-            onCheckedChange = viewModel::setTerminalBellNotification,
-        )
-        SettingsToggleItem(
-            icon = Icons.Filled.Terminal,
-            title = stringResource(R.string.settings_swipe_arrows_title),
-            subtitle = stringResource(R.string.settings_swipe_arrows_subtitle),
-            checked = terminalSwipeArrows,
-            onCheckedChange = viewModel::setTerminalSwipeArrows,
-        )
-        if (swipeArrowsExitHintVisible) {
-            // #730: with the tab bar hidden, the toolbar's Swipe key is the
-            // only way out of latched swipe-arrows — surface the exit path
-            // right under the switch that causes it, and offer to add the key.
-            SettingsHintItem(
-                text = stringResource(R.string.settings_swipe_arrows_exit_hint),
-                actionLabel = stringResource(R.string.settings_swipe_arrows_add_key),
-                onAction = { viewModel.addSwipeKeyToToolbar() },
-            )
-        }
-        SettingsToggleItem(
-            icon = Icons.Filled.ListAlt,
-            title = stringResource(R.string.settings_show_terminal_tab_bar_title),
-            subtitle = stringResource(R.string.settings_show_terminal_tab_bar_subtitle),
-            checked = showTerminalTabBar,
-            onCheckedChange = viewModel::setShowTerminalTabBar,
-        )
-        SettingsToggleItem(
-            icon = Icons.Filled.ListAlt,
-            title = stringResource(R.string.settings_hide_nav_bar_in_terminal_title),
-            subtitle = stringResource(R.string.settings_hide_nav_bar_in_terminal_subtitle),
-            checked = hideNavBarInTerminal,
-            onCheckedChange = viewModel::setHideNavBarInTerminal,
-        )
-        SettingsToggleItem(
-            icon = Icons.Filled.Keyboard,
-            title = stringResource(R.string.settings_reflow_on_keyboard_title),
-            subtitle = stringResource(R.string.settings_reflow_on_keyboard_subtitle),
-            checked = reflowTerminalOnKeyboard,
-            onCheckedChange = viewModel::setReflowTerminalOnKeyboard,
-        )
-        SettingsToggleItem(
-            icon = Icons.Filled.Label,
-            title = stringResource(R.string.settings_tab_titles_follow_session_title),
-            subtitle = stringResource(R.string.settings_tab_titles_follow_session_subtitle),
-            checked = terminalTabTitlesFollowSession,
-            onCheckedChange = viewModel::setTerminalTabTitlesFollowSession,
-        )
-        // Inline images from SSH programs (Kitty graphics / iTerm2, #583) —
-        // the consent policy: never render, ask per image, or always render.
-        SettingsChipsItem(
-            icon = Icons.Filled.Image,
-            title = stringResource(R.string.settings_inline_images_title),
-            subtitle = stringResource(R.string.settings_inline_images_subtitle),
-            options = UserPreferencesRepository.TerminalInlineImages.entries,
-            selected = terminalInlineImages,
-            label = { mode -> stringResource(terminalInlineImagesLabel(mode)) },
-            onChange = viewModel::setTerminalInlineImages,
-        )
-
-        }
-        CollapsibleSettingsSection(stringResource(R.string.settings_section_desktop), settingsExpanded[4], { settingsExpanded[4] = !settingsExpanded[4] }) {
-        val rdpW by viewModel.rdpDesktopWidth.collectAsState()
-        val rdpH by viewModel.rdpDesktopHeight.collectAsState()
-        var showRdpSizeDialog by remember { mutableStateOf(false) }
-        // RDP-only: the size a remote desktop session negotiates.
-        if (nativeFeatures.rdp) {
-            SettingsItem(
-                icon = Icons.Filled.DesktopWindows,
-                title = stringResource(R.string.settings_rdp_desktop_size_title),
-                subtitle = stringResource(R.string.settings_rdp_desktop_size_subtitle, rdpW, rdpH),
-                onClick = { showRdpSizeDialog = true },
-            )
-        }
-        if (showRdpSizeDialog) {
-            RdpDesktopSizeDialog(
-                width = rdpW,
-                height = rdpH,
-                onDismiss = { showRdpSizeDialog = false },
-                onApply = { w, h ->
-                    viewModel.setRdpDesktopSize(w, h)
-                    showRdpSizeDialog = false
-                },
-            )
-        }
-        SettingsToggleItem(
-            icon = Icons.Filled.Mouse,
-            title = stringResource(R.string.settings_touchpad_input_title),
-            subtitle = stringResource(
-                if (desktopInputMode == "TOUCHPAD")
-                    R.string.settings_touchpad_input_touchpad_subtitle
-                else
-                    R.string.settings_touchpad_input_direct_subtitle
-            ),
-            checked = desktopInputMode == "TOUCHPAD",
-            onCheckedChange = { enabled ->
-                viewModel.setDesktopInputMode(if (enabled) "TOUCHPAD" else "DIRECT")
-            },
-        )
-        SettingsToggleItem(
-            icon = Icons.Filled.CloudDownload,
-            title = stringResource(R.string.settings_bandwidth_suggest_title),
-            subtitle = stringResource(R.string.settings_bandwidth_suggest_subtitle),
-            checked = bandwidthAutoSuggest,
-            onCheckedChange = viewModel::setBandwidthAutoSuggest,
-        )
-
-        }
-        CollapsibleSettingsSection(stringResource(R.string.settings_section_connections_screen), settingsExpanded[5], { settingsExpanded[5] = !settingsExpanded[5] }) {
-        // Tailscale peer discovery (#654): off stops the quad-100 LocalAPI
-        // probe reading the peer list during scans; Tailscale itself is
-        // untouched. On by default to keep the scan behaviour unchanged.
-        val tailscaleDiscovery by viewModel.tailscaleDiscoveryEnabled.collectAsState()
-        SettingsToggleItem(
-            icon = Icons.Filled.VpnLock,
-            title = stringResource(R.string.settings_tailscale_discovery_title),
-            subtitle = stringResource(R.string.settings_tailscale_discovery_subtitle),
-            checked = tailscaleDiscovery,
-            onCheckedChange = viewModel::setTailscaleDiscoveryEnabled,
-        )
-
-        }
-        CollapsibleSettingsSection(stringResource(R.string.settings_section_diagnostics), settingsExpanded[6], { settingsExpanded[6] = !settingsExpanded[6] }) {
-        SettingsToggleItem(
-            icon = Icons.Filled.History,
-            title = stringResource(R.string.settings_connection_logging_title),
-            subtitle = stringResource(R.string.settings_connection_logging_subtitle),
-            checked = connectionLoggingEnabled,
-            onCheckedChange = viewModel::setConnectionLoggingEnabled,
-        )
-        // RDP-only decode tuning.
-        if (nativeFeatures.rdp) {
-            SettingsToggleItem(
-                icon = Icons.Filled.BugReport,
-                title = stringResource(R.string.settings_rdp_progressive_upgrade_title),
-                subtitle = stringResource(R.string.settings_rdp_progressive_upgrade_subtitle),
-                checked = rdpProgressiveUpgrade,
-                onCheckedChange = viewModel::setRdpProgressiveUpgrade,
-            )
-        }
-        // RDP-only decode tuning.
-        if (nativeFeatures.rdp) {
-            SettingsToggleItem(
-                icon = Icons.Filled.BugReport,
-                title = stringResource(R.string.settings_rdp_avc_title),
-                subtitle = stringResource(R.string.settings_rdp_avc_subtitle),
-                checked = rdpAvcEnabled,
-                onCheckedChange = viewModel::setRdpAvcEnabled,
-            )
-        }
-        if (connectionLoggingEnabled) {
-            SettingsItem(
-                icon = Icons.Filled.ListAlt,
-                title = stringResource(R.string.settings_view_connection_log_title),
-                subtitle = stringResource(R.string.settings_view_connection_log_subtitle),
-                onClick = { showAuditLog = true },
-            )
-            SettingsToggleItem(
-                icon = Icons.Filled.BugReport,
-                title = stringResource(R.string.settings_verbose_logging_title),
-                subtitle = stringResource(R.string.settings_verbose_logging_subtitle),
-                checked = verboseLoggingEnabled,
-                onCheckedChange = viewModel::setVerboseLoggingEnabled,
-            )
-        }
-        }
-        CollapsibleSettingsSection(stringResource(R.string.settings_section_advanced), settingsExpanded[7], { settingsExpanded[7] = !settingsExpanded[7] }) {
-        }
-
-        CollapsibleSettingsSection(stringResource(R.string.settings_section_backup), settingsExpanded[8], { settingsExpanded[8] = !settingsExpanded[8] }) {
-        SettingsItem(
-            icon = Icons.Filled.CloudUpload,
-            title = stringResource(R.string.settings_export_backup_title),
-            subtitle = stringResource(R.string.settings_export_backup_subtitle),
-            onClick = {
-                showBackupPasswordDialog = BackupAction.Export
-            },
-        )
-        SettingsItem(
-            icon = Icons.Filled.CloudDownload,
-            title = stringResource(R.string.settings_restore_backup_title),
-            subtitle = stringResource(R.string.settings_restore_backup_subtitle),
-            onClick = {
-                importLauncher.launch(arrayOf("*/*"))
-            },
-        )
-        // Push/pull the encrypted backup to an existing SSH
-        // connection, so config moves between devices without shuffling files
-        // by hand (#323).
-        run {
-            val syncCandidates by viewModel.backupSyncCandidates.collectAsState()
-            val syncProfileId by viewModel.backupSyncProfileId.collectAsState()
-            val syncPath by viewModel.backupSyncPath.collectAsState()
-            val destLabel = syncCandidates.firstOrNull { it.first == syncProfileId }?.second
-            SettingsItem(
-                icon = Icons.Filled.Sync,
-                title = stringResource(R.string.settings_backup_sync_title),
-                subtitle = if (destLabel != null) {
-                    stringResource(R.string.settings_backup_sync_subtitle_set, destLabel, syncPath)
-                } else {
-                    stringResource(R.string.settings_backup_sync_subtitle_unset)
-                },
-                onClick = { showBackupSyncDialog = true },
-            )
-        }
-
-        if (backupStatus is SettingsViewModel.BackupStatus.InProgress) {
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.settings_backup_working)) },
-                leadingContent = {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                },
-                modifier = Modifier.padding(horizontal = 8.dp),
-            )
-        }
-
-        }
-        CollapsibleSettingsSection(stringResource(R.string.settings_section_about), settingsExpanded[9], { settingsExpanded[9] = !settingsExpanded[9] }) {
-        SettingsItem(
-            icon = Icons.Filled.Info,
-            title = stringResource(R.string.settings_about_title),
-            subtitle = "v${packageInfo.versionName}",
-            onClick = { showAboutDialog = true },
-        )
-        // #578. Only a copy signed with the GitHub-release key can install a
-        // GitHub release over itself, so on any other channel the honest thing
-        // is to say where updates come from rather than offer a download that
-        // Android will refuse.
-        if (viewModel.updateChannel == UpdateChecker.Channel.GITHUB_RELEASE) {
-            SettingsToggleItem(
-                icon = Icons.Filled.SystemUpdate,
-                title = stringResource(R.string.settings_update_check_title),
-                subtitle = stringResource(R.string.settings_update_check_subtitle),
-                checked = updateCheckEnabled,
-                onCheckedChange = viewModel::setUpdateCheckEnabled,
-            )
-            val updateSubtitle = when (val r = updateCheckResult) {
-                null -> stringResource(R.string.settings_update_check_now_subtitle)
-                is UpdateChecker.Result.Available ->
-                    stringResource(R.string.settings_update_check_available)
-                is UpdateChecker.Result.UpToDate ->
-                    stringResource(R.string.settings_update_check_up_to_date, r.installedVersion)
-                is UpdateChecker.Result.Failed ->
-                    stringResource(R.string.settings_update_check_failed, r.message)
-                UpdateChecker.Result.WrongChannel ->
-                    stringResource(R.string.settings_update_check_other_channel)
             }
-            val available = updateCheckResult as? UpdateChecker.Result.Available
-            SettingsItem(
-                icon = if (available != null) Icons.Filled.Download else Icons.Filled.Refresh,
-                title = if (updateCheckRunning) {
-                    stringResource(R.string.settings_update_checking)
-                } else if (available != null) {
-                    stringResource(R.string.settings_update_open_release, available.version)
-                } else {
-                    stringResource(R.string.settings_update_check_now_title)
-                },
-                subtitle = updateSubtitle,
-                onClick = {
-                    if (available != null) {
-                        context.startActivity(
-                            Intent(Intent.ACTION_VIEW, Uri.parse(available.releaseUrl)),
-                        )
-                    } else if (!updateCheckRunning) {
-                        viewModel.checkForUpdateNow()
+            CollapsibleSettingsSection(
+                stringResource(R.string.settings_section_connections_screen),
+                settingsExpanded[5],
+                { settingsExpanded[5] = !settingsExpanded[5] }) {
+                // Tailscale peer discovery (#654): off stops the quad-100 LocalAPI
+                // probe reading the peer list during scans; Tailscale itself is
+                // untouched. On by default to keep the scan behaviour unchanged.
+                val tailscaleDiscovery by viewModel.tailscaleDiscoveryEnabled.collectAsState()
+                SettingsToggleItem(
+                    icon = Icons.Filled.VpnLock,
+                    title = stringResource(R.string.settings_tailscale_discovery_title),
+                    subtitle = stringResource(R.string.settings_tailscale_discovery_subtitle),
+                    checked = tailscaleDiscovery,
+                    onCheckedChange = viewModel::setTailscaleDiscoveryEnabled,
+                )
+
+            }
+            CollapsibleSettingsSection(
+                stringResource(R.string.settings_section_diagnostics),
+                settingsExpanded[6],
+                { settingsExpanded[6] = !settingsExpanded[6] }) {
+                SettingsToggleItem(
+                    icon = Icons.Filled.History,
+                    title = stringResource(R.string.settings_connection_logging_title),
+                    subtitle = stringResource(R.string.settings_connection_logging_subtitle),
+                    checked = connectionLoggingEnabled,
+                    onCheckedChange = viewModel::setConnectionLoggingEnabled,
+                )
+                // RDP-only decode tuning.
+                if (nativeFeatures.rdp) {
+                    SettingsToggleItem(
+                        icon = Icons.Filled.BugReport,
+                        title = stringResource(R.string.settings_rdp_progressive_upgrade_title),
+                        subtitle = stringResource(R.string.settings_rdp_progressive_upgrade_subtitle),
+                        checked = rdpProgressiveUpgrade,
+                        onCheckedChange = viewModel::setRdpProgressiveUpgrade,
+                    )
+                }
+                // RDP-only decode tuning.
+                if (nativeFeatures.rdp) {
+                    SettingsToggleItem(
+                        icon = Icons.Filled.BugReport,
+                        title = stringResource(R.string.settings_rdp_avc_title),
+                        subtitle = stringResource(R.string.settings_rdp_avc_subtitle),
+                        checked = rdpAvcEnabled,
+                        onCheckedChange = viewModel::setRdpAvcEnabled,
+                    )
+                }
+                if (connectionLoggingEnabled) {
+                    SettingsItem(
+                        icon = Icons.Filled.ListAlt,
+                        title = stringResource(R.string.settings_view_connection_log_title),
+                        subtitle = stringResource(R.string.settings_view_connection_log_subtitle),
+                        onClick = { showAuditLog = true },
+                    )
+                    SettingsToggleItem(
+                        icon = Icons.Filled.BugReport,
+                        title = stringResource(R.string.settings_verbose_logging_title),
+                        subtitle = stringResource(R.string.settings_verbose_logging_subtitle),
+                        checked = verboseLoggingEnabled,
+                        onCheckedChange = viewModel::setVerboseLoggingEnabled,
+                    )
+                }
+            }
+            CollapsibleSettingsSection(
+                stringResource(R.string.settings_section_advanced),
+                settingsExpanded[7],
+                { settingsExpanded[7] = !settingsExpanded[7] }) {
+            }
+
+            CollapsibleSettingsSection(
+                stringResource(R.string.settings_section_backup),
+                settingsExpanded[8],
+                { settingsExpanded[8] = !settingsExpanded[8] }) {
+                SettingsItem(
+                    icon = Icons.Filled.CloudUpload,
+                    title = stringResource(R.string.settings_export_backup_title),
+                    subtitle = stringResource(R.string.settings_export_backup_subtitle),
+                    onClick = {
+                        showBackupPasswordDialog = BackupAction.Export
+                    },
+                )
+                SettingsItem(
+                    icon = Icons.Filled.CloudDownload,
+                    title = stringResource(R.string.settings_restore_backup_title),
+                    subtitle = stringResource(R.string.settings_restore_backup_subtitle),
+                    onClick = {
+                        importLauncher.launch(arrayOf("*/*"))
+                    },
+                )
+                // Push/pull the encrypted backup to an existing SSH
+                // connection, so config moves between devices without shuffling files
+                // by hand (#323).
+                run {
+                    val syncCandidates by viewModel.backupSyncCandidates.collectAsState()
+                    val syncProfileId by viewModel.backupSyncProfileId.collectAsState()
+                    val syncPath by viewModel.backupSyncPath.collectAsState()
+                    val destLabel = syncCandidates.firstOrNull { it.first == syncProfileId }?.second
+                    SettingsItem(
+                        icon = Icons.Filled.Sync,
+                        title = stringResource(R.string.settings_backup_sync_title),
+                        subtitle = if (destLabel != null) {
+                            stringResource(R.string.settings_backup_sync_subtitle_set, destLabel, syncPath)
+                        } else {
+                            stringResource(R.string.settings_backup_sync_subtitle_unset)
+                        },
+                        onClick = { showBackupSyncDialog = true },
+                    )
+                }
+
+                if (backupStatus is SettingsViewModel.BackupStatus.InProgress) {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.settings_backup_working)) },
+                        leadingContent = {
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        },
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    )
+                }
+
+            }
+            CollapsibleSettingsSection(
+                stringResource(R.string.settings_section_about),
+                settingsExpanded[9],
+                { settingsExpanded[9] = !settingsExpanded[9] }) {
+                SettingsItem(
+                    icon = Icons.Filled.Info,
+                    title = stringResource(R.string.settings_about_title),
+                    subtitle = "v${packageInfo.versionName}",
+                    onClick = { showAboutDialog = true },
+                )
+                // #578. Only a copy signed with the GitHub-release key can install a
+                // GitHub release over itself, so on any other channel the honest thing
+                // is to say where updates come from rather than offer a download that
+                // Android will refuse.
+                if (viewModel.updateChannel == UpdateChecker.Channel.GITHUB_RELEASE) {
+                    SettingsToggleItem(
+                        icon = Icons.Filled.SystemUpdate,
+                        title = stringResource(R.string.settings_update_check_title),
+                        subtitle = stringResource(R.string.settings_update_check_subtitle),
+                        checked = updateCheckEnabled,
+                        onCheckedChange = viewModel::setUpdateCheckEnabled,
+                    )
+                    val updateSubtitle = when (val r = updateCheckResult) {
+                        null -> stringResource(R.string.settings_update_check_now_subtitle)
+                        is UpdateChecker.Result.Available ->
+                            stringResource(R.string.settings_update_check_available)
+
+                        is UpdateChecker.Result.UpToDate ->
+                            stringResource(R.string.settings_update_check_up_to_date, r.installedVersion)
+
+                        is UpdateChecker.Result.Failed ->
+                            stringResource(R.string.settings_update_check_failed, r.message)
+
+                        UpdateChecker.Result.WrongChannel ->
+                            stringResource(R.string.settings_update_check_other_channel)
                     }
-                },
-            )
-        } else {
-            SettingsItem(
-                icon = Icons.Filled.SystemUpdate,
-                title = stringResource(R.string.settings_update_check_title),
-                subtitle = stringResource(R.string.settings_update_check_other_channel),
-                onClick = {},
-            )
-        }
-        SettingsItem(
-            icon = Icons.Filled.Favorite,
-            title = stringResource(R.string.settings_support_title),
-            subtitle = stringResource(R.string.settings_support_subtitle),
-            onClick = {
-                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(KOFI_URL)))
-            },
-        )
+                    val available = updateCheckResult as? UpdateChecker.Result.Available
+                    SettingsItem(
+                        icon = if (available != null) Icons.Filled.Download else Icons.Filled.Refresh,
+                        title = if (updateCheckRunning) {
+                            stringResource(R.string.settings_update_checking)
+                        } else if (available != null) {
+                            stringResource(R.string.settings_update_open_release, available.version)
+                        } else {
+                            stringResource(R.string.settings_update_check_now_title)
+                        },
+                        subtitle = updateSubtitle,
+                        onClick = {
+                            if (available != null) {
+                                context.startActivity(
+                                    Intent(Intent.ACTION_VIEW, Uri.parse(available.releaseUrl)),
+                                )
+                            } else if (!updateCheckRunning) {
+                                viewModel.checkForUpdateNow()
+                            }
+                        },
+                    )
+                } else {
+                    SettingsItem(
+                        icon = Icons.Filled.SystemUpdate,
+                        title = stringResource(R.string.settings_update_check_title),
+                        subtitle = stringResource(R.string.settings_update_check_other_channel),
+                        onClick = {},
+                    )
+                }
+                SettingsItem(
+                    icon = Icons.Filled.Favorite,
+                    title = stringResource(R.string.settings_support_title),
+                    subtitle = stringResource(R.string.settings_support_subtitle),
+                    onClick = {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(KOFI_URL)))
+                    },
+                )
 
-        }
-    } // scrollable Column
+            }
+        } // scrollable Column
     } // outer Column
 
     if (showAboutDialog) {
@@ -1085,14 +1128,22 @@ fun SettingsScreen(
 
     if (showKeyboardModeDialog) {
         val modes = listOf(
-            Triple("SECURE", stringResource(R.string.settings_keyboard_mode_secure_label),
-                stringResource(R.string.settings_keyboard_mode_secure_desc)),
-            Triple("STANDARD", stringResource(R.string.settings_keyboard_mode_standard_label),
-                stringResource(R.string.settings_keyboard_mode_standard_desc)),
-            Triple("RAW", stringResource(R.string.settings_keyboard_mode_raw_label),
-                stringResource(R.string.settings_keyboard_mode_raw_desc)),
-            Triple("CUSTOM", stringResource(R.string.settings_keyboard_mode_custom_label),
-                stringResource(R.string.settings_keyboard_mode_custom_desc)),
+            Triple(
+                "SECURE", stringResource(R.string.settings_keyboard_mode_secure_label),
+                stringResource(R.string.settings_keyboard_mode_secure_desc)
+            ),
+            Triple(
+                "STANDARD", stringResource(R.string.settings_keyboard_mode_standard_label),
+                stringResource(R.string.settings_keyboard_mode_standard_desc)
+            ),
+            Triple(
+                "RAW", stringResource(R.string.settings_keyboard_mode_raw_label),
+                stringResource(R.string.settings_keyboard_mode_raw_desc)
+            ),
+            Triple(
+                "CUSTOM", stringResource(R.string.settings_keyboard_mode_custom_label),
+                stringResource(R.string.settings_keyboard_mode_custom_desc)
+            ),
         )
         val current = when {
             rawKeyboardMode -> "RAW"
@@ -1532,6 +1583,7 @@ fun SettingsScreen(
                         pendingPassword = password
                         exportLauncher.launch("haven-backup.enc")
                     }
+
                     is BackupAction.Restore -> {
                         if (remember) {
                             viewModel.saveBackupSyncPassphrase(password)
@@ -1540,9 +1592,11 @@ fun SettingsScreen(
                         }
                         viewModel.importBackup(action.uri, password)
                     }
+
                     is BackupAction.PushRemote -> {
                         viewModel.pushBackupToRemote(password)
                     }
+
                     is BackupAction.PullRemote -> {
                         if (remember) {
                             viewModel.saveBackupSyncPassphrase(password)
@@ -1551,9 +1605,11 @@ fun SettingsScreen(
                         }
                         viewModel.pullBackupFromRemote(password)
                     }
+
                     is BackupAction.EnableAutoSync -> {
                         viewModel.setBackupAutoSync(true, password)
                     }
+
                     is BackupAction.EnableAutoPull -> {
                         viewModel.setBackupAutoPull(true, password)
                     }
@@ -1645,8 +1701,14 @@ preexec() { __osc133 B; __osc133 C }"""
                             .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.small)
                             .padding(8.dp)
                             .clickable {
-                                clipboardManager.setPrimaryClip(android.content.ClipData.newPlainText("bash", bashSnippet))
-                                android.widget.Toast.makeText(context, copiedBashMsg, android.widget.Toast.LENGTH_SHORT).show()
+                                clipboardManager.setPrimaryClip(
+                                    android.content.ClipData.newPlainText(
+                                        "bash",
+                                        bashSnippet
+                                    )
+                                )
+                                android.widget.Toast.makeText(context, copiedBashMsg, android.widget.Toast.LENGTH_SHORT)
+                                    .show()
                             },
                     )
                     Spacer(Modifier.height(12.dp))
@@ -1660,8 +1722,14 @@ preexec() { __osc133 B; __osc133 C }"""
                             .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.small)
                             .padding(8.dp)
                             .clickable {
-                                clipboardManager.setPrimaryClip(android.content.ClipData.newPlainText("zsh", zshSnippet))
-                                android.widget.Toast.makeText(context, copiedZshMsg, android.widget.Toast.LENGTH_SHORT).show()
+                                clipboardManager.setPrimaryClip(
+                                    android.content.ClipData.newPlainText(
+                                        "zsh",
+                                        zshSnippet
+                                    )
+                                )
+                                android.widget.Toast.makeText(context, copiedZshMsg, android.widget.Toast.LENGTH_SHORT)
+                                    .show()
                             },
                     )
                     Spacer(Modifier.height(8.dp))
@@ -1674,8 +1742,12 @@ preexec() { __osc133 B; __osc133 C }"""
             },
             confirmButton = {
                 TextButton(onClick = {
-                    context.startActivity(Intent(Intent.ACTION_VIEW,
-                        Uri.parse("https://gitlab.freedesktop.org/Per_Bothner/specifications/blob/master/proposals/semantic-prompts.md")))
+                    context.startActivity(
+                        Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse("https://gitlab.freedesktop.org/Per_Bothner/specifications/blob/master/proposals/semantic-prompts.md")
+                        )
+                    )
                 }) { Text(stringResource(R.string.settings_osc133_learn_more)) }
             },
             dismissButton = {
@@ -1751,7 +1823,8 @@ private fun BackupSyncDialog(
                             readOnly = true,
                             label = { Text(stringResource(R.string.settings_backup_sync_remote_label)) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-                            modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+                            modifier = Modifier.fillMaxWidth()
+                                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
                         )
                         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                             candidates.forEach { (id, label) ->
@@ -1833,7 +1906,8 @@ private fun BackupSyncDialog(
                                 readOnly = true,
                                 label = { Text(stringResource(R.string.settings_backup_auto_pull_interval_label)) },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(intervalExpanded) },
-                                modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+                                modifier = Modifier.fillMaxWidth()
+                                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
                             )
                             ExposedDropdownMenu(
                                 expanded = intervalExpanded,
@@ -1890,7 +1964,8 @@ private fun BackupPasswordDialog(
     var rememberPassword by remember(initialPassword) { mutableStateOf(initialPassword.isNotEmpty()) }
     val title = titleOverride
         ?: stringResource(if (isExport) R.string.settings_backup_export_dialog_title else R.string.settings_backup_restore_dialog_title)
-    val passwordError = if (isExport && password.length in 1..5) stringResource(R.string.settings_backup_password_min_length) else null
+    val passwordError =
+        if (isExport && password.length in 1..5) stringResource(R.string.settings_backup_password_min_length) else null
     val confirmError = if (isExport && confirmPassword.isNotEmpty() && confirmPassword != password) {
         stringResource(R.string.settings_backup_passwords_mismatch)
     } else null
@@ -1998,7 +2073,11 @@ private fun AboutDialog(
                     style = MaterialTheme.typography.bodySmall,
                 )
                 Text(
-                    text = stringResource(R.string.settings_about_android, Build.VERSION.RELEASE, Build.VERSION.SDK_INT),
+                    text = stringResource(
+                        R.string.settings_about_android,
+                        Build.VERSION.RELEASE,
+                        Build.VERSION.SDK_INT
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -2298,16 +2377,19 @@ private fun AmbiwidthModeDialog(
                     val (title, subtitle) = when (mode) {
                         UserPreferencesRepository.TerminalAmbiwidthMode.NARROW ->
                             stringResource(R.string.settings_ambiwidth_mode_narrow) to
-                            stringResource(R.string.settings_ambiwidth_mode_narrow_desc)
+                                    stringResource(R.string.settings_ambiwidth_mode_narrow_desc)
+
                         UserPreferencesRepository.TerminalAmbiwidthMode.AUTO_NARROW ->
                             stringResource(R.string.settings_ambiwidth_mode_auto_narrow) to
-                            stringResource(R.string.settings_ambiwidth_mode_auto_narrow_desc)
+                                    stringResource(R.string.settings_ambiwidth_mode_auto_narrow_desc)
+
                         UserPreferencesRepository.TerminalAmbiwidthMode.WIDE ->
                             stringResource(R.string.settings_ambiwidth_mode_wide) to
-                            stringResource(R.string.settings_ambiwidth_mode_wide_desc)
+                                    stringResource(R.string.settings_ambiwidth_mode_wide_desc)
+
                         UserPreferencesRepository.TerminalAmbiwidthMode.AUTO_WIDE ->
                             stringResource(R.string.settings_ambiwidth_mode_auto_wide) to
-                            stringResource(R.string.settings_ambiwidth_mode_auto_wide_desc)
+                                    stringResource(R.string.settings_ambiwidth_mode_auto_wide_desc)
                     }
                     ListItem(
                         headlineContent = { Text(title) },
@@ -2351,9 +2433,9 @@ private fun ColorSchemeDialog(
                     // live MaterialTheme so the preview matches what the
                     // terminal will actually look like.
                     val previewBg = if (scheme.isDynamic) MaterialTheme.colorScheme.surface
-                        else Color(scheme.background)
+                    else Color(scheme.background)
                     val previewFg = if (scheme.isDynamic) MaterialTheme.colorScheme.onSurface
-                        else Color(scheme.foreground)
+                    else Color(scheme.foreground)
                     ListItem(
                         headlineContent = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -2560,9 +2642,9 @@ private fun FontSizeDialog(
                     value = sliderValue,
                     onValueChange = { sliderValue = it },
                     valueRange = UserPreferencesRepository.MIN_FONT_SIZE.toFloat()..
-                        UserPreferencesRepository.MAX_FONT_SIZE.toFloat(),
+                            UserPreferencesRepository.MAX_FONT_SIZE.toFloat(),
                     steps = UserPreferencesRepository.MAX_FONT_SIZE -
-                        UserPreferencesRepository.MIN_FONT_SIZE - 1,
+                            UserPreferencesRepository.MIN_FONT_SIZE - 1,
                     modifier = Modifier.padding(top = 8.dp),
                 )
             }
@@ -2621,9 +2703,9 @@ private fun HorizontalPaddingDialog(
                     value = sliderValue,
                     onValueChange = { sliderValue = it },
                     valueRange = UserPreferencesRepository.MIN_HORIZONTAL_PADDING_DP.toFloat()..
-                        UserPreferencesRepository.MAX_HORIZONTAL_PADDING_DP.toFloat(),
+                            UserPreferencesRepository.MAX_HORIZONTAL_PADDING_DP.toFloat(),
                     steps = (UserPreferencesRepository.MAX_HORIZONTAL_PADDING_DP -
-                        UserPreferencesRepository.MIN_HORIZONTAL_PADDING_DP) / step - 1,
+                            UserPreferencesRepository.MIN_HORIZONTAL_PADDING_DP) / step - 1,
                     modifier = Modifier.padding(top = 8.dp),
                 )
             }
@@ -3210,6 +3292,7 @@ private fun ToolbarSimpleEditor(
                 val library = customKeys
                     .filter { it.row == KeyAssignment.OFF }
                     .map { it.item }
+
                 // Rebuild rows preserving the existing on-toolbar order — toggling
                 // one key must not reset a hand-arranged toolbar to defaults (#245).
                 fun KeyAssignment.toRowIndex(): Int? = when (this) {
@@ -3217,6 +3300,7 @@ private fun ToolbarSimpleEditor(
                     KeyAssignment.ROW2 -> 1
                     KeyAssignment.OFF -> null
                 }
+
                 val builtinRows = assignments.mapValues { it.value.toRowIndex() }
                 val customRows = customKeys.map { it.item to it.row.toRowIndex() }
                 val (newRow1, newRow2) = ToolbarEditorOps.rebuildRows(layout, builtinRows, customRows)
@@ -3314,10 +3398,18 @@ private fun CustomKeyRow(
             }
             Spacer(modifier = Modifier.weight(1f))
             IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
-                Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.common_edit), modifier = Modifier.size(16.dp))
+                Icon(
+                    Icons.Filled.Edit,
+                    contentDescription = stringResource(R.string.common_edit),
+                    modifier = Modifier.size(16.dp)
+                )
             }
             IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
-                Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.common_delete), modifier = Modifier.size(16.dp))
+                Icon(
+                    Icons.Filled.Delete,
+                    contentDescription = stringResource(R.string.common_delete),
+                    modifier = Modifier.size(16.dp)
+                )
             }
         }
     }
@@ -3440,10 +3532,22 @@ private fun parseSendSequence(input: String): String {
     while (i < input.length) {
         if (i + 1 < input.length && input[i] == '\\') {
             when (input[i + 1]) {
-                'n' -> { sb.append('\n'); i += 2 }
-                't' -> { sb.append('\t'); i += 2 }
-                'r' -> { sb.append('\r'); i += 2 }
-                '\\' -> { sb.append('\\'); i += 2 }
+                'n' -> {
+                    sb.append('\n'); i += 2
+                }
+
+                't' -> {
+                    sb.append('\t'); i += 2
+                }
+
+                'r' -> {
+                    sb.append('\r'); i += 2
+                }
+
+                '\\' -> {
+                    sb.append('\\'); i += 2
+                }
+
                 'u' -> {
                     if (i + 5 < input.length) {
                         val hex = input.substring(i + 2, i + 6)
@@ -3460,7 +3564,10 @@ private fun parseSendSequence(input: String): String {
                         i++
                     }
                 }
-                else -> { sb.append(input[i]); i++ }
+
+                else -> {
+                    sb.append(input[i]); i++
+                }
             }
         } else {
             sb.append(input[i])
@@ -3827,8 +3934,8 @@ private fun RdpDesktopSizeDialog(
     val wv = w.toIntOrNull()
     val hv = h.toIntOrNull()
     val valid = wv != null && hv != null &&
-        wv in MIN_RDP_DIMENSION..MAX_RDP_DIMENSION &&
-        hv in MIN_RDP_DIMENSION..MAX_RDP_DIMENSION
+            wv in MIN_RDP_DIMENSION..MAX_RDP_DIMENSION &&
+            hv in MIN_RDP_DIMENSION..MAX_RDP_DIMENSION
 
     AlertDialog(
         onDismissRequest = onDismiss,

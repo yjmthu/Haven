@@ -14,12 +14,11 @@
     <string name="rdp_cd_fullscreen">全画面</string>
     <string name="rdp_cd_session_menu">セッションメニュー</string>
     <string name="rdp_cd_exit_fullscreen">全画面を終了</string>
-    <string name="rdp_cd_input_mode_trackpad_on">トラックパッドモード オン（タップでダイレクトタッチ）</string>
-    <string name="rdp_cd_input_mode_direct">ダイレクトタッチモード（タップでトラックパッド）</string>
+    <string name="rdp_cd_pan_mode_off">マウスモード（タップで移動モード）</string>
+    <string name="rdp_cd_pan_mode_on">移動モード（タップでマウスモード）</string>
     <string name="rdp_cd_trackpad_sensitivity">トラックパッドの感度</string>
-    <string name="rdp_orientation_landscape_desc">横向きにロック（タップで縦向きに切替）</string>
-    <string name="rdp_orientation_portrait_desc">縦向きにロック（タップで自動回転に切替）</string>
-    <string name="rdp_orientation_auto_desc">自動回転（タップで横向きに切替）</string>
+    <string name="rdp_orientation_landscape_desc">縦向きに切り替え</string>
+    <string name="rdp_orientation_portrait_desc">横向きに切り替え</string>
 
     <!-- i18n sweep #210 (follow-up batch) -->
     <string name="rdp_hint_legacy_rdp_title">サーバーが旧式の暗号化なし RDP を使用しています</string>
@@ -38,8 +37,6 @@
     <string name="rdp_hint_tls_ciphers_body">Haven は rustls/ring TLS スタックを使用しており、Microsoft の RDP クライアント（SChannel）や OpenSSL よりも対応する暗号スイートが狭い範囲です。最も互換性の高いサーバー側設定は、TLS 1.2 または 1.3 上の ECDHE-RSA + AES-GCM です。</string>
 
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
-    <string name="rdp_cd_two_finger_viewport">2 本指でビューをパン（タップでリモート側のスクロールに切替）</string>
-    <string name="rdp_cd_two_finger_scroll_on">2 本指でリモート側をスクロール（タップでビューのパンに切替）</string>
     <string name="rdp_hint_nla_required_title">サーバーがネットワーク レベル認証 (NLA) を要求しています</string>
     <string name="rdp_hint_nla_required_body">サーバーは NLA で認証するクライアントのみを受け入れる設定ですが、この接続プロファイルでは NLA がオフです。プロファイルで「Network Level Authentication (NLA)」をオンにするか、PC 側で要件を緩めてください: 設定 → システム → リモート デスクトップ → 詳細設定 →「Require devices to use Network Level Authentication」のチェックを外します。</string>
     <string name="rdp_hint_mixed_username_title">NLA はこの形式のユーザー名を使えません</string>

@@ -66,6 +66,7 @@ import androidx.compose.ui.layout.positionInParent
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.IntOffset
@@ -168,7 +169,9 @@ fun HavenNavHost(
     // death. See NavStateViewModel.
     val navStateViewModel: NavStateViewModel = hiltViewModel()
     val selectedScreen by navStateViewModel.selectedScreen.collectAsState()
-    fun requestScreen(screen: Screen) { navStateViewModel.select(screen) }
+    fun requestScreen(screen: Screen) {
+        navStateViewModel.select(screen)
+    }
     // The fresh pager starts at page zero when the host re-enters composition.
     // Do not let that initial settled page overwrite the retained selection
     // before the render effect below has restored it.
@@ -260,11 +263,13 @@ fun HavenNavHost(
             requestScreen(Screen.Desktop)
         }
     }
-    // Debug navigation: scroll pager when DebugReceiver (debug builds only) emits a route
+    // Debug navigation: switch the pager when DebugReceiver (debug builds only)
+    // emits a route. Goes through requestScreen like the nav bar does — an
+    // animateScrollToPage can settle a page short when the target is several
+    // pages away.
     LaunchedEffect(Unit) {
         DebugNavEvents.requests.collect { route ->
-            val target = screens.indexOfFirst { it.route == route }
-            if (target >= 0) pagerState.animateScrollToPage(target)
+            screens.firstOrNull { it.route == route }?.let { requestScreen(it) }
         }
     }
 
@@ -283,44 +288,50 @@ fun HavenNavHost(
                 if (agentUiCommandBus.peekPendingSftpCommand() != null) requestScreen(Screen.Sftp)
             }
             .collect { command ->
-            val screen = when (command) {
-                is sh.haven.core.data.agent.AgentUiCommand.NavigateToSftpPath -> Screen.Sftp
-                is sh.haven.core.data.agent.AgentUiCommand.FocusTerminalSession -> Screen.Terminal
-                is sh.haven.core.data.agent.AgentUiCommand.OpenTerminalSession -> Screen.Terminal
-                is sh.haven.core.data.agent.AgentUiCommand.OpenRemoteDesktop -> Screen.Desktop
-                is sh.haven.core.data.agent.AgentUiCommand.EncryptFile -> Screen.Sftp
-                is sh.haven.core.data.agent.AgentUiCommand.DecryptFile -> Screen.Sftp
-                is sh.haven.core.data.agent.AgentUiCommand.ConnectProfile ->
-                    // Connect lands the user on the Connections tab so they
-                    // can see the connecting → connected status flip.
-                    Screen.Connections
-                is sh.haven.core.data.agent.AgentUiCommand.ConnectFromDeepLink ->
-                    // haven://connect matched a saved profile: show the
-                    // Connections tab for the confirm sheet + status flip.
-                    Screen.Connections
-                is sh.haven.core.data.agent.AgentUiCommand.PrefillNewConnection ->
-                    // haven://connect with no saved match: open the New
-                    // Connection editor (on the Connections tab) pre-filled.
-                    Screen.Connections
-                is sh.haven.core.data.agent.AgentUiCommand.AnswerAuthPrompt ->
-                    // Answering the password/passphrase fallback re-drives the
-                    // connect — same as ConnectProfile, show the Connections tab.
-                    Screen.Connections
-                is sh.haven.core.data.agent.AgentUiCommand.AnswerSessionSelection ->
-                    // Answering the session picker re-drives the attach — same
-                    // as ConnectProfile, show the Connections tab.
-                    Screen.Connections
-                is sh.haven.core.data.agent.AgentUiCommand.OpenBackupPasswordDialog ->
-                    Screen.Settings
-                is sh.haven.core.data.agent.AgentUiCommand.OpenMailRules ->
-                    // Email was removed from this build; the command has no
-                    // destination left, so land somewhere always-visible.
-                    Screen.Connections
+                val screen = when (command) {
+                    is sh.haven.core.data.agent.AgentUiCommand.NavigateToSftpPath -> Screen.Sftp
+                    is sh.haven.core.data.agent.AgentUiCommand.FocusTerminalSession -> Screen.Terminal
+                    is sh.haven.core.data.agent.AgentUiCommand.OpenTerminalSession -> Screen.Terminal
+                    is sh.haven.core.data.agent.AgentUiCommand.OpenRemoteDesktop -> Screen.Desktop
+                    is sh.haven.core.data.agent.AgentUiCommand.EncryptFile -> Screen.Sftp
+                    is sh.haven.core.data.agent.AgentUiCommand.DecryptFile -> Screen.Sftp
+                    is sh.haven.core.data.agent.AgentUiCommand.ConnectProfile ->
+                        // Connect lands the user on the Connections tab so they
+                        // can see the connecting → connected status flip.
+                        Screen.Connections
+
+                    is sh.haven.core.data.agent.AgentUiCommand.ConnectFromDeepLink ->
+                        // haven://connect matched a saved profile: show the
+                        // Connections tab for the confirm sheet + status flip.
+                        Screen.Connections
+
+                    is sh.haven.core.data.agent.AgentUiCommand.PrefillNewConnection ->
+                        // haven://connect with no saved match: open the New
+                        // Connection editor (on the Connections tab) pre-filled.
+                        Screen.Connections
+
+                    is sh.haven.core.data.agent.AgentUiCommand.AnswerAuthPrompt ->
+                        // Answering the password/passphrase fallback re-drives the
+                        // connect — same as ConnectProfile, show the Connections tab.
+                        Screen.Connections
+
+                    is sh.haven.core.data.agent.AgentUiCommand.AnswerSessionSelection ->
+                        // Answering the session picker re-drives the attach — same
+                        // as ConnectProfile, show the Connections tab.
+                        Screen.Connections
+
+                    is sh.haven.core.data.agent.AgentUiCommand.OpenBackupPasswordDialog ->
+                        Screen.Settings
+
+                    is sh.haven.core.data.agent.AgentUiCommand.OpenMailRules ->
+                        // Email was removed from this build; the command has no
+                        // destination left, so land somewhere always-visible.
+                        Screen.Connections
+                }
+                // Reactive: e.g. OpenRemoteDesktop waits for Desktop to appear
+                // rather than silently no-op'ing when it's still hidden.
+                requestScreen(screen)
             }
-            // Reactive: e.g. OpenRemoteDesktop waits for Desktop to appear
-            // rather than silently no-op'ing when it's still hidden.
-            requestScreen(screen)
-        }
     }
 
     val terminalFontSize by preferencesRepository.terminalFontSize
@@ -404,8 +415,21 @@ fun HavenNavHost(
         .collectAsState(initial = false)
     val showTerminalTabBar by preferencesRepository.showTerminalTabBar
         .collectAsState(initial = true)
-    val desktopInputMode by preferencesRepository.desktopInputMode
-        .collectAsState(initial = "DIRECT")
+    val desktopBuiltinKeyboard by preferencesRepository.desktopBuiltinKeyboard
+        .collectAsState(initial = false)
+    val desktopKeyboardVisible by desktopViewModel.builtinKeyboardVisible.collectAsState()
+    val desktopAnyLiveTab by desktopViewModel.anyLiveTab.collectAsState()
+    val desktopKeyboardScale by preferencesRepository.desktopKeyboardScale
+        .collectAsState(initial = 1f)
+    val desktopKeyboardX by preferencesRepository.desktopKeyboardXFraction
+        .collectAsState(initial = 0f)
+    val desktopKeyboardY by preferencesRepository.desktopKeyboardYFraction
+        .collectAsState(initial = 0.27f)
+    val desktopKeyboardLayout = sh.haven.core.ui.RemoteKeyboardLayout(
+        scale = desktopKeyboardScale,
+        xFraction = desktopKeyboardX,
+        yFraction = desktopKeyboardY,
+    )
     val desktopTouchpadSensitivity by preferencesRepository.desktopTouchpadSensitivity
         .collectAsState(initial = 1f)
 
@@ -483,17 +507,11 @@ fun HavenNavHost(
     val pagerContent: @Composable (Modifier) -> Unit = { modifier ->
         HorizontalPager(
             state = pagerState,
-            // The Terminal and SFTP pages drive the pager themselves through
-            // pagerSwipeOverride (so they can co-exist with the terminal's own
-            // gestures and SFTP's flick-to-navigate-up). Disable the pager's
-            // BUILT-IN scrollable on those pages so it can't also move the
-            // pager — otherwise two controllers fight: the override scrolls a
-            // little while the built-in flings the pager a couple of pages on,
-            // leaving the page and the nav selection inconsistent. The
-            // built-in stays enabled on the other pages (Connections/Desktop/
-            // Keys/Settings), which have no override and rely on it.
-            userScrollEnabled = !desktopFullscreen && !terminalFullscreen && !desktopConnected && !terminalSelectionActive &&
-                selectedScreen != Screen.Terminal && selectedScreen != Screen.Sftp,
+            // Screen switching happens through the bottom navigation / rail
+            // only: horizontal swipes between Connect/Terminal/Desktop/Keys/
+            // Files/Settings were too easy to trigger by accident (and fought
+            // in-app gestures). The SFTP page keeps its own flick handler.
+            userScrollEnabled = false,
             modifier = modifier.nestedScroll(consumeHorizontalNestedScroll),
         ) { page ->
             // While the Terminal pane is showing, the root Scaffold paints the
@@ -510,214 +528,222 @@ fun HavenNavHost(
                     Modifier
                 }
             Box(modifier = Modifier.fillMaxSize().then(pageBackground)) {
-            when (screens[page]) {
-                Screen.Connections -> ConnectionsScreen(
-                    onNavigateToTerminal = { profileId ->
-                        pendingTerminalProfileId = profileId
-                        coroutineScope.launch {
-                            requestScreen(Screen.Terminal)
-                        }
-                    },
-                    onNavigateToNewSession = { profileId ->
-                        pendingNewSessionProfileId = profileId
-                        coroutineScope.launch {
-                            requestScreen(Screen.Terminal)
-                        }
-                    },
-                    // VNC/RDP navigation is handled by the always-composed
-                    // collector above (HavenNavHost), not via these callbacks —
-                    // see the navigateToVnc/navigateToRdp LaunchedEffects (#121).
-                    onNavigateToConnections = {
-                        coroutineScope.launch {
-                            requestScreen(Screen.Connections)
-                        }
-                    },
-                    workspaceSection = { sh.haven.app.workspace.ui.WorkspaceSection() },
-                )
-                Screen.Terminal -> {
-                    TerminalScreen(
-                        navigateToProfileId = pendingTerminalProfileId,
-                        newSessionProfileId = pendingNewSessionProfileId,
-                        isActive = pagerState.settledPage == pageOf(Screen.Terminal),
-                        fontSize = terminalFontSize,
-                        horizontalPaddingDp = terminalHorizontalPadding,
-                        terminalFontPath = terminalFontPath,
-                        toolbarLayout = toolbarLayout,
-                        navBlockMode = navBlockMode,
-                        toolbarUniformGrid = toolbarUniformGrid,
-                        editModeControlsPlacement = editModeControlsPlacement,
-                        desktopKeyPlacement = desktopKeyPlacement,
-                        fullscreenButtonCorner = fullscreenButtonCorner,
-                        onFullscreenButtonCornerChange = {
-                            coroutineScope.launch { preferencesRepository.setFullscreenButtonCorner(it) }
-                        },
-                        toolbarMinKeyWidth = toolbarMinKeyWidth,
-                        showSearchButton = showSearchButton,
-                        showCopyOutputButton = showCopyOutputButton,
-                        keepScreenOnInTerminal = keepScreenOnInTerminal,
-                        autoShowKeyboardInTerminal = autoShowKeyboardInTerminal,
-                        mouseInputEnabled = mouseInputEnabled,
-                        terminalRightClick = terminalRightClick,
-                        tapToPositionCursorOnPrompt = tapToPositionCursorOnPrompt,
-                        allowStandardKeyboard = allowStandardKeyboard,
-                        onToggleStandardKeyboard = {
+                when (screens[page]) {
+                    Screen.Connections -> ConnectionsScreen(
+                        onNavigateToTerminal = { profileId ->
+                            pendingTerminalProfileId = profileId
                             coroutineScope.launch {
-                                preferencesRepository.setAllowStandardKeyboard(!allowStandardKeyboard)
+                                requestScreen(Screen.Terminal)
                             }
                         },
-                        rawKeyboardMode = rawKeyboardMode,
-                        customKeyboardFlags = customKeyboardFlags,
-                        onToggleRawKeyboard = {
+                        onNavigateToNewSession = { profileId ->
+                            pendingNewSessionProfileId = profileId
                             coroutineScope.launch {
-                                preferencesRepository.setRawKeyboardMode(!rawKeyboardMode)
+                                requestScreen(Screen.Terminal)
                             }
                         },
-                        interceptCtrlShiftV = interceptCtrlShiftV,
-                        reflowTerminalOnKeyboard = reflowTerminalOnKeyboard,
-                        showTabBar = showTerminalTabBar,
-                        onFullscreenChanged = { terminalFullscreen = it },
+                        // VNC/RDP navigation is handled by the always-composed
+                        // collector above (HavenNavHost), not via these callbacks —
+                        // see the navigateToVnc/navigateToRdp LaunchedEffects (#121).
                         onNavigateToConnections = {
                             coroutineScope.launch {
                                 requestScreen(Screen.Connections)
                             }
                         },
-                        onNavigateToVnc = { host, port, username, password, sshForward, sshSessionId, colorDepth ->
-                            desktopViewModel.addVncSession(
-                                host, port, password, username,
-                                sshForward = sshForward,
-                                sshSessionId = sshSessionId,
-                                colorDepth = colorDepth,
-                            )
-                            coroutineScope.launch {
-                                requestScreen(Screen.Desktop)
-                            }
-                        },
-                        onSelectionActiveChanged = { terminalSelectionActive = it },
-                        onSwipeArrowsActiveChanged = { terminalSwipeArrowsActive = it },
-                        onTransparentChanged = { terminalTransparent = it },
-                        onBackgroundColorChanged = { terminalBackground = it },
-                        onReorderModeChanged = { terminalReorderMode = it },
-                        onToolbarLayoutChanged = { newLayout ->
-                            coroutineScope.launch {
-                                preferencesRepository.setToolbarLayout(newLayout)
-                            }
-                        },
-                        snippetLibrary = snippetLibrary,
-                        onSnippetLibraryChanged = { newLibrary ->
-                            coroutineScope.launch {
-                                preferencesRepository.setSnippetLibrary(newLibrary)
-                            }
-                        },
-                        onOpenToolbarSettings = {
-                            openToolbarConfig = true
-                            coroutineScope.launch {
-                                requestScreen(Screen.Settings)
-                            }
-                        },
-                        onNavigateToSftp = {
-                            coroutineScope.launch {
-                                requestScreen(Screen.Sftp)
-                            }
-                        },
-                        terminalModifier = Modifier.pagerSwipeOverride(
-                            pagerState, coroutineScope,
-                            isSelectionActive = { terminalSelectionActive || terminalReorderMode || terminalSwipeArrowsActive },
-                            onSwipeActiveChange = { isUserSwiping = it },
-                            onAdoptPage = { page -> screens.getOrNull(page)?.let { requestScreen(it) } },
-                        ),
+                        workspaceSection = { sh.haven.app.workspace.ui.WorkspaceSection() },
                     )
-                    // Clear pending IDs after the terminal has had a chance to consume them.
-                    // Use a small delay to avoid cancelling the LaunchedEffect in TerminalScreen
-                    // that calls selectTabByProfileId (which may need up to 5s to find the tab).
-                    LaunchedEffect(pendingTerminalProfileId) {
-                        if (pendingTerminalProfileId != null) {
-                            kotlinx.coroutines.delay(6000)
-                            pendingTerminalProfileId = null
-                        }
-                    }
-                    LaunchedEffect(pendingNewSessionProfileId) {
-                        if (pendingNewSessionProfileId != null) {
-                            kotlinx.coroutines.delay(6000)
-                            pendingNewSessionProfileId = null
-                        }
-                    }
-                }
-                Screen.Desktop -> {
-                    DesktopScreen(
-                        desktopViewModel = desktopViewModel,
-                        toolbarLayout = toolbarLayout,
-                        navBlockMode = navBlockMode,
-                        toolbarUniformGrid = toolbarUniformGrid,
-                        toolbarKeyScale = toolbarKeyScale,
-                        rdpChipAnchor = rdpChipAnchor,
-                        onRdpChipAnchorChange = {
-                            coroutineScope.launch { preferencesRepository.setRdpChipAnchor(it) }
-                        },
-                        inputMode = desktopInputMode,
-                        onSetInputMode = { mode ->
-                            coroutineScope.launch { preferencesRepository.setDesktopInputMode(mode) }
-                        },
-                        touchpadSensitivity = desktopTouchpadSensitivity,
-                        onSetTouchpadSensitivity = { value ->
-                            coroutineScope.launch { preferencesRepository.setDesktopTouchpadSensitivity(value) }
-                        },
-                        isActive = pagerState.settledPage == pageOf(Screen.Desktop),
-                        fullscreen = desktopFullscreen,
-                        onFullscreenChanged = { desktopFullscreen = it },
-                        onConnectedChanged = { desktopConnected = it },
-                    )
-                }
-                Screen.Sftp -> {
-                    // Share one SftpViewModel instance between the flick
-                    // handler (which needs to read currentPath + call
-                    // navigateUp) and the SftpScreen itself. hiltViewModel()
-                    // returns the same instance within a composition scope.
-                    val sftpViewModel: SftpViewModel = hiltViewModel()
-                    val sftpCurrentPath by sftpViewModel.currentPath.collectAsState()
-                    val sftpSelectedPaths by sftpViewModel.selectedPaths.collectAsState()
-                    val sftpModifier = Modifier
-                        .fillMaxSize()
-                        .pagerSwipeOverride(
-                            pagerState = pagerState,
-                            scope = coroutineScope,
-                            isSelectionActive = { sftpSelectedPaths.isNotEmpty() },
-                            onSwipeActiveChange = { isUserSwiping = it },
-                            onAdoptPage = { page -> screens.getOrNull(page)?.let { requestScreen(it) } },
-                            onFlick = { rightward ->
-                                // Fast rightward flick inside a subdirectory
-                                // navigates up one level instead of switching
-                                // tabs (#89).
-                                val path = sftpCurrentPath
-                                if (rightward && path != "/" && path.isNotEmpty()) {
-                                    sftpViewModel.navigateUp()
-                                    true
-                                } else {
-                                    false
+
+                    Screen.Terminal -> {
+                        TerminalScreen(
+                            navigateToProfileId = pendingTerminalProfileId,
+                            newSessionProfileId = pendingNewSessionProfileId,
+                            isActive = pagerState.settledPage == pageOf(Screen.Terminal),
+                            fontSize = terminalFontSize,
+                            horizontalPaddingDp = terminalHorizontalPadding,
+                            terminalFontPath = terminalFontPath,
+                            toolbarLayout = toolbarLayout,
+                            navBlockMode = navBlockMode,
+                            toolbarUniformGrid = toolbarUniformGrid,
+                            editModeControlsPlacement = editModeControlsPlacement,
+                            desktopKeyPlacement = desktopKeyPlacement,
+                            fullscreenButtonCorner = fullscreenButtonCorner,
+                            onFullscreenButtonCornerChange = {
+                                coroutineScope.launch { preferencesRepository.setFullscreenButtonCorner(it) }
+                            },
+                            toolbarMinKeyWidth = toolbarMinKeyWidth,
+                            showSearchButton = showSearchButton,
+                            showCopyOutputButton = showCopyOutputButton,
+                            keepScreenOnInTerminal = keepScreenOnInTerminal,
+                            autoShowKeyboardInTerminal = autoShowKeyboardInTerminal,
+                            useBuiltinKeyboard = desktopBuiltinKeyboard,
+                            mouseInputEnabled = mouseInputEnabled,
+                            terminalRightClick = terminalRightClick,
+                            tapToPositionCursorOnPrompt = tapToPositionCursorOnPrompt,
+                            allowStandardKeyboard = allowStandardKeyboard,
+                            onToggleStandardKeyboard = {
+                                coroutineScope.launch {
+                                    preferencesRepository.setAllowStandardKeyboard(!allowStandardKeyboard)
                                 }
                             },
+                            rawKeyboardMode = rawKeyboardMode,
+                            customKeyboardFlags = customKeyboardFlags,
+                            onToggleRawKeyboard = {
+                                coroutineScope.launch {
+                                    preferencesRepository.setRawKeyboardMode(!rawKeyboardMode)
+                                }
+                            },
+                            interceptCtrlShiftV = interceptCtrlShiftV,
+                            reflowTerminalOnKeyboard = reflowTerminalOnKeyboard,
+                            showTabBar = showTerminalTabBar,
+                            onFullscreenChanged = { terminalFullscreen = it },
+                            onNavigateToConnections = {
+                                coroutineScope.launch {
+                                    requestScreen(Screen.Connections)
+                                }
+                            },
+                            onNavigateToVnc = { host, port, username, password, sshForward, sshSessionId, colorDepth ->
+                                desktopViewModel.addVncSession(
+                                    host, port, password, username,
+                                    sshForward = sshForward,
+                                    sshSessionId = sshSessionId,
+                                    colorDepth = colorDepth,
+                                )
+                                coroutineScope.launch {
+                                    requestScreen(Screen.Desktop)
+                                }
+                            },
+                            onSelectionActiveChanged = { terminalSelectionActive = it },
+                            onSwipeArrowsActiveChanged = { terminalSwipeArrowsActive = it },
+                            onTransparentChanged = { terminalTransparent = it },
+                            onBackgroundColorChanged = { terminalBackground = it },
+                            onReorderModeChanged = { terminalReorderMode = it },
+                            onToolbarLayoutChanged = { newLayout ->
+                                coroutineScope.launch {
+                                    preferencesRepository.setToolbarLayout(newLayout)
+                                }
+                            },
+                            snippetLibrary = snippetLibrary,
+                            onSnippetLibraryChanged = { newLibrary ->
+                                coroutineScope.launch {
+                                    preferencesRepository.setSnippetLibrary(newLibrary)
+                                }
+                            },
+                            onOpenToolbarSettings = {
+                                openToolbarConfig = true
+                                coroutineScope.launch {
+                                    requestScreen(Screen.Settings)
+                                }
+                            },
+                            onNavigateToSftp = {
+                                coroutineScope.launch {
+                                    requestScreen(Screen.Sftp)
+                                }
+                            },
+                            terminalModifier = Modifier,
                         )
-                    SftpScreen(
-                        sftpModifier = sftpModifier,
-                        onAttachFinished = {
-                            // Once the picker resolves (confirm or cancel)
-                            // bring the user back to the Terminal page so the
-                            // shell-quoted path lands at their cursor where
-                            // they can see it.
-                            coroutineScope.launch {
-                                requestScreen(Screen.Terminal)
+                        // Clear pending IDs after the terminal has had a chance to consume them.
+                        // Use a small delay to avoid cancelling the LaunchedEffect in TerminalScreen
+                        // that calls selectTabByProfileId (which may need up to 5s to find the tab).
+                        LaunchedEffect(pendingTerminalProfileId) {
+                            if (pendingTerminalProfileId != null) {
+                                kotlinx.coroutines.delay(6000)
+                                pendingTerminalProfileId = null
                             }
-                        },
-                        viewModel = sftpViewModel,
-                    )
+                        }
+                        LaunchedEffect(pendingNewSessionProfileId) {
+                            if (pendingNewSessionProfileId != null) {
+                                kotlinx.coroutines.delay(6000)
+                                pendingNewSessionProfileId = null
+                            }
+                        }
+                    }
+
+                    Screen.Desktop -> {
+                        DesktopScreen(
+                            desktopViewModel = desktopViewModel,
+                            toolbarLayout = toolbarLayout,
+                            navBlockMode = navBlockMode,
+                            toolbarUniformGrid = toolbarUniformGrid,
+                            toolbarKeyScale = toolbarKeyScale,
+                            rdpChipAnchor = rdpChipAnchor,
+                            onRdpChipAnchorChange = {
+                                coroutineScope.launch { preferencesRepository.setRdpChipAnchor(it) }
+                            },
+                            builtinKeyboard = desktopBuiltinKeyboard,
+                            touchpadSensitivity = desktopTouchpadSensitivity,
+                            onSetTouchpadSensitivity = { value ->
+                                coroutineScope.launch { preferencesRepository.setDesktopTouchpadSensitivity(value) }
+                            },
+                            keyboardLayout = desktopKeyboardLayout,
+                            onKeyboardLayoutChange = { layout ->
+                                coroutineScope.launch {
+                                    preferencesRepository.setDesktopKeyboardLayout(
+                                        layout.scale, layout.xFraction, layout.yFraction,
+                                    )
+                                }
+                            },
+                            isActive = pagerState.settledPage == pageOf(Screen.Desktop),
+                            fullscreen = desktopFullscreen,
+                            onFullscreenChanged = { desktopFullscreen = it },
+                            onConnectedChanged = { desktopConnected = it },
+                        )
+                    }
+
+                    Screen.Sftp -> {
+                        // Share one SftpViewModel instance between the flick
+                        // handler (which needs to read currentPath + call
+                        // navigateUp) and the SftpScreen itself. hiltViewModel()
+                        // returns the same instance within a composition scope.
+                        val sftpViewModel: SftpViewModel = hiltViewModel()
+                        val sftpCurrentPath by sftpViewModel.currentPath.collectAsState()
+                        val sftpSelectedPaths by sftpViewModel.selectedPaths.collectAsState()
+                        val sftpModifier = Modifier
+                            .fillMaxSize()
+                            .pagerSwipeOverride(
+                                pagerState = pagerState,
+                                scope = coroutineScope,
+                                isSelectionActive = { sftpSelectedPaths.isNotEmpty() },
+                                onSwipeActiveChange = { isUserSwiping = it },
+                                onAdoptPage = { page -> screens.getOrNull(page)?.let { requestScreen(it) } },
+                                // Keep the flick-to-parent gesture; screen
+                                // switching is off like every other page.
+                                allowPageSwitch = false,
+                                onFlick = { rightward ->
+                                    // Fast rightward flick inside a subdirectory
+                                    // navigates up one level instead of switching
+                                    // tabs (#89).
+                                    val path = sftpCurrentPath
+                                    if (rightward && path != "/" && path.isNotEmpty()) {
+                                        sftpViewModel.navigateUp()
+                                        true
+                                    } else {
+                                        false
+                                    }
+                                },
+                            )
+                        SftpScreen(
+                            sftpModifier = sftpModifier,
+                            onAttachFinished = {
+                                // Once the picker resolves (confirm or cancel)
+                                // bring the user back to the Terminal page so the
+                                // shell-quoted path lands at their cursor where
+                                // they can see it.
+                                coroutineScope.launch {
+                                    requestScreen(Screen.Terminal)
+                                }
+                            },
+                            viewModel = sftpViewModel,
+                        )
+                    }
+
+                    Screen.Keys -> KeysScreen()
+                    Screen.Settings -> {
+                        SettingsScreen(
+                            openToolbarConfig = openToolbarConfig,
+                            onToolbarConfigConsumed = { openToolbarConfig = false },
+                        )
+                    }
                 }
-                Screen.Keys -> KeysScreen()
-                Screen.Settings -> {
-                    SettingsScreen(
-                        openToolbarConfig = openToolbarConfig,
-                        onToolbarConfigConsumed = { openToolbarConfig = false },
-                    )
-                }
-            }
             }
         }
     }
@@ -756,6 +782,7 @@ fun HavenNavHost(
             terminalBackground != null -> terminalBackground!!
             appBackgroundOpacity < 1f ->
                 MaterialTheme.colorScheme.background.copy(alpha = appBackgroundOpacity)
+
             else -> MaterialTheme.colorScheme.background
         },
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.exclude(WindowInsets.ime),
@@ -766,7 +793,17 @@ fun HavenNavHost(
             // pager override gestures still switch screens, and the bar returns
             // as soon as the pager settles anywhere else.
             val hideForTerminalPref = hideNavBarInTerminal && selectedScreen == Screen.Terminal
-            if (!desktopFullscreen && !terminalFullscreen && !useSideNavigation && !hideForTerminalPref) {
+            // The built-in desktop keyboard docks at the window bottom in
+            // portrait, covering the tab bar. Yield to it so the keyboard can
+            // reach the bottom edge instead of stopping above the bar; the bar
+            // returns the moment the panel closes.
+            val builtinKeyboardDocked = desktopBuiltinKeyboard && desktopKeyboardVisible &&
+                    desktopAnyLiveTab && selectedScreen == Screen.Desktop &&
+                    LocalConfiguration.current.orientation ==
+                    android.content.res.Configuration.ORIENTATION_PORTRAIT
+            if (!desktopFullscreen && !terminalFullscreen && !useSideNavigation &&
+                !hideForTerminalPref && !builtinKeyboardDocked
+            ) {
                 NavigationBar {
                     navScreens.forEachIndexed { index, screen ->
                         val isDragged = index == navDragIndex
@@ -890,25 +927,30 @@ fun HavenNavHost(
                                 .verticalScroll(rememberScrollState()),
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
-                        navScreens.forEach { screen ->
-                            val pageIndex = screens.indexOf(screen)
-                            if (pageIndex >= 0) {
-                                NavigationRailItem(
-                                    icon = { Icon(screen.icon, contentDescription = stringResource(screen.labelRes)) },
-                                    label = {
-                                        Text(
-                                            text = stringResource(screen.labelRes),
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            softWrap = false,
-                                        )
-                                    },
-                                    alwaysShowLabel = false,
-                                    selected = screen == selectedScreen,
-                                    onClick = { requestScreen(screen) },
-                                )
+                            navScreens.forEach { screen ->
+                                val pageIndex = screens.indexOf(screen)
+                                if (pageIndex >= 0) {
+                                    NavigationRailItem(
+                                        icon = {
+                                            Icon(
+                                                screen.icon,
+                                                contentDescription = stringResource(screen.labelRes)
+                                            )
+                                        },
+                                        label = {
+                                            Text(
+                                                text = stringResource(screen.labelRes),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                softWrap = false,
+                                            )
+                                        },
+                                        alwaysShowLabel = false,
+                                        selected = screen == selectedScreen,
+                                        onClick = { requestScreen(screen) },
+                                    )
+                                }
                             }
-                        }
                         }
                     }
                 }
@@ -1015,6 +1057,8 @@ private fun Modifier.pagerSwipeOverride(
      * `rightward = true` when totalX > 0 (drag went left→right).
      */
     onFlick: (rightward: Boolean) -> Boolean = { false },
+    /** When false the pager never moves: the gesture is only offered to [onFlick]. */
+    allowPageSwitch: Boolean = true,
 ): Modifier = pointerInput(pagerState) {
     val touchSlopPx = viewConfiguration.touchSlop
     val flickVelocityPx = with(density) { 200.dp.toPx() }
@@ -1049,7 +1093,9 @@ private fun Modifier.pagerSwipeOverride(
         // tracks the finger and the release animation is the only motion.
         var swiping = false
         fun beginSwipe() {
-            if (!swiping) { swiping = true; onSwipeActiveChange(true) }
+            if (!swiping) {
+                swiping = true; onSwipeActiveChange(true)
+            }
         }
 
         var change: PointerInputChange? = down
@@ -1076,8 +1122,8 @@ private fun Modifier.pagerSwipeOverride(
             }
 
             // Forward horizontal drags straight to the pager (unless selection
-            // is active).
-            if (isHorizontal && !selectionInterrupted) {
+            // is active, or the page opted out of switching pages).
+            if (allowPageSwitch && isHorizontal && !selectionInterrupted) {
                 if (isSelectionActive()) {
                     // Selection activated mid-swipe — snap back after the loop.
                     selectionInterrupted = true
@@ -1088,7 +1134,14 @@ private fun Modifier.pagerSwipeOverride(
             }
         } while (change?.pressed == true)
 
-        if (isHorizontal && !selectionInterrupted && !isSelectionActive()) {
+        if (!allowPageSwitch) {
+            // Page switching is disabled: only a fast flick may be claimed by
+            // the page's own handler (SFTP navigates to the parent folder).
+            if (isHorizontal && !isSelectionActive()) {
+                val releaseVelocity = velocityTracker.calculateVelocity().x
+                if (abs(releaseVelocity) >= flickVelocityPx) onFlick(totalX > 0)
+            }
+        } else if (isHorizontal && !selectionInterrupted && !isSelectionActive()) {
             // Release decision — fast flick first (per-page hook gets a
             // chance to claim it), then fall back to the standard
             // page-threshold behaviour.

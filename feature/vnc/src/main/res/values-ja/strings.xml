@@ -16,12 +16,11 @@
     <string name="vnc_cd_fullscreen">全画面</string>
     <string name="vnc_cd_session_menu">セッションメニュー</string>
     <string name="vnc_cd_exit_fullscreen">全画面を終了</string>
-    <string name="vnc_cd_input_mode_trackpad_on">トラックパッドモード オン（タップでダイレクトタッチ）</string>
-    <string name="vnc_cd_input_mode_direct">ダイレクトタッチモード（タップでトラックパッド）</string>
+    <string name="vnc_cd_pan_mode_off">マウスモード（タップで移動モード）</string>
+    <string name="vnc_cd_pan_mode_on">移動モード（タップでマウスモード）</string>
     <string name="vnc_cd_trackpad_sensitivity">トラックパッドの感度</string>
-    <string name="vnc_orientation_landscape_desc">横向きにロック（タップで縦向きに切替）</string>
-    <string name="vnc_orientation_portrait_desc">縦向きにロック（タップで自動回転に切替）</string>
-    <string name="vnc_orientation_auto_desc">自動回転（タップで横向きに切替）</string>
+    <string name="vnc_orientation_landscape_desc">縦向きに切り替え</string>
+    <string name="vnc_orientation_portrait_desc">横向きに切り替え</string>
     <!-- Touch gesture help (#250) -->
     <string name="vnc_cd_gesture_help">タッチ操作</string>
     <string name="vnc_cd_save_default">現在のサイズをこのアプリのデフォルトとして保存</string>
@@ -30,7 +29,5 @@
     <string name="vnc_gesture_help_three_finger">3 本指でピンチすると、全画面のままアプリのサイズを変更できます。</string>
 
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
-    <string name="vnc_cd_two_finger_viewport">2 本指でビューをパン（タップでリモート側のスクロールに切替）</string>
-    <string name="vnc_cd_two_finger_scroll_on">2 本指でリモート側をスクロール（タップでビューのパンに切替）</string>
     <string name="vnc_cd_paste">クリップボードを貼り付け</string>
 </resources>

@@ -31,4 +31,6 @@
     <string name="common_github">GitHub</string>
     <string name="common_support">지원</string>
     <string name="common_unlock">잠금 해제</string>
+    <!-- Built-in desktop keyboard (VNC/RDP) -->
+    <string name="remote_keyboard_hide">키보드 숨기기</string>
 </resources>

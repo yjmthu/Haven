@@ -13,12 +13,11 @@
     <string name="rdp_cd_fullscreen">전체 화면</string>
     <string name="rdp_cd_session_menu">세션 메뉴</string>
     <string name="rdp_cd_exit_fullscreen">전체 화면 종료</string>
-    <string name="rdp_cd_input_mode_trackpad_on">트랙패드 모드 켜짐 (직접 터치로 전환하려면 탭)</string>
-    <string name="rdp_cd_input_mode_direct">직접 터치 모드 (트랙패드로 전환하려면 탭)</string>
+    <string name="rdp_cd_pan_mode_off">마우스 모드(탭하여 이동 모드)</string>
+    <string name="rdp_cd_pan_mode_on">이동 모드(탭하여 마우스 모드)</string>
     <string name="rdp_cd_trackpad_sensitivity">트랙패드 감도</string>
-    <string name="rdp_orientation_landscape_desc">가로 고정 (세로로 전환하려면 탭)</string>
-    <string name="rdp_orientation_portrait_desc">세로 고정 (자동으로 전환하려면 탭)</string>
-    <string name="rdp_orientation_auto_desc">자동 회전 (가로로 전환하려면 탭)</string>
+    <string name="rdp_orientation_landscape_desc">세로 모드로 전환</string>
+    <string name="rdp_orientation_portrait_desc">가로 모드로 전환</string>
 
     <!-- i18n sweep #210 (follow-up batch) -->
     <string name="rdp_hint_legacy_rdp_title">서버가 암호화되지 않은 구형 RDP를 사용 중입니다</string>
@@ -37,8 +36,6 @@
     <string name="rdp_hint_tls_ciphers_body">Haven은 rustls/ring TLS 스택을 사용하며, Microsoft의 RDP 클라이언트(SChannel)나 OpenSSL보다 지원하는 암호 범위가 좁습니다. 가장 호환성이 좋은 서버 측 설정은 TLS 1.2 또는 1.3에서의 ECDHE-RSA + AES-GCM입니다.</string>
 
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
-    <string name="rdp_cd_two_finger_viewport">두 손가락으로 화면 이동 (원격 스크롤로 전환하려면 탭)</string>
-    <string name="rdp_cd_two_finger_scroll_on">두 손가락으로 원격 스크롤 (화면 이동으로 전환하려면 탭)</string>
     <string name="rdp_hint_nla_required_title">서버가 네트워크 수준 인증(NLA)을 요구합니다</string>
     <string name="rdp_hint_nla_required_body">서버는 NLA로 인증하는 클라이언트만 허용하도록 설정되어 있지만, 이 연결 프로필에서는 NLA가 꺼져 있습니다. 프로필에서 “Network Level Authentication (NLA)”을 켜거나, PC에서 요구 사항을 완화하세요: 설정 → 시스템 → 원격 데스크톱 → 고급 설정 → “Require devices to use Network Level Authentication” 체크 해제.</string>
     <string name="rdp_hint_mixed_username_title">NLA는 이 형식의 사용자 이름을 사용할 수 없습니다</string>

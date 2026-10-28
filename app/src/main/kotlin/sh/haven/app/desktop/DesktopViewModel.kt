@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -92,6 +94,7 @@ class DesktopViewModel @Inject constructor(
                         colorDepth = profile.vncColorDepth,
                     )
                 }
+
                 profile.isRdp -> {
                     val sshSessionId =
                         if (profile.rdpSshForward && profile.rdpSshProfileId != null) {
@@ -112,6 +115,7 @@ class DesktopViewModel @Inject constructor(
                         colorDepth = profile.rdpColorDepth,
                     )
                 }
+
                 else -> Log.w(
                     TAG,
                     "OpenRemoteDesktop: ${profile.label} is ${profile.connectionType}, not VNC/RDP",
@@ -144,6 +148,26 @@ class DesktopViewModel @Inject constructor(
     val activeTabConnected: StateFlow<Boolean> = combine(_tabs, _activeTabIndex) { tabs, idx ->
         tabs.getOrNull(idx)?.connected?.value == true
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    /**
+     * True while at least one tab is either connected or still establishing its
+     * session. Drives the activity orientation hold: a tab that has already
+     * failed keeps its error panel on screen, but it must not keep the whole app
+     * in landscape after the user leaves the remote desktop.
+     */
+    val anyLiveTab: StateFlow<Boolean> = _tabs
+        .flatMapLatest { tabs ->
+            if (tabs.isEmpty()) {
+                flowOf(false)
+            } else {
+                combine(tabs.map { tab ->
+                    combine(tab.connected, tab.error) { connected, error ->
+                        connected || error == null
+                    }
+                }) { live -> live.any { it } }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     // --- Tab management ---
 
@@ -277,6 +301,10 @@ class DesktopViewModel @Inject constructor(
         val tab = tabs.removeAt(index)
         disconnectTab(tab)
         _tabs.value = tabs
+        // Closing the last session closes the built-in panel too: a stale
+        // "visible" flag used to keep the host hiding its tab bar after the
+        // user left the desktop with the X button.
+        if (tabs.isEmpty()) _builtinKeyboardVisible.value = false
         if (_activeTabIndex.value >= tabs.size && tabs.isNotEmpty()) {
             _activeTabIndex.value = tabs.size - 1
         }
@@ -314,8 +342,10 @@ class DesktopViewModel @Inject constructor(
             when {
                 protocol == "VNC" && tab is DesktopTab.Vnc && tab.profileId == null ->
                     tab.label == "$host:$port"
+
                 protocol == "RDP" && tab is DesktopTab.Rdp && tab.profileId == null ->
                     tab.label == "$host:$port"
+
                 else -> false
             }
         }
@@ -398,7 +428,10 @@ class DesktopViewModel @Inject constructor(
                     val lp = sshClient.setPortForwardingL("127.0.0.1", 0, target, port)
                     actualHost = "127.0.0.1"
                     actualPort = lp
-                    Log.d(TAG, "VNC SSH tunnel: localhost:$lp -> ${LogRedact.of(target)}:$port (via ${LogRedact.of(host)})")
+                    Log.d(
+                        TAG,
+                        "VNC SSH tunnel: localhost:$lp -> ${LogRedact.of(target)}:$port (via ${LogRedact.of(host)})"
+                    )
                     // Tie this tab to the SSH session: if the SSH is torn down
                     // for any reason (Connections-list disconnect, network
                     // death, jump cascade), the lease fires and closes the tab
@@ -428,8 +461,8 @@ class DesktopViewModel @Inject constructor(
                 }
 
                 val isLocalGuest = profileId == null &&
-                    !sshForward &&
-                    (host == "localhost" || host == "127.0.0.1")
+                        !sshForward &&
+                        (host == "localhost" || host == "127.0.0.1")
 
                 val config = VncConfig().apply {
                     this.colorDepth = runCatching { ColorDepth.valueOf(colorDepth) }
@@ -546,7 +579,13 @@ class DesktopViewModel @Inject constructor(
                         protocol = "VNC",
                         // #723: the MCP input handle honours the tab's view-only flag.
                         mouseMove = { x, y -> if (!newTab._viewOnly.value) newTab.remoteDesktop.sendMouseMove(x, y) },
-                        mouseClick = { x, y, button -> if (!newTab._viewOnly.value) newTab.remoteDesktop.sendMouseClick(x, y, button) },
+                        mouseClick = { x, y, button ->
+                            if (!newTab._viewOnly.value) newTab.remoteDesktop.sendMouseClick(
+                                x,
+                                y,
+                                button
+                            )
+                        },
                         mouseWheel = { deltaY -> if (!newTab._viewOnly.value) newTab.remoteDesktop.sendMouseWheel(deltaY) },
                         clipboard = { text -> if (!newTab._viewOnly.value) newTab.remoteDesktop.sendClipboardText(text) },
                     ),
@@ -678,7 +717,15 @@ class DesktopViewModel @Inject constructor(
                                     host = addr.hostString,
                                     port = addr.port.toUShort(),
                                 )
-                                Log.d(TAG, "RDP routed via SOCKS5 ${LogRedact.of(addr.hostString)}:${addr.port} -> ${LogRedact.host(host, port)}")
+                                Log.d(
+                                    TAG,
+                                    "RDP routed via SOCKS5 ${LogRedact.of(addr.hostString)}:${addr.port} -> ${
+                                        LogRedact.host(
+                                            host,
+                                            port
+                                        )
+                                    }"
+                                )
                             }
                         }
                     }
@@ -726,7 +773,11 @@ class DesktopViewModel @Inject constructor(
                     desktopSessionRegistry.setStatus(profileId, DesktopStatus.ERROR)
                     if (profileId != null) {
                         viewModelScope.launch(Dispatchers.IO) {
-                            connectionLogRepository.logEvent(profileId, ConnectionLog.Status.FAILED, details = e.message)
+                            connectionLogRepository.logEvent(
+                                profileId,
+                                ConnectionLog.Status.FAILED,
+                                details = e.message
+                            )
                         }
                     }
                     // RdpSession.start() reports connect failures via this
@@ -746,7 +797,11 @@ class DesktopViewModel @Inject constructor(
                     if (profileId != null) {
                         viewModelScope.launch(Dispatchers.IO) {
                             val startLog = session.drainVerboseLog()
-                            connectionLogRepository.logEvent(profileId, ConnectionLog.Status.CONNECTED, verboseLog = startLog)
+                            connectionLogRepository.logEvent(
+                                profileId,
+                                ConnectionLog.Status.CONNECTED,
+                                verboseLog = startLog
+                            )
                         }
                     }
                 }
@@ -985,24 +1040,31 @@ class DesktopViewModel @Inject constructor(
      * cycle to it via the orientation toolbar button.
      *
      * Values are the raw `ActivityInfo.SCREEN_ORIENTATION_*`
-     * constants since the enum is private to feature modules. Cycle
-     * order from the toolbar button: Auto -> Landscape -> Portrait
-     * -> Auto.
+     * constants since the enum is private to feature modules. The
+     * toolbar's rotate button is a two-state toggle (landscape <->
+     * portrait); `UNSPECIFIED` is only the initial, not-yet-chosen
+     * value.
      */
     private val _desktopOrientation = MutableStateFlow(
         android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
     )
     val desktopOrientation: StateFlow<Int> = _desktopOrientation.asStateFlow()
 
-    fun cycleDesktopOrientation() {
-        _desktopOrientation.value = when (_desktopOrientation.value) {
-            android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE ->
-                android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-            android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT ->
-                android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-            else ->
-                android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-        }
+    fun setDesktopOrientation(value: Int) {
+        _desktopOrientation.value = value
+    }
+
+    /**
+     * Whether the built-in floating keyboard is open. Hoisted out of the
+     * viewers: the Desktop page lives in a pager whose page state can be
+     * recreated across a rotation, which used to close the panel every time the
+     * device turned.
+     */
+    private val _builtinKeyboardVisible = MutableStateFlow(false)
+    val builtinKeyboardVisible: StateFlow<Boolean> = _builtinKeyboardVisible.asStateFlow()
+
+    fun setBuiltinKeyboardVisible(visible: Boolean) {
+        _builtinKeyboardVisible.value = visible
     }
 
     private fun findSshClient(sessionId: String): SshConnection? =
@@ -1027,10 +1089,15 @@ class DesktopViewModel @Inject constructor(
                     desktopSessionRegistry.clearInputHandle(tab.profileId)
                     desktopSessionRegistry.clearCloseHandle(tab.profileId)
                 }
+
                 is DesktopTab.Rdp -> {
                     if (tab.profileId != null) {
                         val verboseLog = tab.session.drainVerboseLog()
-                        connectionLogRepository.logEvent(tab.profileId, ConnectionLog.Status.DISCONNECTED, verboseLog = verboseLog)
+                        connectionLogRepository.logEvent(
+                            tab.profileId,
+                            ConnectionLog.Status.DISCONNECTED,
+                            verboseLog = verboseLog
+                        )
                     }
                     tab.session.close()
                     tab.tunnelLease?.close()
@@ -1080,14 +1147,18 @@ class DesktopViewModel @Inject constructor(
         if (profileId == null) return null
         return try {
             connectionRepository.getById(profileId)?.label
-        } catch (_: Exception) { null }
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private suspend fun resolveColorTag(profileId: String?): Int {
         if (profileId == null) return 0
         return try {
             connectionRepository.getById(profileId)?.colorTag ?: 0
-        } catch (_: Exception) { 0 }
+        } catch (_: Exception) {
+            0
+        }
     }
 
     override fun onCleared() {

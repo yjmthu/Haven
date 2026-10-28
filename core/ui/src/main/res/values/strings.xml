@@ -31,4 +31,6 @@
     <string name="common_github">GitHub</string>
     <string name="common_support">Support</string>
     <string name="common_unlock">Unlock</string>
+    <!-- Built-in desktop keyboard (VNC/RDP) -->
+    <string name="remote_keyboard_hide">Hide keyboard</string>
 </resources>

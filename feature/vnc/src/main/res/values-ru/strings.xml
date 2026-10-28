@@ -15,12 +15,11 @@
     <string name="vnc_cd_fullscreen">Полный экран</string>
     <string name="vnc_cd_session_menu">Меню сессии</string>
     <string name="vnc_cd_exit_fullscreen">Выйти из полного экрана</string>
-    <string name="vnc_cd_input_mode_trackpad_on">Режим трекпада включён (нажмите для прямого касания)</string>
-    <string name="vnc_cd_input_mode_direct">Режим прямого касания (нажмите для трекпада)</string>
+    <string name="vnc_cd_pan_mode_off">Режим мыши (нажмите для перемещения)</string>
+    <string name="vnc_cd_pan_mode_on">Режим перемещения (нажмите для режима мыши)</string>
     <string name="vnc_cd_trackpad_sensitivity">Чувствительность трекпада</string>
-    <string name="vnc_orientation_landscape_desc">Заблокировать альбомную (нажмите для переключения на портретную)</string>
-    <string name="vnc_orientation_portrait_desc">Заблокировать портретную (нажмите для переключения на авто)</string>
-    <string name="vnc_orientation_auto_desc">Авто-поворот (нажмите для переключения на альбомную)</string>
+    <string name="vnc_orientation_landscape_desc">Переключить на книжную ориентацию</string>
+    <string name="vnc_orientation_portrait_desc">Переключить на альбомную ориентацию</string>
     <!-- Touch gesture help (#250) -->
     <string name="vnc_cd_gesture_help">Сенсорные жесты</string>
     <string name="vnc_cd_save_default">Сохранить текущий размер как размер по умолчанию для этого приложения</string>
@@ -29,7 +28,5 @@
     <string name="vnc_gesture_help_three_finger">Сведите три пальца, чтобы изменить размер приложения, не выходя из полноэкранного режима.</string>
 
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
-    <string name="vnc_cd_two_finger_viewport">Два пальца перемещают вид (нажмите, чтобы прокручивать удалённый экран)</string>
-    <string name="vnc_cd_two_finger_scroll_on">Два пальца прокручивают удалённый экран (нажмите, чтобы перемещать вид)</string>
     <string name="vnc_cd_paste">Вставить из буфера обмена</string>
 </resources>

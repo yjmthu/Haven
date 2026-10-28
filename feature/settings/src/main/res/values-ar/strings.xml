@@ -223,9 +223,6 @@
     <string name="settings_section_terminal">الطرفية</string>
     <string name="settings_show_terminal_tab_bar_subtitle">إظهار علامات تبويب الجلسات أعلى الطرفية</string>
     <string name="settings_show_terminal_tab_bar_title">إظهار شريط علامات تبويب الطرفية</string>
-    <string name="settings_touchpad_input_direct_subtitle">لمس مباشر — موضع الإصبع هو المؤشر. فعّله للإدخال على نمط لوحة اللمس.</string>
-    <string name="settings_touchpad_input_title">إدخال لوحة اللمس</string>
-    <string name="settings_touchpad_input_touchpad_subtitle">السحب يحرّك المؤشر البعيد؛ النقر ينقر عند المؤشر. تتبع منطقة العرض المؤشر عند التكبير.</string>
 
     <!-- i18n sweep #210 -->
     <string name="settings_color_scheme_auto_switch_title">التبديل التلقائي مع سمة النظام</string>
@@ -421,4 +418,7 @@
     <string name="settings_ambiwidth_mode_auto_wide_desc">قياس الخط النشط؛ والرجوع إلى خليتين (CJK)</string>
     <string name="settings_bell_notification_title">إشعار الرنين</string>
     <string name="settings_bell_notification_subtitle">عندما يرنّ برنامج طرفية بينما Haven في الخلفية، تُنشر إشعارات تسمّي التبويب. لا يظهر شيء أثناء نظرك إلى الطرفية.</string>
+    <!-- Built-in floating keyboard for desktop sessions. -->
+    <string name="settings_builtin_keyboard_title">استخدام لوحة المفاتيح المدمجة</string>
+    <string name="settings_builtin_keyboard_subtitle">إظهار لوحة مفاتيح Haven العائمة في جلسات سطح المكتب والطرفية بدلاً من لوحة مفاتيح النظام</string>
 </resources>

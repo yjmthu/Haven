@@ -301,9 +301,6 @@
     <string name="settings_rdp_desktop_size_hint">Set this to the resolution the remote machine actually uses. VirtualBox defaults to 2560 × 1600.</string>
     <string name="settings_rdp_desktop_size_width">Width</string>
     <string name="settings_rdp_desktop_size_height">Height</string>
-    <string name="settings_touchpad_input_title">Touchpad input</string>
-    <string name="settings_touchpad_input_direct_subtitle">Direct touch — finger position is the pointer. Toggle on for trackpad-style input.</string>
-    <string name="settings_touchpad_input_touchpad_subtitle">Drag moves the remote cursor; tap clicks at the cursor. The viewport follows the cursor when zoomed.</string>
     <string name="settings_bandwidth_suggest_title">Suggest 256 colours on slow VNC links</string>
     <string name="settings_bandwidth_suggest_subtitle">Detects throughput below ~1 Mbps after a few seconds and offers a one-tap reconnect at 256 colours. Off silences the prompt.</string>
 
@@ -459,4 +456,7 @@ Every private key already stored in Haven will need to be imported or generated 
     <string name="settings_inline_images_off">Off</string>
     <string name="settings_inline_images_ask">Ask</string>
     <string name="settings_inline_images_always">Always</string>
+    <!-- Built-in floating keyboard for desktop sessions. -->
+    <string name="settings_builtin_keyboard_title">Use built-in keyboard</string>
+    <string name="settings_builtin_keyboard_subtitle">Show Haven\'s own floating keyboard in desktop and terminal sessions instead of the system keyboard</string>
 </resources>

@@ -98,18 +98,22 @@ import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.Color
 import sh.haven.core.ui.KeyEventInterceptor
+import sh.haven.core.ui.RemoteKeyCodes
+import sh.haven.core.ui.RemoteKeyboard
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.flow.map
@@ -443,6 +447,12 @@ fun TerminalScreen(
     showCopyOutputButton: Boolean = false,
     keepScreenOnInTerminal: Boolean = false,
     autoShowKeyboardInTerminal: Boolean = true,
+    /**
+     * Settings → "Use built-in keyboard": show Haven's own panel instead of the
+     * IME. The terminal keeps its IME plumbing for the other mode; this only
+     * swaps which surface the user types on.
+     */
+    useBuiltinKeyboard: Boolean = false,
     mouseInputEnabled: Boolean = true,
     terminalRightClick: Boolean = false,
     tapToPositionCursorOnPrompt: Boolean = false,
@@ -507,6 +517,16 @@ fun TerminalScreen(
     // hides the system status + nav bars. Mirrors the desktop fullscreen
     // pattern in VncScreen / RdpScreen.
     var fullscreen by rememberSaveable { mutableStateOf(false) }
+    // Built-in keyboard panel (Settings → Use built-in keyboard). Kept here so
+    // it survives tab switches and rotation.
+    var builtinKeyboardVisible by rememberSaveable { mutableStateOf(false) }
+    var terminalAreaSize by remember { mutableStateOf(IntSize.Zero) }
+    var terminalKeyboardHeightPx by remember { mutableStateOf(0) }
+    // Modifiers latched from the built-in panel. The panel reports them through
+    // onKeyDown/onKeyUp and auto-releases after the next key, so all we need is
+    // the current state.
+    var builtinCtrlLatched by remember { mutableStateOf(false) }
+    var builtinAltLatched by remember { mutableStateOf(false) }
     val view = LocalView.current
     val window = (view.context as? android.app.Activity)?.window
     LaunchedEffect(fullscreen) {
@@ -1787,7 +1807,8 @@ fun TerminalScreen(
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .then(terminalModifier),
+                            .then(terminalModifier)
+                            .onSizeChanged { terminalAreaSize = it },
                     ) {
                         // ModifierManager bridges our Ctrl/Alt toolbar state to the
                         // library's KeyboardHandler. clearTransients is a no-op here
@@ -1885,6 +1906,19 @@ fun TerminalScreen(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .background(terminalBg.copy(alpha = effectiveBgOpacity))
+                                    // The built-in panel sits on top of this
+                                    // Box; shell out its height so the grid
+                                    // (and the PTY, via termlib's reflow) keeps
+                                    // the whole screen visible above it.
+                                    .padding(
+                                        bottom = if (useBuiltinKeyboard && builtinKeyboardVisible) {
+                                            with(androidx.compose.ui.platform.LocalDensity.current) {
+                                                terminalKeyboardHeightPx.toDp()
+                                            }
+                                        } else {
+                                            0.dp
+                                        },
+                                    )
                                     .padding(horizontal = horizontalPaddingDp.dp),
                                 initialFontSize = fontSize.sp,
                                 typeface = hackTypeface,
@@ -1899,7 +1933,13 @@ fun TerminalScreen(
                                 // show honours it; the toolbar keyboard key and
                                 // the double-tap raise through the insets
                                 // controller and stay deliberate either way.
-                                showSoftKeyboard = autoShowKeyboardInTerminal,
+                                showSoftKeyboard = autoShowKeyboardInTerminal && !useBuiltinKeyboard,
+                                onTerminalTap = {
+                                    // With the built-in panel the IME never comes
+                                    // up; a tap on the grid is the way to raise
+                                    // the panel, mirroring the IME behaviour.
+                                    if (useBuiltinKeyboard) builtinKeyboardVisible = true
+                                },
                                 // Only the active tab restores; adjacent pager
                                 // pages stay composed and must not fight over
                                 // the IME (#515).
@@ -2064,6 +2104,46 @@ fun TerminalScreen(
                                 ),
                                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
                                 modifier = Modifier.size(20.dp),
+                            )
+                        }
+
+                        // Built-in keyboard panel (Settings → Use built-in
+                        // keyboard). Drawn in the terminal area's Box but outside
+                        // the grid's gesture surface, so its taps never reach the
+                        // emulator. Characters go straight to the PTY; Ctrl/Alt
+                        // latch onto the next character the way the remote
+                        // desktop panels do.
+                        if (useBuiltinKeyboard && builtinKeyboardVisible) {
+                            RemoteKeyboard(
+                                keyCodes = TERMINAL_KEY_CODES,
+                                onTypeChar = { ch ->
+                                    val upper = ch.uppercaseChar()
+                                    val bytes = when {
+                                        builtinCtrlLatched && (upper in 'A'..'Z' || upper in "@[\\]^_") ->
+                                            byteArrayOf((upper.code and 0x1f).toByte())
+                                        builtinAltLatched -> "\u001b$ch".toByteArray()
+                                        else -> ch.toString().toByteArray()
+                                    }
+                                    activeTab.sendInput(bytes)
+                                },
+                                onKeyDown = { code ->
+                                    when (code) {
+                                        TERMINAL_KEY_CTRL -> builtinCtrlLatched = true
+                                        TERMINAL_KEY_ALT -> builtinAltLatched = true
+                                        TERMINAL_KEY_WIN -> Unit
+                                        else -> terminalKeyBytes(code)?.let { activeTab.sendInput(it) }
+                                    }
+                                },
+                                onKeyUp = { code ->
+                                    when (code) {
+                                        TERMINAL_KEY_CTRL -> builtinCtrlLatched = false
+                                        TERMINAL_KEY_ALT -> builtinAltLatched = false
+                                    }
+                                },
+                                containerSize = terminalAreaSize,
+                                modifier = Modifier.align(Alignment.BottomCenter),
+                                onDismiss = { builtinKeyboardVisible = false },
+                                onHeightChange = { terminalKeyboardHeightPx = it },
                             )
                         }
                     }
@@ -3093,3 +3173,58 @@ private fun WhereaboutsDialog(
     )
 }
 
+
+// --- Built-in terminal keyboard key codes -----------------------------------
+//
+// The panel only knows "a key identifier"; these ids are private to the
+// terminal module and map to the bytes a PTY expects. Modifiers are latched by
+// the panel and consumed by the character path (Ctrl -> 0x1f mask, Alt -> ESC
+// prefix), which is what the terminal's own keyboard handler does.
+
+private const val TERMINAL_KEY_ESC = 1
+private const val TERMINAL_KEY_TAB = 2
+private const val TERMINAL_KEY_ENTER = 3
+private const val TERMINAL_KEY_BACKSPACE = 4
+private const val TERMINAL_KEY_LEFT = 5
+private const val TERMINAL_KEY_UP = 6
+private const val TERMINAL_KEY_DOWN = 7
+private const val TERMINAL_KEY_RIGHT = 8
+private const val TERMINAL_KEY_CTRL = 9
+private const val TERMINAL_KEY_ALT = 10
+private const val TERMINAL_KEY_WIN = 11
+private const val TERMINAL_KEY_SHIFT = 12
+private const val TERMINAL_KEY_HOME = 13
+private const val TERMINAL_KEY_END = 14
+
+private val TERMINAL_KEY_CODES = RemoteKeyCodes(
+    escape = TERMINAL_KEY_ESC,
+    tab = TERMINAL_KEY_TAB,
+    enter = TERMINAL_KEY_ENTER,
+    backspace = TERMINAL_KEY_BACKSPACE,
+    left = TERMINAL_KEY_LEFT,
+    up = TERMINAL_KEY_UP,
+    down = TERMINAL_KEY_DOWN,
+    right = TERMINAL_KEY_RIGHT,
+    ctrl = TERMINAL_KEY_CTRL,
+    alt = TERMINAL_KEY_ALT,
+    win = TERMINAL_KEY_WIN,
+    // A terminal has no modifier-key channel: Shift is folded into the
+    // character by the panel, so this id is only a no-op latch.
+    shift = TERMINAL_KEY_SHIFT,
+    home = TERMINAL_KEY_HOME,
+    end = TERMINAL_KEY_END,
+)
+
+private fun terminalKeyBytes(code: Int): ByteArray? = when (code) {
+    TERMINAL_KEY_ESC -> byteArrayOf(0x1b)
+    TERMINAL_KEY_TAB -> "\t".toByteArray()
+    TERMINAL_KEY_ENTER -> "\r".toByteArray()
+    TERMINAL_KEY_BACKSPACE -> byteArrayOf(0x7f)
+    TERMINAL_KEY_LEFT -> "\u001b[D".toByteArray()
+    TERMINAL_KEY_UP -> "\u001b[A".toByteArray()
+    TERMINAL_KEY_DOWN -> "\u001b[B".toByteArray()
+    TERMINAL_KEY_RIGHT -> "\u001b[C".toByteArray()
+    TERMINAL_KEY_HOME -> "\u001b[H".toByteArray()
+    TERMINAL_KEY_END -> "\u001b[F".toByteArray()
+    else -> null
+}

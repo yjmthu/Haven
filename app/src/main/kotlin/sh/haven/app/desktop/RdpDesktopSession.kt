@@ -10,12 +10,10 @@ import sh.haven.rdp.MouseButton
  * Two translation points:
  *
  *  - `Int` button numbers (X11 convention) → RDP's `MouseButton` enum.
- *    Mirrors the existing `MouseButton.entries.getOrElse(button - 1)`
- *    mapping in `DesktopViewModel`, preserving its (slightly odd)
- *    behaviour where button=2 maps to RIGHT and button=3 to MIDDLE.
- *    Today no caller invokes 2 or 3 against an RDP tab, so this is
- *    inert — flagging for a future tidy-up rather than fixing
- *    silently in this PR.
+ *    The enum is declared `Left, Right, Middle`, so the old
+ *    `entries[button - 1]` lookup silently swapped middle and right:
+ *    X11 button 2 became RIGHT and button 3 became MIDDLE. The mapping
+ *    is now explicit, matching the interface contract.
  *  - Mouse wheel: the abstraction takes a `deltaY` whose sign carries
  *    the direction; the RDP backend wants `(vertical: Boolean,
  *    delta: Int)` where the delta is the absolute step (typical 120
@@ -53,6 +51,9 @@ class RdpDesktopSession(private val session: RdpSession) : RemoteDesktopSession 
         session.close()
     }
 
-    private fun toRdpButton(x11Button: Int): MouseButton =
-        MouseButton.entries.getOrElse(x11Button - 1) { MouseButton.LEFT }
+    private fun toRdpButton(x11Button: Int): MouseButton = when (x11Button) {
+        2 -> MouseButton.MIDDLE
+        3 -> MouseButton.RIGHT
+        else -> MouseButton.LEFT
+    }
 }

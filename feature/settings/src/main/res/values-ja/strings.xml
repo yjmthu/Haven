@@ -223,9 +223,6 @@
     <string name="settings_section_terminal">ターミナル</string>
     <string name="settings_show_terminal_tab_bar_subtitle">ターミナルの上にセッションタブを表示</string>
     <string name="settings_show_terminal_tab_bar_title">ターミナルのタブバーを表示</string>
-    <string name="settings_touchpad_input_direct_subtitle">ダイレクトタッチ — 指の位置がポインターになります。トラックパッド風の入力にはオンにしてください。</string>
-    <string name="settings_touchpad_input_title">タッチパッド入力</string>
-    <string name="settings_touchpad_input_touchpad_subtitle">ドラッグでリモートカーソルを移動し、タップでカーソル位置をクリックします。ズーム時はビューポートがカーソルに追従します。</string>
 
     <!-- i18n sweep #210 -->
     <string name="settings_color_scheme_auto_switch_title">システムテーマに合わせて自動切替</string>
@@ -416,4 +413,7 @@ Haven にすでに保存されているすべての秘密鍶は、再びイン�
     <string name="settings_ambiwidth_mode_auto_wide_desc">フォント幅を自動計測、未判定時は2セル (CJK)</string>
     <string name="settings_bell_notification_title">ベル通知</string>
     <string name="settings_bell_notification_subtitle">Haven がバックグラウンドにある間にターミナルのプログラムがベルを鳴らすと、タブ名を記した通知を表示します。ターミナルを見ている間は何も表示されません。</string>
+    <!-- Built-in floating keyboard for desktop sessions. -->
+    <string name="settings_builtin_keyboard_title">内蔵キーボードを使用</string>
+    <string name="settings_builtin_keyboard_subtitle">デスクトップとターミナルのセッションで、システムキーボードの代わりにHavenのフローティングキーボードを表示します</string>
 </resources>

@@ -16,12 +16,11 @@
     <string name="vnc_cd_fullscreen">Tela cheia</string>
     <string name="vnc_cd_session_menu">Menu de sessão</string>
     <string name="vnc_cd_exit_fullscreen">Sair da tela cheia</string>
-    <string name="vnc_cd_input_mode_trackpad_on">Modo trackpad ativado (toque para toque direto)</string>
-    <string name="vnc_cd_input_mode_direct">Modo toque direto (toque para trackpad)</string>
+    <string name="vnc_cd_pan_mode_off">Modo rato (toque para mover)</string>
+    <string name="vnc_cd_pan_mode_on">Modo mover (toque para rato)</string>
     <string name="vnc_cd_trackpad_sensitivity">Sensibilidade do trackpad</string>
-    <string name="vnc_orientation_landscape_desc">Fixar paisagem (toque para retrato)</string>
-    <string name="vnc_orientation_portrait_desc">Fixar retrato (toque para automático)</string>
-    <string name="vnc_orientation_auto_desc">Rotação automática (toque para paisagem)</string>
+    <string name="vnc_orientation_landscape_desc">Mudar para vertical</string>
+    <string name="vnc_orientation_portrait_desc">Mudar para horizontal</string>
     <!-- Touch gesture help (#250) -->
     <string name="vnc_cd_gesture_help">Gestos de toque</string>
     <string name="vnc_cd_save_default">Salvar o tamanho atual como padrão deste app</string>
@@ -30,7 +29,5 @@
     <string name="vnc_gesture_help_three_finger">Junte três dedos para redimensionar o app sem sair da tela cheia.</string>
 
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
-    <string name="vnc_cd_two_finger_viewport">Dois dedos deslocam a visualização (toque para rolar o remoto)</string>
-    <string name="vnc_cd_two_finger_scroll_on">Dois dedos rolam o remoto (toque para deslocar a visualização)</string>
     <string name="vnc_cd_paste">Colar área de transferência</string>
 </resources>

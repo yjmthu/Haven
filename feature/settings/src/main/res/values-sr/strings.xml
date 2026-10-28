@@ -238,9 +238,6 @@
     <string name="settings_rdp_desktop_size_hint">Поставите ово на резолуцију које удаљена машина заиста користи. Подразумевана вредност за VirtualBox је 2560 × 1600.</string>
     <string name="settings_rdp_desktop_size_width">Ширина</string>
     <string name="settings_rdp_desktop_size_height">Висина</string>
-    <string name="settings_touchpad_input_title">Унос тачпедом</string>
-    <string name="settings_touchpad_input_direct_subtitle">Директни додир — позиција прста је показивач. Укључите за унос у стилу трекпеда.</string>
-    <string name="settings_touchpad_input_touchpad_subtitle">Превлачење помера удаљени курсор; тап кликће на позицију курсора. Прозор приказа следи курсор када је зумирано.</string>
     <string name="settings_bandwidth_suggest_title">Предложи 256 боја на спорим VNC везама</string>
     <string name="settings_bandwidth_suggest_subtitle">Открива пропусни опсег испод ~1 Mbps након неколико секунди и нуди поновно успостављање везе једним тапом на 256 боја. Искључено пригушује питање.</string>
     <string name="settings_keyboard_mode_title">Режим тастатуре</string>
@@ -347,4 +344,7 @@
     <string name="settings_ambiwidth_mode_wide_desc">Увек 2 ћелије (наслеђени CJK ambiwidth)</string>
     <string name="settings_ambiwidth_mode_auto_wide">Ауто + Широко</string>
     <string name="settings_ambiwidth_mode_auto_wide_desc">Профилиши активни фонт; резерва на 2 ћелије (CJK)</string>
+    <!-- Built-in floating keyboard for desktop sessions. -->
+    <string name="settings_builtin_keyboard_title">Користи уграђену тастатуру</string>
+    <string name="settings_builtin_keyboard_subtitle">Прикажи Haven-ову плутајућу тастатуру у сесијама радне површи и терминала уместо системске тастатуре</string>
 </resources>

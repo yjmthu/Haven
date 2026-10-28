@@ -28,4 +28,6 @@
     <string name="common_github">GitHub</string>
     <string name="common_support">支持</string>
     <string name="common_unlock">解锁</string>
+    <!-- Built-in desktop keyboard (VNC/RDP) -->
+    <string name="remote_keyboard_hide">隐藏键盘</string>
 </resources>

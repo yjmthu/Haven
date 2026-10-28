@@ -279,7 +279,7 @@ class SettingsViewModel @Inject constructor(
         if (skipped == 0) return ""
         val plural = if (skipped == 1) "" else "s"
         return " ($skipped hardware-backed key$plural not included — " +
-            "${if (skipped == 1) "it cannot" else "they cannot"} leave the device)"
+                "${if (skipped == 1) "it cannot" else "they cannot"} leave the device)"
     }
 
     fun importBackup(uri: Uri, password: String) {
@@ -298,7 +298,7 @@ class SettingsViewModel @Inject constructor(
                     backupService.import(data, password)
                 }
                 val msg = "Restored ${result.count} items" +
-                    if (result.errors.isNotEmpty()) " (${result.errors.size} errors)" else ""
+                        if (result.errors.isNotEmpty()) " (${result.errors.size} errors)" else ""
                 _backupStatus.value = BackupStatus.Success(msg)
             } catch (e: javax.crypto.AEADBadTagException) {
                 _backupStatus.value = BackupStatus.Error("Wrong password")
@@ -411,7 +411,7 @@ class SettingsViewModel @Inject constructor(
                     backupSyncManager.pull(profileId, backupSyncPath.value, password)
                 }
                 val msg = "Restored ${result.count} items" +
-                    if (result.errors.isNotEmpty()) " (${result.errors.size} errors)" else ""
+                        if (result.errors.isNotEmpty()) " (${result.errors.size} errors)" else ""
                 _backupStatus.value = BackupStatus.Success(msg)
             } catch (e: javax.crypto.AEADBadTagException) {
                 _backupStatus.value = BackupStatus.Error("Wrong password")
@@ -479,11 +479,12 @@ class SettingsViewModel @Inject constructor(
     val verboseLoggingEnabled: StateFlow<Boolean> = preferencesRepository.verboseLoggingEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    val desktopInputMode: StateFlow<String> = preferencesRepository.desktopInputMode
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "DIRECT")
+    /** Desktop keyboard source: system IME (default) vs Haven's floating panel. */
+    val desktopBuiltinKeyboard: StateFlow<Boolean> = preferencesRepository.desktopBuiltinKeyboard
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    fun setDesktopInputMode(mode: String) {
-        viewModelScope.launch { preferencesRepository.setDesktopInputMode(mode) }
+    fun setDesktopBuiltinKeyboard(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setDesktopBuiltinKeyboard(enabled) }
     }
 
     /** Desktop size Haven asks RDP servers for (#422). */
@@ -766,7 +767,6 @@ class SettingsViewModel @Inject constructor(
     }
 
 
-
     fun setShowSearchButton(enabled: Boolean) {
         viewModelScope.launch {
             preferencesRepository.setShowSearchButton(enabled)
@@ -808,7 +808,6 @@ class SettingsViewModel @Inject constructor(
             preferencesRepository.setExcludeFromRecents(enabled)
         }
     }
-
 
 
     fun setTailscaleDiscoveryEnabled(enabled: Boolean) {
@@ -885,16 +884,19 @@ class SettingsViewModel @Inject constructor(
                     preferencesRepository.setKeyboardCustomMode(false)
                     preferencesRepository.setRawKeyboardMode(true)
                 }
+
                 "STANDARD" -> {
                     preferencesRepository.setRawKeyboardMode(false)
                     preferencesRepository.setKeyboardCustomMode(false)
                     preferencesRepository.setAllowStandardKeyboard(true)
                 }
+
                 "CUSTOM" -> {
                     preferencesRepository.setRawKeyboardMode(false)
                     preferencesRepository.setAllowStandardKeyboard(false)
                     preferencesRepository.setKeyboardCustomMode(true)
                 }
+
                 else -> { // SECURE — all off
                     preferencesRepository.setAllowStandardKeyboard(false)
                     preferencesRepository.setRawKeyboardMode(false)
@@ -921,12 +923,29 @@ class SettingsViewModel @Inject constructor(
     val imeFlagNoPersonalizedLearning: StateFlow<Boolean> = preferencesRepository.imeFlagNoPersonalizedLearning
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
-    fun setImeFlagNoSuggestions(v: Boolean) { viewModelScope.launch { preferencesRepository.setImeFlagNoSuggestions(v) } }
-    fun setImeFlagVisiblePassword(v: Boolean) { viewModelScope.launch { preferencesRepository.setImeFlagVisiblePassword(v) } }
-    fun setImeFlagAutoCorrect(v: Boolean) { viewModelScope.launch { preferencesRepository.setImeFlagAutoCorrect(v) } }
-    fun setImeFlagFullEditor(v: Boolean) { viewModelScope.launch { preferencesRepository.setImeFlagFullEditor(v) } }
-    fun setImeFlagNoExtractUi(v: Boolean) { viewModelScope.launch { preferencesRepository.setImeFlagNoExtractUi(v) } }
-    fun setImeFlagNoPersonalizedLearning(v: Boolean) { viewModelScope.launch { preferencesRepository.setImeFlagNoPersonalizedLearning(v) } }
+    fun setImeFlagNoSuggestions(v: Boolean) {
+        viewModelScope.launch { preferencesRepository.setImeFlagNoSuggestions(v) }
+    }
+
+    fun setImeFlagVisiblePassword(v: Boolean) {
+        viewModelScope.launch { preferencesRepository.setImeFlagVisiblePassword(v) }
+    }
+
+    fun setImeFlagAutoCorrect(v: Boolean) {
+        viewModelScope.launch { preferencesRepository.setImeFlagAutoCorrect(v) }
+    }
+
+    fun setImeFlagFullEditor(v: Boolean) {
+        viewModelScope.launch { preferencesRepository.setImeFlagFullEditor(v) }
+    }
+
+    fun setImeFlagNoExtractUi(v: Boolean) {
+        viewModelScope.launch { preferencesRepository.setImeFlagNoExtractUi(v) }
+    }
+
+    fun setImeFlagNoPersonalizedLearning(v: Boolean) {
+        viewModelScope.launch { preferencesRepository.setImeFlagNoPersonalizedLearning(v) }
+    }
 
     fun setInterceptCtrlShiftV(enabled: Boolean) {
         viewModelScope.launch {

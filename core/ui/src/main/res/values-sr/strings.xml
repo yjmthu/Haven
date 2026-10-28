@@ -28,4 +28,6 @@
     <string name="common_github">GitHub</string>
     <string name="common_support">Подршка</string>
     <string name="common_unlock">Откључај</string>
+    <!-- Built-in desktop keyboard (VNC/RDP) -->
+    <string name="remote_keyboard_hide">Сакриј тастатуру</string>
 </resources>

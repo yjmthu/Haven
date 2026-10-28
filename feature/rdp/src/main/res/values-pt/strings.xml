@@ -14,12 +14,11 @@
     <string name="rdp_cd_fullscreen">Tela cheia</string>
     <string name="rdp_cd_session_menu">Menu de sessão</string>
     <string name="rdp_cd_exit_fullscreen">Sair da tela cheia</string>
-    <string name="rdp_cd_input_mode_trackpad_on">Modo trackpad ativado (toque para toque direto)</string>
-    <string name="rdp_cd_input_mode_direct">Modo toque direto (toque para trackpad)</string>
+    <string name="rdp_cd_pan_mode_off">Modo rato (toque para mover)</string>
+    <string name="rdp_cd_pan_mode_on">Modo mover (toque para rato)</string>
     <string name="rdp_cd_trackpad_sensitivity">Sensibilidade do trackpad</string>
-    <string name="rdp_orientation_landscape_desc">Fixar paisagem (toque para retrato)</string>
-    <string name="rdp_orientation_portrait_desc">Fixar retrato (toque para automático)</string>
-    <string name="rdp_orientation_auto_desc">Rotação automática (toque para paisagem)</string>
+    <string name="rdp_orientation_landscape_desc">Mudar para vertical</string>
+    <string name="rdp_orientation_portrait_desc">Mudar para horizontal</string>
 
     <!-- i18n sweep #210 (follow-up batch) -->
     <string name="rdp_hint_legacy_rdp_title">O servidor está usando RDP antigo sem criptografia</string>
@@ -38,8 +37,6 @@
     <string name="rdp_hint_tls_ciphers_body">O Haven usa a pilha TLS rustls/ring, que cobre menos cifras do que o cliente RDP da Microsoft (SChannel) ou o OpenSSL. A configuração mais compatível no servidor é ECDHE-RSA + AES-GCM sobre TLS 1.2 ou 1.3.</string>
 
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
-    <string name="rdp_cd_two_finger_viewport">Dois dedos deslocam a visualização (toque para rolar o remoto)</string>
-    <string name="rdp_cd_two_finger_scroll_on">Dois dedos rolam o remoto (toque para deslocar a visualização)</string>
     <string name="rdp_hint_nla_required_title">O servidor exige Autenticação em Nível de Rede (NLA)</string>
     <string name="rdp_hint_nla_required_body">O servidor está configurado para aceitar apenas clientes que autenticam com NLA, e o NLA está desmarcado neste perfil de conexão. Marque “Network Level Authentication (NLA)” no perfil ou relaxe a exigência no PC: Configurações → Sistema → Área de Trabalho Remota → Configurações avançadas → desmarque “Require devices to use Network Level Authentication”.</string>
     <string name="rdp_hint_mixed_username_title">O NLA não aceita este formato de nome de usuário</string>

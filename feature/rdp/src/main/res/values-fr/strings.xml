@@ -14,12 +14,11 @@
     <string name="rdp_cd_fullscreen">Plein écran</string>
     <string name="rdp_cd_session_menu">Menu de session</string>
     <string name="rdp_cd_exit_fullscreen">Quitter le plein écran</string>
-    <string name="rdp_cd_input_mode_trackpad_on">Mode pavé tactile activé (appuyer pour toucher direct)</string>
-    <string name="rdp_cd_input_mode_direct">Mode toucher direct (appuyer pour pavé tactile)</string>
+    <string name="rdp_cd_pan_mode_off">Mode souris (toucher pour déplacer)</string>
+    <string name="rdp_cd_pan_mode_on">Mode déplacement (toucher pour souris)</string>
     <string name="rdp_cd_trackpad_sensitivity">Sensibilité du pavé tactile</string>
-    <string name="rdp_orientation_landscape_desc">Bloquer en paysage (appuyer pour passer en portrait)</string>
-    <string name="rdp_orientation_portrait_desc">Bloquer en portrait (appuyer pour passer en automatique)</string>
-    <string name="rdp_orientation_auto_desc">Rotation automatique (appuyer pour passer en paysage)</string>
+    <string name="rdp_orientation_landscape_desc">Passer en portrait</string>
+    <string name="rdp_orientation_portrait_desc">Passer en paysage</string>
 
     <!-- i18n sweep #210 (follow-up batch) -->
     <string name="rdp_hint_legacy_rdp_title">Le serveur utilise un RDP ancien non chiffré</string>
@@ -38,8 +37,6 @@
     <string name="rdp_hint_tls_ciphers_body">Haven utilise la pile TLS rustls/ring, dont la couverture de chiffrements est plus étroite que celle du client RDP de Microsoft (SChannel) ou d\'OpenSSL. Le réglage côté serveur le plus compatible est ECDHE-RSA + AES-GCM sur TLS 1.2 ou 1.3.</string>
 
     <!-- Backfill 2026-07: strings added since the last i18n pass -->
-    <string name="rdp_cd_two_finger_viewport">Deux doigts déplacent la vue (toucher pour faire défiler l\'écran distant)</string>
-    <string name="rdp_cd_two_finger_scroll_on">Deux doigts font défiler l\'écran distant (toucher pour déplacer la vue)</string>
     <string name="rdp_hint_nla_required_title">Le serveur exige l’authentification au niveau du réseau (NLA)</string>
     <string name="rdp_hint_nla_required_body">Le serveur n’accepte que les clients qui s’authentifient via NLA, et NLA est décoché sur ce profil de connexion. Cochez « Network Level Authentication (NLA) » dans le profil, ou assouplissez l’exigence sur le PC : Paramètres → Système → Bureau à distance → Paramètres avancés → décochez « Require devices to use Network Level Authentication ».</string>
     <string name="rdp_hint_mixed_username_title">NLA ne peut pas utiliser ce format de nom d’utilisateur</string>

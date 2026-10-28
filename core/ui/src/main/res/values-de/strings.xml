@@ -28,4 +28,6 @@
     <string name="common_github">GitHub</string>
     <string name="common_support">Support</string>
     <string name="common_unlock">Entsperren</string>
+    <!-- Built-in desktop keyboard (VNC/RDP) -->
+    <string name="remote_keyboard_hide">Tastatur ausblenden</string>
 </resources>

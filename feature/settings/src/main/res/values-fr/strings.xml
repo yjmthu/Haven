@@ -223,9 +223,6 @@
     <string name="settings_section_terminal">Terminal</string>
     <string name="settings_show_terminal_tab_bar_subtitle">Afficher les onglets de session au-dessus du terminal</string>
     <string name="settings_show_terminal_tab_bar_title">Afficher la barre d\'onglets du terminal</string>
-    <string name="settings_touchpad_input_direct_subtitle">Toucher direct — la position du doigt est le pointeur. Activez pour une saisie de type pavé tactile.</string>
-    <string name="settings_touchpad_input_title">Saisie par pavé tactile</string>
-    <string name="settings_touchpad_input_touchpad_subtitle">Le glissement déplace le curseur distant ; le toucher clique à la position du curseur. La vue suit le curseur lors du zoom.</string>
 
     <!-- i18n sweep #210 -->
     <string name="settings_color_scheme_auto_switch_title">Changement automatique avec le thème système</string>
@@ -417,4 +414,7 @@ Chaque clé privée déjà stockée dans Haven devra être importée ou génér�
     <string name="settings_ambiwidth_mode_auto_wide_desc">Mesurer la police active ; secours à 2 cellules (CJK)</string>
     <string name="settings_bell_notification_title">Notification de sonnerie</string>
     <string name="settings_bell_notification_subtitle">Quand un programme du terminal émet un bip pendant qu\'Haven est en arrière-plan, une notification nommant l\'onglet est affichée. Rien n\'apparaît pendant que vous regardez le terminal.</string>
+    <!-- Built-in floating keyboard for desktop sessions. -->
+    <string name="settings_builtin_keyboard_title">Utiliser le clavier intégré</string>
+    <string name="settings_builtin_keyboard_subtitle">Afficher le clavier flottant de Haven dans les sessions bureau et terminal au lieu du clavier système</string>
 </resources>

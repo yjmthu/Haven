@@ -223,9 +223,6 @@
     <string name="settings_section_terminal">Терминал</string>
     <string name="settings_show_terminal_tab_bar_subtitle">Показывать вкладки сеансов над терминалом</string>
     <string name="settings_show_terminal_tab_bar_title">Показывать панель вкладок терминала</string>
-    <string name="settings_touchpad_input_direct_subtitle">Прямое касание — положение пальца является указателем. Включите для ввода в стиле трекпада.</string>
-    <string name="settings_touchpad_input_title">Ввод с тачпада</string>
-    <string name="settings_touchpad_input_touchpad_subtitle">Перетаскивание перемещает удалённый курсор; касание выполняет щелчок в позиции курсора. При увеличении область просмотра следует за курсором.</string>
 
     <!-- #210 i18n sweep -->
     <string name="settings_color_scheme_auto_switch_title">Авто-переключение по системной теме</string>
@@ -419,4 +416,7 @@
     <string name="settings_ambiwidth_mode_auto_wide_desc">Замерять активный шрифт; при сбое 2 ячейки (CJK)</string>
     <string name="settings_bell_notification_title">Уведомление о звонке</string>
     <string name="settings_bell_notification_subtitle">Когда программа в терминале подаёт звуковой сигнал, пока Haven в фоновом режиме, приходит уведомление с названием вкладки. Пока вы смотрите в терминал, ничего не появляется.</string>
+    <!-- Built-in floating keyboard for desktop sessions. -->
+    <string name="settings_builtin_keyboard_title">Использовать встроенную клавиатуру</string>
+    <string name="settings_builtin_keyboard_subtitle">Показывать плавающую клавиатуру Haven в сеансах рабочего стола и терминала вместо системной клавиатуры</string>
 </resources>

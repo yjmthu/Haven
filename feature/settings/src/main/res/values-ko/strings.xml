@@ -204,9 +204,6 @@
     <string name="settings_section_about">정보</string>
     <string name="settings_show_terminal_tab_bar_title">터미널 탭 표시줄 표시</string>
     <string name="settings_show_terminal_tab_bar_subtitle">터미널 위에 세션 탭을 표시합니다</string>
-    <string name="settings_touchpad_input_title">터치패드 입력</string>
-    <string name="settings_touchpad_input_direct_subtitle">직접 터치 — 손가락 위치가 포인터입니다. 트랙패드 방식 입력을 사용하려면 켜세요.</string>
-    <string name="settings_touchpad_input_touchpad_subtitle">드래그하면 원격 커서가 움직이고, 탭하면 커서 위치를 클릭합니다. 확대 시 뷰포트가 커서를 따라갑니다.</string>
     <string name="settings_bandwidth_suggest_title">느린 VNC 연결에서 256색 제안</string>
     <string name="settings_bandwidth_suggest_subtitle">몇 초 후 처리량이 약 1 Mbps 미만이면 감지하여 256색으로 한 번에 다시 연결하도록 제안합니다. 끄면 프롬프트가 표시되지 않습니다.</string>
 
@@ -416,4 +413,7 @@ Haven에 이미 저장된 모든 개인 키는 다시 가져오거나 생성해�
     <string name="settings_ambiwidth_mode_auto_wide_desc">현재 폰트 자동 측정, 미측정(PUA 등)은 2셀</string>
     <string name="settings_bell_notification_title">벨 알림</string>
     <string name="settings_bell_notification_subtitle">Haven이 백그라운드에 있는 동안 터미널 프로그램이 벨을 울리면 탭 이름을 알리는 알림을 게시합니다. 터미널을 보고 있는 동안에는 아무것도 표시되지 않습니다.</string>
+    <!-- Built-in floating keyboard for desktop sessions. -->
+    <string name="settings_builtin_keyboard_title">내장 키보드 사용</string>
+    <string name="settings_builtin_keyboard_subtitle">데스크톱 및 터미널 세션에서 시스템 키보드 대신 Haven의 플로팅 키보드를 표시합니다</string>
 </resources>
