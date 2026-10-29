@@ -35,4 +35,6 @@
     <string name="remote_keyboard_hide">키보드 숨기기</string>
     <string name="remote_keyboard_use_builtin">내장 키보드로 전환</string>
     <string name="remote_keyboard_use_system">시스템 키보드로 전환</string>
+    <string name="remote_nav_rail_hide">탐색 표시줄 숨기기</string>
+    <string name="remote_nav_rail_show">탐색 표시줄 표시</string>
 </resources>

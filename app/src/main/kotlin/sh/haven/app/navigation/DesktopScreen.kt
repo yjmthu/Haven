@@ -87,6 +87,9 @@ fun DesktopScreen(
     builtinKeyboard: Boolean = false,
     /** Persist a new keyboard source from the toolbar's system/built-in switch. */
     onSetBuiltinKeyboard: (Boolean) -> Unit = {},
+    /** Landscape side rail state, toggled from the viewer toolbar. */
+    navRailVisible: Boolean = true,
+    onSetNavRailVisible: (Boolean) -> Unit = {},
     /** TOUCHPAD-mode speed multiplier; viewer-side gesture math scales by it (#696). */
     touchpadSensitivity: Float = 1f,
     /** Persist trackpad sensitivity changes from the toolbar (#696); null hides the control. */
@@ -263,6 +266,8 @@ fun DesktopScreen(
                                 onToggleBuiltinKeyboard = {
                                     onSetBuiltinKeyboard(!builtinKeyboard)
                                 },
+                                navRailVisible = navRailVisible,
+                                onToggleNavRail = { onSetNavRailVisible(!navRailVisible) },
                                 touchpadSensitivity = touchpadSensitivity,
                                 onSetTouchpadSensitivity = onSetTouchpadSensitivity,
                                 keyboardLayout = keyboardLayout,
@@ -316,6 +321,8 @@ fun DesktopScreen(
                             onToggleBuiltinKeyboard = {
                                 onSetBuiltinKeyboard(!builtinKeyboard)
                             },
+                            navRailVisible = navRailVisible,
+                            onToggleNavRail = { onSetNavRailVisible(!navRailVisible) },
                             touchpadSensitivity = touchpadSensitivity,
                             onSetTouchpadSensitivity = onSetTouchpadSensitivity,
                             keyboardLayout = keyboardLayout,

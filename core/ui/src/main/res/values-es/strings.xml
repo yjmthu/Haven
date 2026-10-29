@@ -32,4 +32,6 @@
     <string name="remote_keyboard_hide">Ocultar teclado</string>
     <string name="remote_keyboard_use_builtin">Cambiar al teclado integrado</string>
     <string name="remote_keyboard_use_system">Cambiar al teclado del sistema</string>
+    <string name="remote_nav_rail_hide">Ocultar la barra de navegación</string>
+    <string name="remote_nav_rail_show">Mostrar la barra de navegación</string>
 </resources>

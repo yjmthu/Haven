@@ -32,4 +32,6 @@
     <string name="remote_keyboard_hide">Сакриј тастатуру</string>
     <string name="remote_keyboard_use_builtin">Prebaci na ugrađenu tastaturu</string>
     <string name="remote_keyboard_use_system">Prebaci na sistemsku tastaturu</string>
+    <string name="remote_nav_rail_hide">Sakrij traku za navigaciju</string>
+    <string name="remote_nav_rail_show">Prikaži traku za navigaciju</string>
 </resources>

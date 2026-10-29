@@ -1,0 +1,1 @@
+A new toolbar button hides and shows the side navigation rail in landscape (remembered across sessions), the pointer-speed button now only shows in mouse mode, and the built-in keyboard's labels are larger and semibold with roomier row spacing.

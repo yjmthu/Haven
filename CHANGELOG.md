@@ -5,6 +5,12 @@ the corresponding GitHub Release; a release can't ship without its section
 (enforced by `scripts/check-changelog.sh` in CI). The GitHub "Full Changelog"
 compare link is appended automatically — don't add it here.
 
+## v5.89.63
+
+- **A toolbar button hides Haven's side navigation rail in landscape, and remembers the choice.** The rail takes a slice of the width away from the remote image; the new button (next to the keyboard switch) hands that width back. It is hidden in portrait, where the bottom tab bar is used instead, and the state is persisted so the next session opens the same way.
+- **The pointer-speed button only appears in mouse mode.** In pan mode a finger drags the viewport and the multiplier does nothing, so the control is hidden instead of sitting there inert.
+- **The built-in keyboard's labels are larger and semibold, with more room between rows.** The letters now match the caps they sit on, and the wider row gaps keep a thumb from catching two rows at once.
+
 ## v5.89.62
 
 - **A pinch zooms around the fingers instead of yanking the image into a corner.** While the view was zoomed and the remote pointer sat outside the inner 30% of the screen, every zoom step also re-ran the camera-follow pan, which dragged the viewport towards the pointer — so the same gesture either zoomed under the fingers or threw the content up and to the left, depending on where the pointer happened to be. The camera now follows pointer movement only, never a zoom change.

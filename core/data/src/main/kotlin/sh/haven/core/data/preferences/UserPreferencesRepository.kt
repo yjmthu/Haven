@@ -171,6 +171,10 @@ class UserPreferencesRepository @Inject constructor(
     private val desktopKeyboardXFractionKey = floatPreferencesKey("desktop_keyboard_x_fraction")
     private val desktopKeyboardYFractionKey = floatPreferencesKey("desktop_keyboard_y_fraction")
 
+    // Landscape only: Haven's side navigation rail hidden so the desktop gets the
+    // whole width. See [desktopNavRailHidden].
+    private val desktopNavRailHiddenKey = booleanPreferencesKey("desktop_nav_rail_hidden")
+
     // Experimental GPU stack for accelerated Wayland/cage desktops. Off (default)
     // = virgl/virpipe (GL 2.1, present works on every path). On = venus
     // (Vulkan→Mali) + zink (modern GL, ~3.2 core) with the wl_shm CPU-copy WSI
@@ -656,6 +660,22 @@ class UserPreferencesRepository @Inject constructor(
             prefs[desktopKeyboardScaleKey] = scale
             prefs[desktopKeyboardXFractionKey] = xFraction
             prefs[desktopKeyboardYFractionKey] = yFraction
+        }
+    }
+
+    /**
+     * The app's side navigation rail is hidden while a desktop is open. Only the
+     * rail Haven draws itself: the system bars are untouched, and portrait keeps
+     * its bottom tab bar. Remembered so a landscape session reopens the way it
+     * was left, toggled from the desktop toolbar.
+     */
+    val desktopNavRailHidden: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[desktopNavRailHiddenKey] ?: false
+    }
+
+    suspend fun setDesktopNavRailHidden(hidden: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[desktopNavRailHiddenKey] = hidden
         }
     }
 

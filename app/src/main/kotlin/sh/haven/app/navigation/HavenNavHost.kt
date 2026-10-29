@@ -421,6 +421,10 @@ fun HavenNavHost(
         .collectAsState(initial = true)
     val desktopBuiltinKeyboard by preferencesRepository.desktopBuiltinKeyboard
         .collectAsState(initial = false)
+    // Landscape side rail, hidden from the desktop toolbar and remembered across
+    // sessions (it only ever hides Haven's own rail, never the system bars).
+    val desktopNavRailHidden by preferencesRepository.desktopNavRailHidden
+        .collectAsState(initial = false)
     val desktopKeyboardVisible by desktopViewModel.builtinKeyboardVisible.collectAsState()
     val desktopAnyLiveTab by desktopViewModel.anyLiveTab.collectAsState()
     val desktopKeyboardScale by preferencesRepository.desktopKeyboardScale
@@ -689,6 +693,12 @@ fun HavenNavHost(
                                     preferencesRepository.setDesktopBuiltinKeyboard(enabled)
                                 }
                             },
+                            navRailVisible = !desktopNavRailHidden,
+                            onSetNavRailVisible = { visible ->
+                                coroutineScope.launch {
+                                    preferencesRepository.setDesktopNavRailHidden(!visible)
+                                }
+                            },
                             touchpadSensitivity = desktopTouchpadSensitivity,
                             onSetTouchpadSensitivity = { value ->
                                 coroutineScope.launch { preferencesRepository.setDesktopTouchpadSensitivity(value) }
@@ -931,7 +941,7 @@ fun HavenNavHost(
         } else {
             innerPadding
         }
-        if (useSideNavigation) {
+        if (useSideNavigation && !desktopNavRailHidden) {
             Row(
                 modifier = Modifier
                     .padding(pagerPadding)

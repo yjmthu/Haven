@@ -72,6 +72,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -587,7 +588,10 @@ fun RemoteKeyboard(
 
                         letters.forEachIndexed { index, row ->
                             Row(
-                                modifier = Modifier.padding(top = 2.dp),
+                                // Roomier than the horizontal gaps on purpose: rows
+                                // read as separate bands, which makes a mis-tap
+                                // between two rows much less likely.
+                                modifier = Modifier.padding(top = 6.dp),
                                 horizontalArrangement = Arrangement.spacedBy(2.dp),
                             ) {
                                 // Stagger the letter rows like a physical keyboard: the
@@ -647,7 +651,7 @@ fun RemoteKeyboard(
                         // The punctuation sits to the right of the space bar — where a
                         // thumb naturally reaches — and the modifiers cluster on the left.
                         Row(
-                            modifier = Modifier.padding(top = 2.dp),
+                            modifier = Modifier.padding(top = 6.dp),
                             horizontalArrangement = Arrangement.spacedBy(2.dp),
                         ) {
                             KeyCap(
@@ -954,7 +958,8 @@ private fun RowScope.KeyCap(
             } else {
                 Text(
                     text = label.orEmpty(),
-                    fontSize = 17.sp,
+                    fontSize = 19.sp,
+                    fontWeight = FontWeight.SemiBold,
                     color = tint,
                     textAlign = TextAlign.Center,
                     maxLines = 1,
@@ -1044,7 +1049,13 @@ private fun RowScope.SmallKey(
                     tint = iconTint,
                 )
             } else {
-                Text(text = label.orEmpty(), fontSize = 12.sp, color = tint, maxLines = 1)
+                Text(
+                    text = label.orEmpty(),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = tint,
+                    maxLines = 1,
+                )
             }
         }
     }

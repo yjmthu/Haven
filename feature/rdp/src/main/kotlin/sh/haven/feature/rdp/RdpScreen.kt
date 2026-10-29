@@ -186,6 +186,9 @@ fun RdpSessionContent(
     onBuiltinKeyboardVisibleChange: (Boolean) -> Unit = {},
     /** Toolbar switch between the system IME and the built-in panel. Null hides it. */
     onToggleBuiltinKeyboard: (() -> Unit)? = null,
+    /** Landscape side rail, toggled from the toolbar (hidden in portrait). */
+    navRailVisible: Boolean = true,
+    onToggleNavRail: (() -> Unit)? = null,
     /** TOUCHPAD-mode speed multiplier; gesture math scales deltas by it (#696). */
     touchpadSensitivity: Float = 1f,
     /** Persist trackpad sensitivity from the toolbar (#696). Null hides the control. */
@@ -271,6 +274,8 @@ fun RdpSessionContent(
             builtinKeyboardVisible = builtinKeyboardVisible,
             onBuiltinKeyboardVisibleChange = onBuiltinKeyboardVisibleChange,
             onToggleBuiltinKeyboard = onToggleBuiltinKeyboard,
+            navRailVisible = navRailVisible,
+            onToggleNavRail = onToggleNavRail,
             touchpadSensitivity = touchpadSensitivity,
             onSetTouchpadSensitivity = onSetTouchpadSensitivity,
             keyboardLayout = keyboardLayout,
@@ -466,6 +471,9 @@ private fun RdpViewer(
     onBuiltinKeyboardVisibleChange: (Boolean) -> Unit = {},
     /** Toolbar switch between the system IME and the built-in panel. Null hides it. */
     onToggleBuiltinKeyboard: (() -> Unit)? = null,
+    /** Landscape side rail, toggled from the toolbar (hidden in portrait). */
+    navRailVisible: Boolean = true,
+    onToggleNavRail: (() -> Unit)? = null,
     /** TOUCHPAD-mode speed multiplier; gesture math scales deltas by it (#696). */
     touchpadSensitivity: Float = 1f,
     /** Persist trackpad sensitivity from the toolbar (#696). Null hides the control. */
@@ -1276,6 +1284,16 @@ private fun RdpViewer(
                             )
                         }
 
+                        // Landscape only: hand the side rail's width to the remote
+                        // image. Portrait has no rail (it uses the bottom tab bar),
+                        // so the button is hidden there.
+                        if (onToggleNavRail != null && !portrait) {
+                            sh.haven.core.ui.RemoteNavRailToggle(
+                                visible = navRailVisible,
+                                onToggle = onToggleNavRail,
+                            )
+                        }
+
                         IconButton(onClick = { onSetOrientation(orientationTarget) }) {
                             Icon(Icons.Default.ScreenRotation, contentDescription = orientationDesc)
                         }
@@ -1525,8 +1543,10 @@ private fun MouseModeToggle(
                 else stringResource(R.string.rdp_cd_pan_mode_off),
             )
         }
-        // Speed control (#696): the relative pointer always has a speed to tune.
-        if (onSetTouchpadSensitivity != null) {
+        // Pointer speed only applies while the pointer is being steered (#696);
+        // in pan mode the finger drags the viewport and the value does nothing,
+        // so the control is hidden rather than shown greyed.
+        if (onSetTouchpadSensitivity != null && !panMode) {
             val speedDesc = stringResource(R.string.rdp_cd_trackpad_sensitivity)
             IconButton(onClick = onOpenSensitivity) {
                 Icon(Icons.Default.Speed, contentDescription = speedDesc)

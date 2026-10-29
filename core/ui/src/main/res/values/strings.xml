@@ -35,4 +35,6 @@
     <string name="remote_keyboard_hide">Hide keyboard</string>
     <string name="remote_keyboard_use_builtin">Switch to built-in keyboard</string>
     <string name="remote_keyboard_use_system">Switch to system keyboard</string>
+    <string name="remote_nav_rail_hide">Hide navigation bar</string>
+    <string name="remote_nav_rail_show">Show navigation bar</string>
 </resources>

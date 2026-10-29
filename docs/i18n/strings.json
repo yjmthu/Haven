@@ -3082,6 +3082,46 @@
       "sr": "Prebaci na sistemsku tastaturu",
       "zh": "切换到系统键盘"
      }
+    },
+    {
+     "name": "remote_nav_rail_hide",
+     "en": "Hide navigation bar",
+     "comment": "Built-in desktop keyboard (VNC/RDP)",
+     "args": [],
+     "t": {
+      "ar": "إخفاء شريط التنقل",
+      "bn": "নেভিগেশন বার লুকান",
+      "de": "Navigationsleiste ausblenden",
+      "es": "Ocultar la barra de navegación",
+      "fr": "Masquer la barre de navigation",
+      "hi": "नेविगेशन बार छिपाएँ",
+      "ja": "ナビゲーションバーを隠す",
+      "ko": "탐색 표시줄 숨기기",
+      "pt": "Ocultar a barra de navegação",
+      "ru": "Скрыть панель навигации",
+      "sr": "Sakrij traku za navigaciju",
+      "zh": "隐藏导航栏"
+     }
+    },
+    {
+     "name": "remote_nav_rail_show",
+     "en": "Show navigation bar",
+     "comment": "Built-in desktop keyboard (VNC/RDP)",
+     "args": [],
+     "t": {
+      "ar": "إظهار شريط التنقل",
+      "bn": "নেভিগেশন বার দেখান",
+      "de": "Navigationsleiste einblenden",
+      "es": "Mostrar la barra de navegación",
+      "fr": "Afficher la barre de navigation",
+      "hi": "नेविगेशन बार दिखाएँ",
+      "ja": "ナビゲーションバーを表示",
+      "ko": "탐색 표시줄 표시",
+      "pt": "Mostrar a barra de navegação",
+      "ru": "Показать панель навигации",
+      "sr": "Prikaži traku za navigaciju",
+      "zh": "显示导航栏"
+     }
     }
    ]
   },
