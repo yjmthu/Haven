@@ -5,6 +5,11 @@ the corresponding GitHub Release; a release can't ship without its section
 (enforced by `scripts/check-changelog.sh` in CI). The GitHub "Full Changelog"
 compare link is appended automatically — don't add it here.
 
+## v5.89.62
+
+- **A pinch zooms around the fingers instead of yanking the image into a corner.** While the view was zoomed and the remote pointer sat outside the inner 30% of the screen, every zoom step also re-ran the camera-follow pan, which dragged the viewport towards the pointer — so the same gesture either zoomed under the fingers or threw the content up and to the left, depending on where the pointer happened to be. The camera now follows pointer movement only, never a zoom change.
+- **A key is sent when the finger lifts, and dropped if the touch slides.** The modifier keys (Ctrl, Alt, Win, Shift) fired on release even after the finger had slid away, so a swipe meant to move the keyboard or abandon the press still armed a key. Any travel past the touch slop now cancels the press, including a lift that lands away from where the touch began.
+
 ## v5.89.61
 
 - **An armed modifier is consumed by the key it modifies.** Ctrl, Alt, Win and one-shot Shift stayed armed after a chord, so the next key was silently modified too. They now clear the moment a key uses them; only a modifier that has not been used still has to be cancelled by tapping it again.

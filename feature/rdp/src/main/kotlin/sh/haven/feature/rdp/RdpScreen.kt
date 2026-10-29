@@ -554,7 +554,14 @@ private fun RdpViewer(
     // Mario-camera viewport pan: while the pointer is being steered and the
     // view is zoomed, snap the pan so the cursor always stays inside the inner
     // dead-zone of the view.
-    LaunchedEffect(virtualCursor, zoom, viewSize, frame.width, frame.height) {
+    //
+    // Deliberately NOT keyed on [zoom]: a pinch already positions the content
+    // around the pinch centroid, and re-running this on every zoom tick let the
+    // camera snap the viewport toward wherever the pointer happened to be, so
+    // the same pinch zoomed around the fingers or threw the image into a corner
+    // depending on where the pointer sat. The camera follows the pointer, not
+    // the zoom: it runs again as soon as the pointer moves.
+    LaunchedEffect(virtualCursor, viewSize, frame.width, frame.height) {
         if (zoom > 1f && viewSize.width > 0 && viewSize.height > 0) {
             val (newPanX, newPanY) = cameraFollow(
                 cursorFbX = virtualCursor.first,

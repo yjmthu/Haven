@@ -1,0 +1,1 @@
+Pinch-zoom now zooms around the fingers instead of occasionally yanking the image into a corner (the camera-follow pan no longer re-runs on every zoom step), and a key is only sent when the finger lifts without sliding: any travel past the touch slop cancels the press, so a swipe meant to move the keyboard no longer arms a modifier.

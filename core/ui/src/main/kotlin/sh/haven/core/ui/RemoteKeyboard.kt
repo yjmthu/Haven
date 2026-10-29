@@ -828,6 +828,11 @@ private fun CornerResizeArc(
  * tick (the same feedback the system uses for a long press) so the user knows
  * it latched before lifting.
  *
+ * A key is only sent when the finger lifts without travelling: once the touch
+ * slides past the touch slop the press is abandoned and nothing is typed, so a
+ * finger that meant to drag the panel (or just changed its mind) can't fire a
+ * key on the way out.
+ *
  * Drives its own pressed flag because emitting Press interactions from inside
  * the restricted pointer scope is not allowed.
  */
@@ -837,16 +842,30 @@ private fun Modifier.holdGesture(
     onTap: () -> Unit,
     onLongPress: () -> Unit,
 ): Modifier = pointerInput(onTap, onLongPress) {
+    val slop = viewConfiguration.touchSlop
     awaitEachGesture {
         val down = awaitFirstDown(requireUnconsumed = false)
         down.consume()
         onHeldChange(true)
+        var slid = false
         val releasedInTime = try {
             withTimeout(KeyHoldMs) {
                 var released = false
                 while (!released) {
                     val event = awaitPointerEvent()
-                    released = event.changes.none { it.pressed }
+                    val change = event.changes.firstOrNull { it.id == down.id }
+                    if (change == null) {
+                        released = true
+                        continue
+                    }
+                    // Check the lift position too: a synthetic/fast gesture can
+                    // jump straight from down to up, and a key must never fire
+                    // when the finger left somewhere else.
+                    if ((change.position - down.position).getDistance() > slop) {
+                        slid = true
+                        break
+                    }
+                    if (!change.pressed) released = true
                 }
                 true
             }
@@ -854,11 +873,14 @@ private fun Modifier.holdGesture(
             false
         }
         onHeldChange(false)
-        if (!releasedInTime) {
-            view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-            onLongPress()
-        } else {
-            onTap()
+        when {
+            slid -> Unit // Slide = abandon: the gesture belongs to the drag now.
+            !releasedInTime -> {
+                view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                onLongPress()
+            }
+
+            else -> onTap()
         }
     }
 }
