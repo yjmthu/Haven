@@ -5,6 +5,10 @@ the corresponding GitHub Release; a release can't ship without its section
 (enforced by `scripts/check-changelog.sh` in CI). The GitHub "Full Changelog"
 compare link is appended automatically — don't add it here.
 
+## v5.89.65
+
+- **Armed modifiers wrap a drag as well as a click.** A modified tap now waits out the 300 ms tap-then-drag window before clicking: if a drag follows, the click is dropped and the modifier is held for the whole drag (Ctrl+drag to copy, Shift+drag to move) and released when the finger lifts. Plain taps are untouched — they still click immediately.
+
 ## v5.89.64
 
 - **Armed modifiers apply to pointer clicks too.** Ctrl + left click opens a link in a new tab, Shift + click extends a selection — the panel holds the modifier down around the click, releases it after, and then drops the armed state exactly like a typed chord, so the next click is plain again. Covers left, right and middle clicks in both the RDP and VNC viewers.

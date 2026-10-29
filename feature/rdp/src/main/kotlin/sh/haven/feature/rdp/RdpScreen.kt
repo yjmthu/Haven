@@ -566,22 +566,39 @@ private fun RdpViewer(
     // pointer action is unmodified again.
     var keyboardModifiers by remember { mutableStateOf(RemoteModifiers.NONE) }
     var modifierConsumeSignal by remember { mutableIntStateOf(0) }
-    val clickWithModifiers: (() -> Unit) -> Unit = click@{ click ->
-        val mods = keyboardModifiers
-        if (!mods.any) {
-            click()
-            return@click
-        }
+
+    fun pressModifierChord(mods: RemoteModifiers) {
         if (mods.ctrl) onKeyDown(RDP_KEY_CODES.ctrl)
         if (mods.alt) onKeyDown(RDP_KEY_CODES.alt)
         if (mods.shift) onKeyDown(RDP_KEY_CODES.shift)
         if (mods.win) onKeyDown(RDP_KEY_CODES.win)
-        click()
+    }
+
+    fun releaseModifierChord(mods: RemoteModifiers) {
         if (mods.ctrl) onKeyUp(RDP_KEY_CODES.ctrl)
         if (mods.alt) onKeyUp(RDP_KEY_CODES.alt)
         if (mods.shift) onKeyUp(RDP_KEY_CODES.shift)
         if (mods.win) onKeyUp(RDP_KEY_CODES.win)
-        modifierConsumeSignal++
+    }
+
+    /** A click carries whatever is armed, then consumes it (Ctrl+click, Shift+click). */
+    fun clickWithModifiers(mods: RemoteModifiers, click: () -> Unit) {
+        pressModifierChord(mods)
+        click()
+        releaseModifierChord(mods)
+        if (mods.any) modifierConsumeSignal++
+    }
+
+    // A modified tap may be the first half of a modified drag (tap, hold, move),
+    // so it waits out the follow-up window before clicking: if a drag starts
+    // inside that window the click is dropped and the drag carries the
+    // modifiers instead. Unmodified taps still click immediately.
+    var pendingModifiedClick by remember { mutableStateOf<(() -> Unit)?>(null) }
+    LaunchedEffect(pendingModifiedClick) {
+        val click = pendingModifiedClick ?: return@LaunchedEffect
+        delay(TAP_THEN_DRAG_WINDOW_MS)
+        pendingModifiedClick = null
+        click()
     }
 
     // Mario-camera viewport pan: while the pointer is being steered and the
@@ -943,8 +960,10 @@ private fun RdpViewer(
                             // Tap-then-drag follow-up window (mouse mode only — in
                             // pan mode the first finger is a pan handle, not a tap).
                             val isFollowUpTouch = !panMode &&
-                                    (firstDown.uptimeMillis - lastTapUpMs) <= 300L
+                                    (firstDown.uptimeMillis - lastTapUpMs) <= TAP_THEN_DRAG_WINDOW_MS
                             var dragButtonPressed = false
+                            // Modifiers held for the whole drag, released with it.
+                            var dragModifiers = RemoteModifiers.NONE
 
                             var event: PointerEvent
                             do {
@@ -964,7 +983,7 @@ private fun RdpViewer(
                                     // Middle click lands at the pointer (relative mode
                                     // has no finger→remote mapping any more).
                                     val (mx, my) = virtualCursor
-                                    clickWithModifiers { onMiddleClick(mx, my) }
+                                    clickWithModifiers(keyboardModifiers) { onMiddleClick(mx, my) }
                                     twoFingerLongPressFired = true
                                     event = awaitPointerEvent(PointerEventPass.Initial)
                                 } else {
@@ -1100,6 +1119,15 @@ private fun RdpViewer(
                                         virtualCursor = nx to ny
                                         if (totalMovement >= touchSlopPx) {
                                             if (isFollowUpTouch && !dragButtonPressed) {
+                                                // A modified tap that turns into a
+                                                // drag is a modified drag (Ctrl
+                                                // + drag), not a click.
+                                                pendingModifiedClick = null
+                                                dragModifiers = keyboardModifiers
+                                                if (dragModifiers.any) {
+                                                    pressModifierChord(dragModifiers)
+                                                    modifierConsumeSignal++
+                                                }
                                                 onDragStart(nx, ny)
                                                 dragButtonPressed = true
                                             } else {
@@ -1122,12 +1150,18 @@ private fun RdpViewer(
 
                             if (dragButtonPressed) {
                                 onDragEnd()
+                                releaseModifierChord(dragModifiers)
+                                dragModifiers = RemoteModifiers.NONE
                             }
 
                             if (totalFingers == 1 && totalMovement < touchSlopPx) {
-                                clickWithModifiers {
-                                    onTap(virtualCursor.first, virtualCursor.second)
+                                val mods = keyboardModifiers
+                                val tapClick = {
+                                    clickWithModifiers(mods) {
+                                        onTap(virtualCursor.first, virtualCursor.second)
+                                    }
                                 }
+                                if (mods.any) pendingModifiedClick = tapClick else tapClick()
                                 if (!isFollowUpTouch) {
                                     lastTapUpMs = SystemClock.uptimeMillis()
                                 } else {
@@ -1137,7 +1171,7 @@ private fun RdpViewer(
                                 !twoFingerLongPressFired
                             ) {
                                 // Two fingers down + up with no travel = right click (#286).
-                                clickWithModifiers {
+                                clickWithModifiers(keyboardModifiers) {
                                     onRightClick(virtualCursor.first, virtualCursor.second)
                                 }
                                 lastTapUpMs = 0L
@@ -2215,6 +2249,13 @@ private val RDP_KEY_CODES = RemoteKeyCodes(
 // slider steps are 0.1 granularity.
 private const val TOUCHPAD_SENSITIVITY_MIN = 0.2f
 private const val TOUCHPAD_SENSITIVITY_MAX = 3f
+
+/**
+ * How long after a tap a new touch still counts as its follow-up drag. A
+ * modified tap waits this out before clicking so the same gesture can become a
+ * modified drag instead.
+ */
+private const val TAP_THEN_DRAG_WINDOW_MS = 300L
 
 private const val SC_F2 = 0x3C
 private const val SC_F3 = 0x3D

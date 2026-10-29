@@ -1,0 +1,1 @@
+Ctrl/Alt/Win/Shift now also wrap a drag: a modified tap waits 300 ms to see whether it turns into a tap-then-drag, and if it does the click is dropped and the modifier is held for the whole drag. Plain taps still click immediately.
