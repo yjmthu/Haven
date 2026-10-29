@@ -1,0 +1,1 @@
+Armed modifiers now apply to mouse clicks (Ctrl + click opens a link, Shift + click extends a selection) and are consumed by the click, the built-in keyboard's keys match Gboard's proportions, and the landscape navigation-rail toggle moved to the far right of the toolbar.

@@ -121,7 +121,7 @@ private val ArcBoxSize = 44.dp
  * read as separate buttons instead of one tiled surface.
  */
 private val KeyInsetH = 2.dp
-private val KeyInsetV = 1.5.dp
+private val KeyInsetV = 2.dp
 
 /** Hold time before a key latches (Win)). Shorter than the system 500ms. */
 private const val KeyHoldMs = 350L
@@ -134,6 +134,29 @@ data class RemoteKeyboardLayout(
     companion object {
         const val MIN_SCALE = 0.7f
         const val MAX_SCALE = 1.8f
+    }
+}
+
+/**
+ * The built-in keyboard's armed modifiers, reported to the host so a pointer
+ * click can carry them: Ctrl+left click opens a link in a new tab, Shift+click
+ * extends a selection.
+ *
+ * Caps lock is a latching state rather than a modifier, so it is deliberately
+ * not part of this set.
+ */
+data class RemoteModifiers(
+    val ctrl: Boolean = false,
+    val alt: Boolean = false,
+    val win: Boolean = false,
+    /** One-shot Shift, i.e. armed for exactly the next action. */
+    val shift: Boolean = false,
+) {
+    /** True when a click should be wrapped in a modifier chord. */
+    val any: Boolean get() = ctrl || alt || win || shift
+
+    companion object {
+        val NONE = RemoteModifiers()
     }
 }
 
@@ -172,6 +195,16 @@ fun RemoteKeyboard(
     layout: RemoteKeyboardLayout = RemoteKeyboardLayout(),
     /** Gesture-end report so the host can persist the geometry. */
     onLayoutChange: (RemoteKeyboardLayout) -> Unit = {},
+    /**
+     * Current armed modifiers, so the host can wrap a canvas click in the same
+     * chord (Ctrl+click, Shift+click) and clear them afterwards.
+     */
+    onModifiersChange: (RemoteModifiers) -> Unit = {},
+    /**
+     * Bumped by the host once a pointer click has consumed the armed modifiers;
+     * the panel then drops them exactly like a typed chord does.
+     */
+    consumeModifiersSignal: Int = 0,
 ) {
     var symbols by remember { mutableStateOf(false) }
     // Shift is a three-state key: off -> armed for one character -> caps lock.
@@ -246,8 +279,8 @@ fun RemoteKeyboard(
     // Portrait keeps the roomy keys (it is docked and replacing the IME); the
     // floating landscape panel is deliberately more compact, and its extra
     // width keeps each cap from looking like a thin strip.
-    val keyHeight = if (portrait) 46.dp else 36.dp
-    val smallKeyHeight = if (portrait) 36.dp else 28.dp
+    val keyHeight = if (portrait) 50.dp else 38.dp
+    val smallKeyHeight = if (portrait) 40.dp else 30.dp
 
     // Persist after the gesture goes quiet. detectTransformGestures loops for the
     // whole gesture and never returns, so there is no "gesture ended" hook to
@@ -301,6 +334,20 @@ fun RemoteKeyboard(
         win = false
         // Caps lock is a latching state, not an armed modifier.
         if (!capsLock) shift = false
+    }
+
+    // Report the armed set so a canvas click can carry it, and drop it when the
+    // host says a click consumed it (Ctrl+left click must not stay armed for the
+    // next click, same rule a typed chord follows).
+    val armed = RemoteModifiers(
+        ctrl = ctrl,
+        alt = alt,
+        win = win,
+        shift = shift && !capsLock,
+    )
+    LaunchedEffect(armed) { onModifiersChange(armed) }
+    LaunchedEffect(consumeModifiersSignal) {
+        if (consumeModifiersSignal > 0) consumeModifiers()
     }
 
     fun type(c: Char) {
@@ -458,8 +505,8 @@ fun RemoteKeyboard(
                 Box {
                     Column(
                         modifier = Modifier.padding(
-                            start = 6.dp,
-                            end = 6.dp,
+                            start = 3.dp,
+                            end = 3.dp,
                             // The resize arcs live outside the panel, so the keys can use
                             // the full height right down to the rounded corners.
                             bottom = 6.dp,
@@ -591,7 +638,7 @@ fun RemoteKeyboard(
                                 // Roomier than the horizontal gaps on purpose: rows
                                 // read as separate bands, which makes a mis-tap
                                 // between two rows much less likely.
-                                modifier = Modifier.padding(top = 6.dp),
+                                modifier = Modifier.padding(top = 9.dp),
                                 horizontalArrangement = Arrangement.spacedBy(2.dp),
                             ) {
                                 // Stagger the letter rows like a physical keyboard: the
@@ -651,7 +698,7 @@ fun RemoteKeyboard(
                         // The punctuation sits to the right of the space bar — where a
                         // thumb naturally reaches — and the modifiers cluster on the left.
                         Row(
-                            modifier = Modifier.padding(top = 6.dp),
+                            modifier = Modifier.padding(top = 9.dp),
                             horizontalArrangement = Arrangement.spacedBy(2.dp),
                         ) {
                             KeyCap(

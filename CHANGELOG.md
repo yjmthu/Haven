@@ -5,6 +5,12 @@ the corresponding GitHub Release; a release can't ship without its section
 (enforced by `scripts/check-changelog.sh` in CI). The GitHub "Full Changelog"
 compare link is appended automatically — don't add it here.
 
+## v5.89.64
+
+- **Armed modifiers apply to pointer clicks too.** Ctrl + left click opens a link in a new tab, Shift + click extends a selection — the panel holds the modifier down around the click, releases it after, and then drops the armed state exactly like a typed chord, so the next click is plain again. Covers left, right and middle clicks in both the RDP and VNC viewers.
+- **The built-in keyboard's keys are sized like Gboard's.** The caps are taller relative to their width (~46dp tall against ~35dp wide), the rows sit about 12.5dp apart, and the side margins shrank so the ten columns fill the width — calibrated against a Gboard screenshot on the same device: column pitch 105px vs Gboard's 107px, row pitch 155px in both.
+- **The navigation-rail button moved to the far right of the toolbar**, next to fullscreen, where it reads as screen chrome instead of splitting the input buttons.
+
 ## v5.89.63
 
 - **A toolbar button hides Haven's side navigation rail in landscape, and remembers the choice.** The rail takes a slice of the width away from the remote image; the new button (next to the keyboard switch) hands that width back. It is hidden in portrait, where the bottom tab bar is used instead, and the state is persisted so the next session opens the same way.

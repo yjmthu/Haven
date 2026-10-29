@@ -138,6 +138,7 @@ import sh.haven.core.data.preferences.ToolbarLayout
 import sh.haven.core.ui.CursorOverlay
 import sh.haven.core.ui.RemoteKeyCodes
 import sh.haven.core.ui.RemoteKeyboard
+import sh.haven.core.ui.RemoteModifiers
 import sh.haven.core.ui.clampPanToCover
 import sh.haven.feature.vnc.R
 import androidx.compose.ui.res.stringResource
@@ -953,6 +954,30 @@ private fun VncViewer(
     // drag with button 1 held (RealVNC convention).
     var lastTapUpMs by remember { mutableStateOf(0L) }
 
+    // Modifiers armed on the built-in keyboard. A canvas click carries them the
+    // same way a typed chord does — Ctrl+left click opens a link in a new tab,
+    // Shift+click extends a selection — and the click consumes them, so the next
+    // pointer action is unmodified again.
+    var keyboardModifiers by remember { mutableStateOf(RemoteModifiers.NONE) }
+    var modifierConsumeSignal by remember { mutableIntStateOf(0) }
+    val clickWithModifiers: (() -> Unit) -> Unit = click@{ click ->
+        val mods = keyboardModifiers
+        if (!mods.any) {
+            click()
+            return@click
+        }
+        if (mods.ctrl) onKeyDown(VNC_KEY_CODES.ctrl)
+        if (mods.alt) onKeyDown(VNC_KEY_CODES.alt)
+        if (mods.shift) onKeyDown(VNC_KEY_CODES.shift)
+        if (mods.win) onKeyDown(VNC_KEY_CODES.win)
+        click()
+        if (mods.ctrl) onKeyUp(VNC_KEY_CODES.ctrl)
+        if (mods.alt) onKeyUp(VNC_KEY_CODES.alt)
+        if (mods.shift) onKeyUp(VNC_KEY_CODES.shift)
+        if (mods.win) onKeyUp(VNC_KEY_CODES.win)
+        modifierConsumeSignal++
+    }
+
     // Auto-hide overlay after 4 seconds
     LaunchedEffect(overlayVisible) {
         if (overlayVisible) {
@@ -1119,7 +1144,7 @@ private fun VncViewer(
 
                                 if (timedEvent == null) {
                                     // Two motionless fingers → middle click at the pointer.
-                                    onMiddleClick(virtualCursor.first, virtualCursor.second)
+                                    clickWithModifiers { onMiddleClick(virtualCursor.first, virtualCursor.second) }
                                     twoFingerLongPressFired = true
                                     // Wait for the actual next event
                                     event = awaitPointerEvent(PointerEventPass.Initial)
@@ -1357,7 +1382,9 @@ private fun VncViewer(
                             // lift time so a subsequent touch within 300 ms is
                             // treated as a tap-then-drag follow-up.
                             if (totalFingers == 1 && totalMovement < touchSlopPx) {
-                                onTap(virtualCursor.first, virtualCursor.second)
+                                clickWithModifiers {
+                                    onTap(virtualCursor.first, virtualCursor.second)
+                                }
                                 if (!isFollowUpTouch) {
                                     lastTapUpMs = SystemClock.uptimeMillis()
                                 } else {
@@ -1369,7 +1396,9 @@ private fun VncViewer(
                                 !twoFingerLongPressFired
                             ) {
                                 // Two fingers down + up with no travel = right click (#286).
-                                onRightClick(virtualCursor.first, virtualCursor.second)
+                                clickWithModifiers {
+                                    onRightClick(virtualCursor.first, virtualCursor.second)
+                                }
                                 lastTapUpMs = 0L
                             } else {
                                 // Drag, multi-finger, or long-press fired: this
@@ -1578,16 +1607,6 @@ private fun VncViewer(
                             )
                         }
 
-                        // Landscape only: hand the side rail's width to the remote
-                        // image. Portrait has no rail (it uses the bottom tab bar),
-                        // so the button is hidden there.
-                        if (onToggleNavRail != null && !portrait) {
-                            sh.haven.core.ui.RemoteNavRailToggle(
-                                visible = navRailVisible,
-                                onToggle = onToggleNavRail,
-                            )
-                        }
-
                         // Paste from Android clipboard (#718): pushes text to remote RFB
                         // CutText (for Ctrl+V / middle-click paste via vncconfig) AND types
                         // it into the focused window.
@@ -1650,6 +1669,17 @@ private fun VncViewer(
                             Icon(
                                 Icons.Default.Fullscreen,
                                 contentDescription = stringResource(R.string.vnc_cd_fullscreen)
+                            )
+                        }
+
+                        // Landscape only: hand the side rail's width to the remote
+                        // image. Portrait has no rail (it uses the bottom tab bar),
+                        // so the button is hidden there. Far right, next to
+                        // fullscreen, because it is screen chrome, not input chrome.
+                        if (onToggleNavRail != null && !portrait) {
+                            sh.haven.core.ui.RemoteNavRailToggle(
+                                visible = navRailVisible,
+                                onToggle = onToggleNavRail,
                             )
                         }
                     }
@@ -1875,6 +1905,8 @@ private fun VncViewer(
                 onHeightChange = { keyboardPanelHeightPx = it },
                 layout = keyboardLayout,
                 onLayoutChange = onKeyboardLayoutChange,
+                onModifiersChange = { keyboardModifiers = it },
+                consumeModifiersSignal = modifierConsumeSignal,
             )
         }
 
