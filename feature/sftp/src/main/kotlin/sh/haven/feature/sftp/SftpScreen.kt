@@ -210,6 +210,7 @@ fun SftpScreen(
         val result = snackbarHostState.showSnackbar(
             message = downloadedMessage,
             actionLabel = openLabel,
+            withDismissAction = true,
             duration = androidx.compose.material3.SnackbarDuration.Long,
         )
         if (result == androidx.compose.material3.SnackbarResult.ActionPerformed) {

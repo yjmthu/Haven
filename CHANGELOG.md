@@ -10,6 +10,10 @@ compare link is appended automatically — don't add it here.
 - **RDP right-click gestures are configurable.** Choose the existing two-finger tap or a one-finger long press in Settings → Desktop. Two-finger hold continues to send a middle click.
 - **RDP gestures finish cleanly.** Pinch and scroll contacts cannot turn into right-clicks on release. Adding a finger during a drag ends the drag, releases its mouse button and modifiers on the original session, and waits for all fingers to lift before accepting another gesture. Cancelled gestures use the same release path.
 
+## v5.89.66
+
+- **Connection errors can be dismissed instead of waited out.** The Snackbar that reports a failed connect — e.g. "No TCP connection to 10.255.255.1:22 after 10s" — stayed for its full ten-second timeout because Material3 bars have no swipe-to-dismiss and the message carries no action. It now has a close button, as do the other long-lived bars (warnings, saved-key notice, update/global messages, and the SFTP download bar).
+
 ## v5.89.65
 
 - **Armed modifiers wrap a drag as well as a click.** A modified tap now waits out the 300 ms tap-then-drag window before clicking: if a drag follows, the click is dropped and the modifier is held for the whole drag (Ctrl+drag to copy, Shift+drag to move) and released when the finger lifts. Plain taps are untouched — they still click immediately.

@@ -1,0 +1,1 @@
+Connection-error snackbars now have a close button instead of forcing a ten-second wait (Material3 bars cannot be swiped away). The same applies to warnings, the saved-key notice, global messages and the SFTP download bar.

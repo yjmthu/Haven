@@ -791,6 +791,7 @@ fun HavenNavHost(
             if (globalSnackbarHostState.currentSnackbarData?.visuals?.message != msg.text) {
                 globalSnackbarHostState.showSnackbar(
                     message = msg.text,
+                    withDismissAction = true,
                     duration = SnackbarDuration.Long,
                 )
             }

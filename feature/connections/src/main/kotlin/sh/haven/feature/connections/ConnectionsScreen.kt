@@ -300,6 +300,7 @@ fun ConnectionsScreen(
             // surface on this screen, so the snackbar host is visible.
             snackbarHostState.showSnackbar(
                 message = it,
+                withDismissAction = true,
                 duration = androidx.compose.material3.SnackbarDuration.Long,
             )
             viewModel.dismissError()
@@ -313,6 +314,7 @@ fun ConnectionsScreen(
         warning?.let {
             snackbarHostState.showSnackbar(
                 message = it,
+                withDismissAction = true,
                 duration = androidx.compose.material3.SnackbarDuration.Long,
             )
             viewModel.dismissWarning()
@@ -336,7 +338,7 @@ fun ConnectionsScreen(
     val keyDeployedMessage = stringResource(R.string.connections_key_deployed)
     LaunchedEffect(deploySuccess) {
         if (deploySuccess) {
-            snackbarHostState.showSnackbar(keyDeployedMessage)
+            snackbarHostState.showSnackbar(keyDeployedMessage, withDismissAction = true)
             viewModel.dismissDeploySuccess()
         }
     }
