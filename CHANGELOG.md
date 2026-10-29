@@ -5,6 +5,10 @@ the corresponding GitHub Release; a release can't ship without its section
 (enforced by `scripts/check-changelog.sh` in CI). The GitHub "Full Changelog"
 compare link is appended automatically — don't add it here.
 
+## v5.89.66
+
+- **Connection errors can be dismissed instead of waited out.** The Snackbar that reports a failed connect — e.g. "No TCP connection to 10.255.255.1:22 after 10s" — stayed for its full ten-second timeout because Material3 bars have no swipe-to-dismiss and the message carries no action. It now has a close button, as do the other long-lived bars (warnings, saved-key notice, update/global messages, and the SFTP download bar).
+
 ## v5.89.65
 
 - **Armed modifiers wrap a drag as well as a click.** A modified tap now waits out the 300 ms tap-then-drag window before clicking: if a drag follows, the click is dropped and the modifier is held for the whole drag (Ctrl+drag to copy, Shift+drag to move) and released when the finger lifts. Plain taps are untouched — they still click immediately.
