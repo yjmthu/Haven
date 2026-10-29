@@ -923,6 +923,32 @@ class DesktopViewModel @Inject constructor(
         tab._viewOnly.value = !tab._viewOnly.value
     }
 
+    /** Capture the RDP session before a gesture starts, so cleanup cannot follow a tab switch. */
+    fun rdpGestureInput(tab: DesktopTab.Rdp): sh.haven.feature.rdp.RdpGestureInput {
+        val target = tab.remoteDesktop
+        val session = tab.session
+        return sh.haven.feature.rdp.RdpGestureInput(
+            move = { x, y ->
+                tab._pointerPos.value = x to y
+                inputLane.submit { target.sendMouseMove(x, y) }
+            },
+            click = { x, y, button ->
+                tab._pointerPos.value = x to y
+                inputLane.submit { target.sendMouseClick(x, y, button) }
+            },
+            startDrag = { x, y ->
+                tab._pointerPos.value = x to y
+                inputLane.submit {
+                    target.sendMouseMove(x, y)
+                    target.sendMouseButton(1, pressed = true)
+                }
+            },
+            endDrag = { inputLane.submit { target.sendMouseButton(1, pressed = false) } },
+            scroll = { delta -> inputLane.submit { target.sendMouseWheel(delta) } },
+            key = { code, pressed -> inputLane.submit { session.sendKey(code, pressed) } },
+        )
+    }
+
     private fun sendToActive(event: (RemoteDesktopSession) -> Unit) {
         if (activeTabIsViewOnly()) return
         val session = activeTab.value?.remoteDesktop ?: return

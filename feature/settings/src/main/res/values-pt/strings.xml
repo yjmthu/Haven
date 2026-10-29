@@ -417,4 +417,10 @@ Cada chave privada já armazenada no Haven precisará ser importada ou gerada no
     <!-- Built-in floating keyboard for desktop sessions. -->
     <string name="settings_builtin_keyboard_title">Usar teclado integrado</string>
     <string name="settings_builtin_keyboard_subtitle">Mostrar o teclado flutuante do Haven em sessões de área de trabalho e terminal em vez do teclado do sistema</string>
+
+    <!-- RDP pointer gestures -->
+    <string name="settings_rdp_right_click_title">Gesto de clique direito no RDP</string>
+    <string name="settings_rdp_right_click_subtitle">Manter dois dedos pressionados envia um clique central.</string>
+    <string name="settings_rdp_right_click_two_finger">Toque com dois dedos</string>
+    <string name="settings_rdp_right_click_long_press">Pressão longa com um dedo</string>
 </resources>

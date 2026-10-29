@@ -92,6 +92,8 @@ fun DesktopScreen(
     onSetNavRailVisible: (Boolean) -> Unit = {},
     /** TOUCHPAD-mode speed multiplier; viewer-side gesture math scales by it (#696). */
     touchpadSensitivity: Float = 1f,
+    rdpRightClickGesture: sh.haven.core.data.preferences.RdpRightClickGesture =
+        sh.haven.core.data.preferences.RdpRightClickGesture.DEFAULT,
     /** Persist trackpad sensitivity changes from the toolbar (#696); null hides the control. */
     onSetTouchpadSensitivity: ((Float) -> Unit)? = null,
     /** Saved scale/position of the built-in keyboard's floating panel. */
@@ -282,6 +284,10 @@ fun DesktopScreen(
                         }
 
                         is DesktopTab.Rdp -> RdpSessionContent(
+                            gestureInputTarget = androidx.compose.runtime.remember(tab) {
+                                desktopViewModel.rdpGestureInput(tab)
+                            },
+                            rightClickGesture = rdpRightClickGesture,
                             connected = tab.connected,
                             frame = tab.frame,
                             frameSeq = tab.frameSeq,

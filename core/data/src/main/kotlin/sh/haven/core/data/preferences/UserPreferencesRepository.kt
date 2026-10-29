@@ -164,6 +164,7 @@ class UserPreferencesRepository @Inject constructor(
 
     // Trackpad-mode speed multiplier (#696). 1f = the 1:1 finger→cursor ratio.
     private val desktopTouchpadSensitivityKey = floatPreferencesKey("desktop_touchpad_sensitivity")
+    private val rdpRightClickGestureKey = stringPreferencesKey("rdp_right_click_gesture")
 
     // Built-in keyboard's floating-panel geometry (landscape): pinch scale and
     // its position as fractions of the viewer, so it survives screen changes.
@@ -688,6 +689,14 @@ class UserPreferencesRepository @Inject constructor(
      */
     val desktopTouchpadSensitivity: Flow<Float> = dataStore.data.map { prefs ->
         prefs[desktopTouchpadSensitivityKey] ?: 1f
+    }
+
+    val rdpRightClickGesture: Flow<RdpRightClickGesture> = dataStore.data.map { prefs ->
+        RdpRightClickGesture.fromId(prefs[rdpRightClickGestureKey])
+    }
+
+    suspend fun setRdpRightClickGesture(gesture: RdpRightClickGesture) {
+        dataStore.edit { prefs -> prefs[rdpRightClickGestureKey] = gesture.id }
     }
 
     suspend fun setDesktopTouchpadSensitivity(value: Float) {

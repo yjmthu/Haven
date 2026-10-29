@@ -1,5 +1,7 @@
 package sh.haven.feature.settings
 
+import sh.haven.core.data.preferences.RdpRightClickGesture
+
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -219,6 +221,7 @@ fun SettingsScreen(
     val mouseInputEnabled by viewModel.mouseInputEnabled.collectAsState()
     val remoteClipboardToLocal by viewModel.remoteClipboardToLocalEnabled.collectAsState()
     val desktopBuiltinKeyboard by viewModel.desktopBuiltinKeyboard.collectAsState()
+    val rdpRightClickGesture by viewModel.rdpRightClickGesture.collectAsState()
     val bandwidthAutoSuggest by viewModel.bandwidthAutoSuggest.collectAsState()
     val terminalRightClick by viewModel.terminalRightClick.collectAsState()
     val terminalSwipeArrows by viewModel.terminalSwipeArrows.collectAsState()
@@ -865,6 +868,22 @@ fun SettingsScreen(
                         title = stringResource(R.string.settings_rdp_desktop_size_title),
                         subtitle = stringResource(R.string.settings_rdp_desktop_size_subtitle, rdpW, rdpH),
                         onClick = { showRdpSizeDialog = true },
+                    )
+                    SettingsChipsItem(
+                        icon = Icons.Filled.DesktopWindows,
+                        title = stringResource(R.string.settings_rdp_right_click_title),
+                        subtitle = stringResource(R.string.settings_rdp_right_click_subtitle),
+                        options = RdpRightClickGesture.entries,
+                        selected = rdpRightClickGesture,
+                        label = { gesture ->
+                            stringResource(
+                                when (gesture) {
+                                    RdpRightClickGesture.TWO_FINGER_TAP -> R.string.settings_rdp_right_click_two_finger
+                                    RdpRightClickGesture.SINGLE_FINGER_LONG_PRESS -> R.string.settings_rdp_right_click_long_press
+                                },
+                            )
+                        },
+                        onChange = viewModel::setRdpRightClickGesture,
                     )
                 }
                 if (showRdpSizeDialog) {

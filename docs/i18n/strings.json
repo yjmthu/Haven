@@ -19984,6 +19984,86 @@
       "sr": "Прикажи Haven-ову плутајућу тастатуру у сесијама радне површи и терминала уместо системске тастатуре",
       "zh": "在桌面和终端会话中使用 Haven 自带的悬浮键盘，而不是系统键盘"
      }
+    },
+    {
+     "name": "settings_rdp_right_click_title",
+     "en": "RDP right-click gesture",
+     "comment": "RDP pointer gestures",
+     "args": [],
+     "t": {
+      "ar": "إيماءة النقر بزر الفأرة الأيمن في RDP",
+      "bn": "RDP ডান-ক্লিকের অঙ্গভঙ্গি",
+      "de": "RDP-Rechtsklick-Geste",
+      "es": "Gesto de clic derecho en RDP",
+      "fr": "Geste de clic droit RDP",
+      "hi": "RDP में दायाँ-क्लिक जेस्चर",
+      "ja": "RDP の右クリック操作",
+      "ko": "RDP 오른쪽 클릭 제스처",
+      "pt": "Gesto de clique direito no RDP",
+      "ru": "Жест правого клика RDP",
+      "sr": "Гест за десни клик у RDP-у",
+      "zh": "RDP 右键手势"
+     }
+    },
+    {
+     "name": "settings_rdp_right_click_subtitle",
+     "en": "Two-finger hold sends a middle click.",
+     "comment": "RDP pointer gestures",
+     "args": [],
+     "t": {
+      "ar": "الضغط المطول بإصبعين يرسل نقرة بالزر الأوسط.",
+      "bn": "দুই আঙুলে দীর্ঘ চাপ দিলে মাঝের বোতামে ক্লিক হয়।",
+      "de": "Langes Drücken mit zwei Fingern sendet einen Mittelklick.",
+      "es": "Mantener dos dedos envía un clic central.",
+      "fr": "Un appui prolongé à deux doigts envoie un clic central.",
+      "hi": "दो उँगलियों से देर तक दबाने पर मध्य बटन का क्लिक भेजा जाता है।",
+      "ja": "2本指で長押しすると中クリックを送信します。",
+      "ko": "두 손가락으로 길게 누르면 가운데 클릭을 보냅니다.",
+      "pt": "Manter dois dedos pressionados envia um clique central.",
+      "ru": "Удержание двумя пальцами отправляет нажатие средней кнопки.",
+      "sr": "Дуги притисак са два прста шаље средњи клик.",
+      "zh": "双指长按仍发送中键点击。"
+     }
+    },
+    {
+     "name": "settings_rdp_right_click_two_finger",
+     "en": "Two-finger tap",
+     "comment": "RDP pointer gestures",
+     "args": [],
+     "t": {
+      "ar": "نقرة بإصبعين",
+      "bn": "দুই আঙুলে ট্যাপ",
+      "de": "Zwei-Finger-Tipp",
+      "es": "Toque con dos dedos",
+      "fr": "Toucher à deux doigts",
+      "hi": "दो उँगलियों से टैप",
+      "ja": "2本指でタップ",
+      "ko": "두 손가락 탭",
+      "pt": "Toque com dois dedos",
+      "ru": "Касание 2 пальцами",
+      "sr": "Додир са два прста",
+      "zh": "双指轻点"
+     }
+    },
+    {
+     "name": "settings_rdp_right_click_long_press",
+     "en": "One-finger long press",
+     "comment": "RDP pointer gestures",
+     "args": [],
+     "t": {
+      "ar": "ضغط مطول بإصبع واحد",
+      "bn": "এক আঙুলে দীর্ঘ চাপ",
+      "de": "Ein-Finger-Halten",
+      "es": "Mantener un dedo",
+      "fr": "Appui long à un doigt",
+      "hi": "एक उँगली से देर तक दबाएँ",
+      "ja": "1本指で長押し",
+      "ko": "한 손가락 길게 누르기",
+      "pt": "Pressão longa com um dedo",
+      "ru": "Удержание 1 пальцем",
+      "sr": "Дуги притисак једним",
+      "zh": "单指长按"
+     }
     }
    ]
   },

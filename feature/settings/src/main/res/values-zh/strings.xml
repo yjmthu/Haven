@@ -415,4 +415,10 @@ Haven 中已存储的每一个私钥都需要重新导入或生成。它们已�
     <!-- Built-in floating keyboard for desktop sessions. -->
     <string name="settings_builtin_keyboard_title">使用内置键盘</string>
     <string name="settings_builtin_keyboard_subtitle">在桌面和终端会话中使用 Haven 自带的悬浮键盘，而不是系统键盘</string>
+
+    <!-- RDP pointer gestures -->
+    <string name="settings_rdp_right_click_title">RDP 右键手势</string>
+    <string name="settings_rdp_right_click_subtitle">双指长按仍发送中键点击。</string>
+    <string name="settings_rdp_right_click_two_finger">双指轻点</string>
+    <string name="settings_rdp_right_click_long_press">单指长按</string>
 </resources>

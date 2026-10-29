@@ -417,4 +417,10 @@ Jeder bereits in Haven gespeicherte private Schlüssel muss erneut importiert od
     <!-- Built-in floating keyboard for desktop sessions. -->
     <string name="settings_builtin_keyboard_title">Integrierte Tastatur verwenden</string>
     <string name="settings_builtin_keyboard_subtitle">Havens eigene schwebende Tastatur in Desktop- und Terminal-Sitzungen statt der Systemtastatur anzeigen</string>
+
+    <!-- RDP pointer gestures -->
+    <string name="settings_rdp_right_click_title">RDP-Rechtsklick-Geste</string>
+    <string name="settings_rdp_right_click_subtitle">Langes Drücken mit zwei Fingern sendet einen Mittelklick.</string>
+    <string name="settings_rdp_right_click_two_finger">Zwei-Finger-Tipp</string>
+    <string name="settings_rdp_right_click_long_press">Ein-Finger-Halten</string>
 </resources>

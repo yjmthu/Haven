@@ -5,6 +5,11 @@ the corresponding GitHub Release; a release can't ship without its section
 (enforced by `scripts/check-changelog.sh` in CI). The GitHub "Full Changelog"
 compare link is appended automatically — don't add it here.
 
+## Unreleased
+
+- **RDP right-click gestures are configurable.** Choose the existing two-finger tap or a one-finger long press in Settings → Desktop. Two-finger hold continues to send a middle click.
+- **RDP gestures finish cleanly.** Pinch and scroll contacts cannot turn into right-clicks on release. Adding a finger during a drag ends the drag, releases its mouse button and modifiers on the original session, and waits for all fingers to lift before accepting another gesture. Cancelled gestures use the same release path.
+
 ## v5.89.65
 
 - **Armed modifiers wrap a drag as well as a click.** A modified tap now waits out the 300 ms tap-then-drag window before clicking: if a drag follows, the click is dropped and the modifier is held for the whole drag (Ctrl+drag to copy, Shift+drag to move) and released when the finger lifts. Plain taps are untouched — they still click immediately.

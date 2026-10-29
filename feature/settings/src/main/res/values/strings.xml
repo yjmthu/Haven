@@ -459,4 +459,10 @@ Every private key already stored in Haven will need to be imported or generated 
     <!-- Built-in floating keyboard for desktop sessions. -->
     <string name="settings_builtin_keyboard_title">Use built-in keyboard</string>
     <string name="settings_builtin_keyboard_subtitle">Show Haven\'s own floating keyboard in desktop and terminal sessions instead of the system keyboard</string>
+
+    <!-- RDP pointer gestures -->
+    <string name="settings_rdp_right_click_title">RDP right-click gesture</string>
+    <string name="settings_rdp_right_click_subtitle">Two-finger hold sends a middle click.</string>
+    <string name="settings_rdp_right_click_two_finger">Two-finger tap</string>
+    <string name="settings_rdp_right_click_long_press">One-finger long press</string>
 </resources>

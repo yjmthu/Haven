@@ -421,6 +421,8 @@ fun HavenNavHost(
         .collectAsState(initial = true)
     val desktopBuiltinKeyboard by preferencesRepository.desktopBuiltinKeyboard
         .collectAsState(initial = false)
+    val rdpRightClickGesture by preferencesRepository.rdpRightClickGesture
+        .collectAsState(initial = sh.haven.core.data.preferences.RdpRightClickGesture.DEFAULT)
     // Landscape side rail, hidden from the desktop toolbar and remembered across
     // sessions (it only ever hides Haven's own rail, never the system bars).
     val desktopNavRailHidden by preferencesRepository.desktopNavRailHidden
@@ -688,6 +690,7 @@ fun HavenNavHost(
                                 coroutineScope.launch { preferencesRepository.setRdpChipAnchor(it) }
                             },
                             builtinKeyboard = desktopBuiltinKeyboard,
+                            rdpRightClickGesture = rdpRightClickGesture,
                             onSetBuiltinKeyboard = { enabled ->
                                 coroutineScope.launch {
                                     preferencesRepository.setDesktopBuiltinKeyboard(enabled)

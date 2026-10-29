@@ -417,4 +417,10 @@ Haven में पहले से संग्रहीत प्रत्य�
     <!-- Built-in floating keyboard for desktop sessions. -->
     <string name="settings_builtin_keyboard_title">अंतर्निहित कीबोर्ड का उपयोग करें</string>
     <string name="settings_builtin_keyboard_subtitle">सिस्टम कीबोर्ड के बजाय डेस्कटॉप और टर्मिनल सत्रों में Haven का अपना फ़्लोटिंग कीबोर्ड दिखाएँ</string>
+
+    <!-- RDP pointer gestures -->
+    <string name="settings_rdp_right_click_title">RDP में दायाँ-क्लिक जेस्चर</string>
+    <string name="settings_rdp_right_click_subtitle">दो उँगलियों से देर तक दबाने पर मध्य बटन का क्लिक भेजा जाता है।</string>
+    <string name="settings_rdp_right_click_two_finger">दो उँगलियों से टैप</string>
+    <string name="settings_rdp_right_click_long_press">एक उँगली से देर तक दबाएँ</string>
 </resources>

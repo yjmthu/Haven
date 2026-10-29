@@ -347,4 +347,10 @@
     <!-- Built-in floating keyboard for desktop sessions. -->
     <string name="settings_builtin_keyboard_title">Користи уграђену тастатуру</string>
     <string name="settings_builtin_keyboard_subtitle">Прикажи Haven-ову плутајућу тастатуру у сесијама радне површи и терминала уместо системске тастатуре</string>
+
+    <!-- RDP pointer gestures -->
+    <string name="settings_rdp_right_click_title">Гест за десни клик у RDP-у</string>
+    <string name="settings_rdp_right_click_subtitle">Дуги притисак са два прста шаље средњи клик.</string>
+    <string name="settings_rdp_right_click_two_finger">Додир са два прста</string>
+    <string name="settings_rdp_right_click_long_press">Дуги притисак једним</string>
 </resources>

@@ -140,6 +140,7 @@ import sh.haven.core.ui.CursorOverlay
 import sh.haven.core.ui.RemoteKeyCodes
 import sh.haven.core.ui.RemoteKeyboard
 import sh.haven.core.ui.RemoteModifiers
+import sh.haven.core.data.preferences.RdpRightClickGesture
 import sh.haven.core.ui.clampPanToCover
 import sh.haven.feature.rdp.R
 import androidx.compose.ui.res.stringResource
@@ -194,6 +195,8 @@ fun RdpSessionContent(
     touchpadSensitivity: Float = 1f,
     /** Persist trackpad sensitivity from the toolbar (#696). Null hides the control. */
     onSetTouchpadSensitivity: ((Float) -> Unit)? = null,
+    rightClickGesture: RdpRightClickGesture = RdpRightClickGesture.DEFAULT,
+    gestureInputTarget: RdpGestureInput? = null,
     /** Saved scale/position of the built-in keyboard's floating panel. */
     keyboardLayout: sh.haven.core.ui.RemoteKeyboardLayout = sh.haven.core.ui.RemoteKeyboardLayout(),
     onKeyboardLayoutChange: (sh.haven.core.ui.RemoteKeyboardLayout) -> Unit = {},
@@ -279,6 +282,8 @@ fun RdpSessionContent(
             onToggleNavRail = onToggleNavRail,
             touchpadSensitivity = touchpadSensitivity,
             onSetTouchpadSensitivity = onSetTouchpadSensitivity,
+            rightClickGesture = rightClickGesture,
+            gestureInputTarget = gestureInputTarget,
             keyboardLayout = keyboardLayout,
             onKeyboardLayoutChange = onKeyboardLayoutChange,
             onSetOrientation = onSetOrientation,
@@ -479,6 +484,8 @@ private fun RdpViewer(
     touchpadSensitivity: Float = 1f,
     /** Persist trackpad sensitivity from the toolbar (#696). Null hides the control. */
     onSetTouchpadSensitivity: ((Float) -> Unit)? = null,
+    rightClickGesture: RdpRightClickGesture = RdpRightClickGesture.DEFAULT,
+    gestureInputTarget: RdpGestureInput? = null,
     keyboardLayout: sh.haven.core.ui.RemoteKeyboardLayout = sh.haven.core.ui.RemoteKeyboardLayout(),
     onKeyboardLayoutChange: (sh.haven.core.ui.RemoteKeyboardLayout) -> Unit = {},
     onSetOrientation: (Int) -> Unit = {},
@@ -490,6 +497,7 @@ private fun RdpViewer(
     // toggle, so it reads "rotate screen" rather than reporting the current
     // lock. The target is derived from what is actually on screen, which keeps
     // the tap working even while the orientation is still unspecified (auto).
+    val view = LocalView.current
     val landscapeNow = LocalConfiguration.current.orientation ==
             android.content.res.Configuration.ORIENTATION_LANDSCAPE
     val orientationTarget = if (landscapeNow) {
@@ -555,10 +563,8 @@ private fun RdpViewer(
         }
     }
 
-    // Tap-then-drag state — see VncScreen for the full rationale. RDP
-    // has no long-press right-click branch, so we only need the
-    // follow-up window for triggering button-1 drag.
-    var lastTapUpMs by remember { mutableStateOf(0L) }
+    // A follow-up touch can start button-1 drag and takes priority over long press.
+    var lastTapUpMs by remember(gestureInputTarget) { mutableStateOf(0L) }
 
     // Modifiers armed on the built-in keyboard. A canvas click carries them the
     // same way a typed chord does — Ctrl+left click opens a link in a new tab,
@@ -567,25 +573,34 @@ private fun RdpViewer(
     var keyboardModifiers by remember { mutableStateOf(RemoteModifiers.NONE) }
     var modifierConsumeSignal by remember { mutableIntStateOf(0) }
 
-    fun pressModifierChord(mods: RemoteModifiers) {
-        if (mods.ctrl) onKeyDown(RDP_KEY_CODES.ctrl)
-        if (mods.alt) onKeyDown(RDP_KEY_CODES.alt)
-        if (mods.shift) onKeyDown(RDP_KEY_CODES.shift)
-        if (mods.win) onKeyDown(RDP_KEY_CODES.win)
+    val canvasInput = remember(gestureInputTarget) {
+        gestureInputTarget ?: RdpGestureInput(
+            move = onDrag,
+            click = { x, y, button ->
+                when (button) {
+                    2 -> onMiddleClick(x, y)
+                    3 -> onRightClick(x, y)
+                    else -> onTap(x, y)
+                }
+            },
+            startDrag = onDragStart,
+            endDrag = onDragEnd,
+            scroll = { delta -> if (delta > 0) onScrollUp() else onScrollDown() },
+            key = { code, pressed -> if (pressed) onKeyDown(code) else onKeyUp(code) },
+        )
     }
 
-    fun releaseModifierChord(mods: RemoteModifiers) {
-        if (mods.ctrl) onKeyUp(RDP_KEY_CODES.ctrl)
-        if (mods.alt) onKeyUp(RDP_KEY_CODES.alt)
-        if (mods.shift) onKeyUp(RDP_KEY_CODES.shift)
-        if (mods.win) onKeyUp(RDP_KEY_CODES.win)
+    fun modifierCodes(mods: RemoteModifiers): List<Int> = buildList {
+        if (mods.ctrl) add(RDP_KEY_CODES.ctrl)
+        if (mods.alt) add(RDP_KEY_CODES.alt)
+        if (mods.shift) add(RDP_KEY_CODES.shift)
+        if (mods.win) add(RDP_KEY_CODES.win)
     }
 
-    /** A click carries whatever is armed, then consumes it (Ctrl+click, Shift+click). */
-    fun clickWithModifiers(mods: RemoteModifiers, click: () -> Unit) {
-        pressModifierChord(mods)
-        click()
-        releaseModifierChord(mods)
+    fun clickWithModifiers(
+        input: RdpGestureInput, mods: RemoteModifiers, button: Int, x: Int, y: Int,
+    ) {
+        input.modifiedClick(x, y, button, modifierCodes(mods))
         if (mods.any) modifierConsumeSignal++
     }
 
@@ -593,7 +608,7 @@ private fun RdpViewer(
     // so it waits out the follow-up window before clicking: if a drag starts
     // inside that window the click is dropped and the drag carries the
     // modifiers instead. Unmodified taps still click immediately.
-    var pendingModifiedClick by remember { mutableStateOf<(() -> Unit)?>(null) }
+    var pendingModifiedClick by remember(gestureInputTarget) { mutableStateOf<(() -> Unit)?>(null) }
     LaunchedEffect(pendingModifiedClick) {
         val click = pendingModifiedClick ?: return@LaunchedEffect
         delay(TAP_THEN_DRAG_WINDOW_MS)
@@ -915,7 +930,10 @@ private fun RdpViewer(
                     .onSizeChanged { viewSize = it }
                     // Sensitivity is a key so an in-flight drag does not carry the
                     // stale multiplier from capture time (#696).
-                    .pointerInput(frame.width, frame.height, viewSize, panMode, touchpadSensitivity) {
+                    .pointerInput(
+                        frame.width, frame.height, viewSize, panMode, touchpadSensitivity,
+                        rightClickGesture, canvasInput,
+                    ) {
                         val touchSlopPx = viewConfiguration.touchSlop
                         awaitEachGesture {
                             val firstDown = awaitFirstDown(
@@ -938,245 +956,229 @@ private fun RdpViewer(
                             if (!imeVisible && !fieldFocused && !keyboardVisible) {
                                 hardwareKeyFocus.requestFocus()
                             }
-                            var totalFingers = 1
+                            val isFollowUpTouch = !panMode &&
+                                (firstDown.uptimeMillis - lastTapUpMs) <= TAP_THEN_DRAG_WINDOW_MS
+                            val gesture = RdpGestureState(rightClickGesture, touchSlopPx, isFollowUpTouch)
+                            val dragHold = RdpDragHold(canvasInput)
                             var prevCentroid = firstDown.position
                             var prevSpan = 0f
                             var prevCount = 0
                             var gestureStarted = false
                             var cumulativeScrollY = 0f
-                            var totalMovement = 0f
-                            // Centroid travel while ≥2 fingers are down; a near-zero
-                            // total means a 2-finger tap → right click (#286).
-                            var twoFingerMovement = 0f
-                            // Span travel while ≥2 fingers are down — a pinch must not
-                            // be mistaken for the motionless hold that middle-clicks.
-                            var twoFingerPinchTravel = 0f
-                            // Two-finger hold → middle click. The hold clock starts
-                            // when the second finger lands, not at [firstDown]: a
-                            // finger resting alone must not shorten the window.
-                            var twoFingerLongPressFired = false
                             var twoFingerDownUptimeMs = 0L
                             val longPressMs = viewConfiguration.longPressTimeoutMillis
-                            // Tap-then-drag follow-up window (mouse mode only — in
-                            // pan mode the first finger is a pan handle, not a tap).
-                            val isFollowUpTouch = !panMode &&
-                                    (firstDown.uptimeMillis - lastTapUpMs) <= TAP_THEN_DRAG_WINDOW_MS
-                            var dragButtonPressed = false
-                            // Modifiers held for the whole drag, released with it.
-                            var dragModifiers = RemoteModifiers.NONE
 
                             var event: PointerEvent
-                            do {
-                                // Wake early once a motionless two-finger hold has
-                                // been down long enough to count as a middle click.
-                                val remaining =
-                                    if (totalFingers >= 2 && !twoFingerLongPressFired &&
-                                        twoFingerMovement < touchSlopPx &&
-                                        twoFingerPinchTravel < touchSlopPx
-                                    ) (longPressMs - (SystemClock.uptimeMillis() - twoFingerDownUptimeMs))
-                                        .coerceAtLeast(1)
-                                    else Long.MAX_VALUE
-                                val timedEvent = withTimeoutOrNull(remaining) {
-                                    awaitPointerEvent(PointerEventPass.Initial)
-                                }
-                                if (timedEvent == null) {
-                                    // Middle click lands at the pointer (relative mode
-                                    // has no finger→remote mapping any more).
-                                    val (mx, my) = virtualCursor
-                                    clickWithModifiers(keyboardModifiers) { onMiddleClick(mx, my) }
-                                    twoFingerLongPressFired = true
-                                    event = awaitPointerEvent(PointerEventPass.Initial)
-                                } else {
-                                    event = timedEvent
-                                }
-                                val pointers = event.changes.filter { it.pressed }
-                                val count = pointers.size
-
-                                if (count >= 2) {
-                                    if (dragButtonPressed) {
-                                        onDragEnd()
-                                        dragButtonPressed = false
-                                    }
-                                    totalFingers = maxOf(totalFingers, count)
-                                    if (twoFingerDownUptimeMs == 0L) {
-                                        twoFingerDownUptimeMs = SystemClock.uptimeMillis()
-                                    }
-                                    val centroid = Offset(
-                                        pointers.map { it.position.x }.average().toFloat(),
-                                        pointers.map { it.position.y }.average().toFloat(),
-                                    )
-                                    val span = pointers.map {
-                                        (it.position - centroid).getDistance()
-                                    }.average().toFloat()
-
-                                    // Skip delta on the frame where pointer count
-                                    // changed — the centroid recomputes over a
-                                    // different pointer set, so the apparent jump
-                                    // would feed in as a real pan/zoom delta.
-                                    if (gestureStarted && count == prevCount) {
-                                        val dx = centroid.x - prevCentroid.x
-                                        val dy = centroid.y - prevCentroid.y
-                                        twoFingerMovement += abs(dx) + abs(dy)
-                                        // Distinguish a pinch (span changing) from a
-                                        // drag (fingers translating together).
-                                        val spanDelta = if (prevSpan > 0f) abs(span - prevSpan) else 0f
-                                        twoFingerPinchTravel += spanDelta
-                                        val pinching = spanDelta > 2f && spanDelta >= abs(dx) + abs(dy)
-                                        if (pinching && prevSpan > 0f && span > 0f) {
-                                            // Pinch → zoom local viewport (both modes).
-                                            // graphicsLayer's TransformOrigin is the view
-                                            // centre, so pivot at (cx, cy); use the actual
-                                            // (clamp-aware) scale so we don't over-pan at a limit.
-                                            // Floor at 1×: drawRemoteFrame letterboxes the
-                                            // full screen at zoom 1, so zooming out further
-                                            // only enlarges the bars (Refs #600).
-                                            val newZoom = (zoom * (span / prevSpan)).coerceIn(1f, 5f)
-                                            val actualScale = if (zoom > 0f) newZoom / zoom else 1f
-                                            val cx = viewSize.width / 2f
-                                            val cy = viewSize.height / 2f
-                                            panX = (centroid.x - cx) * (1 - actualScale) + panX * actualScale
-                                            panY = (centroid.y - cy) * (1 - actualScale) + panY * actualScale
-                                            zoom = newZoom
-                                            // #738: an off-centre pinch leaves a residual
-                                            // pan; without the cover clamp zooming back to
-                                            // 1× keeps the content shifted inside its
-                                            // letterbox — one edge black. Clamp so the
-                                            // scaled content always covers the viewport.
-                                            val fit = minOf(
-                                                viewSize.width.toFloat() / frame.width,
-                                                viewSize.height.toFloat() / frame.height,
-                                            )
-                                            panX = clampPanToCover(
-                                                panX,
-                                                frame.width * fit,
-                                                viewSize.width.toFloat(),
-                                                newZoom
-                                            )
-                                            panY = clampPanToCover(
-                                                panY,
-                                                frame.height * fit,
-                                                viewSize.height.toFloat(),
-                                                newZoom
-                                            )
-                                        } else {
-                                            // Two-finger drag = remote wheel. Finger-down
-                                            // (dy>0) → wheel-up so the page tracks the
-                                            // fingers (touchscreen convention). Panning the
-                                            // viewport is the pan-mode gesture now.
-                                            cumulativeScrollY += dy
-                                            if (abs(cumulativeScrollY) > 40f) {
-                                                if (cumulativeScrollY < 0) onScrollDown() else onScrollUp()
-                                                cumulativeScrollY = 0f
-                                            }
-                                        }
-                                    }
-
-                                    gestureStarted = true
-                                    prevCentroid = centroid
-                                    prevSpan = span
-                                    prevCount = count
-
-                                    pointers.forEach { it.consume() }
-                                } else if (count == 1 && totalFingers == 1) {
-                                    val change = pointers.first()
-                                    val deltaScreen = change.positionChange()
-                                    totalMovement += deltaScreen.getDistance()
-                                    if (panMode) {
-                                        // Pan mode: one finger drags the zoomed viewport.
-                                        // At 1× the content already fits, so there is
-                                        // nothing to pan (same rule the old two-finger
-                                        // pan followed).
-                                        if (zoom > 1f) {
-                                            panX += deltaScreen.x
-                                            panY += deltaScreen.y
-                                            // #738: cover clamp — a drag must not pull
-                                            // the content edge past the viewport.
-                                            val fit = minOf(
-                                                viewSize.width.toFloat() / frame.width,
-                                                viewSize.height.toFloat() / frame.height,
-                                            )
-                                            panX = clampPanToCover(
-                                                panX, frame.width * fit, viewSize.width.toFloat(), zoom,
-                                            )
-                                            panY = clampPanToCover(
-                                                panY, frame.height * fit, viewSize.height.toFloat(), zoom,
-                                            )
-                                        }
+                            try {
+                                do {
+                                    val holdAction = gesture.longPressAction()
+                                    val holdStart = if (holdAction == RdpClickAction.RIGHT) {
+                                        firstDown.uptimeMillis
                                     } else {
-                                        val scale = if (zoom > 0f) zoom else 1f
-                                        // #696: scale the finger delta by the trackpad
-                                        // sensitivity multiplier; keep the position in
-                                        // float space so per-event rounding can't drop
-                                        // sub-pixel steps at low sensitivity.
-                                        val fx = virtualCursorF.x + deltaScreen.x / scale * touchpadSensitivity
-                                        val fy = virtualCursorF.y + deltaScreen.y / scale * touchpadSensitivity
-                                        virtualCursorF = Offset(
-                                            fx.coerceIn(0f, (frame.width - 1).toFloat()),
-                                            fy.coerceIn(0f, (frame.height - 1).toFloat()),
-                                        )
-                                        val nx = fx.toInt().coerceIn(0, frame.width - 1)
-                                        val ny = fy.toInt().coerceIn(0, frame.height - 1)
-                                        virtualCursor = nx to ny
-                                        if (totalMovement >= touchSlopPx) {
-                                            if (isFollowUpTouch && !dragButtonPressed) {
-                                                // A modified tap that turns into a
-                                                // drag is a modified drag (Ctrl
-                                                // + drag), not a click.
-                                                pendingModifiedClick = null
-                                                dragModifiers = keyboardModifiers
-                                                if (dragModifiers.any) {
-                                                    pressModifierChord(dragModifiers)
-                                                    modifierConsumeSignal++
-                                                }
-                                                onDragStart(nx, ny)
-                                                dragButtonPressed = true
-                                            } else {
-                                                onDrag(nx, ny)
+                                        twoFingerDownUptimeMs
+                                    }
+                                    val remaining = if (holdAction == RdpClickAction.NONE) Long.MAX_VALUE else
+                                        (longPressMs - (SystemClock.uptimeMillis() - holdStart)).coerceAtLeast(1)
+                                    val timedEvent = withTimeoutOrNull(remaining) {
+                                        awaitPointerEvent(PointerEventPass.Initial)
+                                    }
+                                    if (timedEvent == null) {
+                                        val action = gesture.longPressAction()
+                                        if (action != RdpClickAction.NONE) {
+                                            val button = if (action == RdpClickAction.RIGHT) 3 else 2
+                                            clickWithModifiers(
+                                                canvasInput, keyboardModifiers, button,
+                                                virtualCursor.first, virtualCursor.second,
+                                            )
+                                            gesture.consumeLongPress(action)
+                                            if (action == RdpClickAction.RIGHT) {
+                                                view.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
                                             }
                                         }
+                                        event = awaitPointerEvent(PointerEventPass.Initial)
+                                    } else {
+                                        event = timedEvent
                                     }
-                                    change.consume()
-                                } else {
-                                    // Residual finger after a multi-finger pinch
-                                    // (count == 1 but totalFingers already >= 2), or
-                                    // the final all-up frame. Consume it so the
-                                    // lingering single-finger slide can't leak up to
-                                    // the HorizontalPager and swipe the Haven screen
-                                    // sideways during/after a zoom. It isn't a tap or
-                                    // drag in this state, so consuming costs nothing.
-                                    event.changes.forEach { it.consume() }
-                                }
-                            } while (event.changes.any { it.pressed })
+                                    val pointers = event.changes.filter { it.pressed }
+                                    val count = pointers.size
+                                    gesture.updatePointerCount(count)
+                                    if (gesture.waitingForRelease) {
+                                        event.changes.forEach { it.consume() }
+                                        continue
+                                    }
 
-                            if (dragButtonPressed) {
-                                onDragEnd()
-                                releaseModifierChord(dragModifiers)
-                                dragModifiers = RemoteModifiers.NONE
+                                    if (count >= 2) {
+                                        if (dragHold.active) {
+                                            dragHold.finish()
+                                            gesture.interruptDrag()
+                                            event.changes.forEach { it.consume() }
+                                            continue
+                                        }
+                                        if (twoFingerDownUptimeMs == 0L) {
+                                            twoFingerDownUptimeMs = SystemClock.uptimeMillis()
+                                        }
+                                        val centroid = Offset(
+                                            pointers.map { it.position.x }.average().toFloat(),
+                                            pointers.map { it.position.y }.average().toFloat(),
+                                        )
+                                        val span = pointers.map {
+                                            (it.position - centroid).getDistance()
+                                        }.average().toFloat()
+
+                                        // Skip delta on the frame where pointer count
+                                        // changed — the centroid recomputes over a
+                                        // different pointer set, so the apparent jump
+                                        // would feed in as a real pan/zoom delta.
+                                        if (gestureStarted && count == prevCount) {
+                                            val dx = centroid.x - prevCentroid.x
+                                            val dy = centroid.y - prevCentroid.y
+                                            // Distinguish a pinch (span changing) from a
+                                            // drag (fingers translating together).
+                                            val spanDelta = if (prevSpan > 0f) abs(span - prevSpan) else 0f
+                                            val pinching = spanDelta > 2f && spanDelta >= abs(dx) + abs(dy)
+                                            gesture.moveMultiple(abs(dx) + abs(dy), spanDelta, pinching)
+                                            if (pinching && prevSpan > 0f && span > 0f) {
+                                                // Pinch → zoom local viewport (both modes).
+                                                // graphicsLayer's TransformOrigin is the view
+                                                // centre, so pivot at (cx, cy); use the actual
+                                                // (clamp-aware) scale so we don't over-pan at a limit.
+                                                // Floor at 1×: drawRemoteFrame letterboxes the
+                                                // full screen at zoom 1, so zooming out further
+                                                // only enlarges the bars (Refs #600).
+                                                val newZoom = (zoom * (span / prevSpan)).coerceIn(1f, 5f)
+                                                val actualScale = if (zoom > 0f) newZoom / zoom else 1f
+                                                val cx = viewSize.width / 2f
+                                                val cy = viewSize.height / 2f
+                                                panX = (centroid.x - cx) * (1 - actualScale) + panX * actualScale
+                                                panY = (centroid.y - cy) * (1 - actualScale) + panY * actualScale
+                                                zoom = newZoom
+                                                // #738: an off-centre pinch leaves a residual
+                                                // pan; without the cover clamp zooming back to
+                                                // 1× keeps the content shifted inside its
+                                                // letterbox — one edge black. Clamp so the
+                                                // scaled content always covers the viewport.
+                                                val fit = minOf(
+                                                    viewSize.width.toFloat() / frame.width,
+                                                    viewSize.height.toFloat() / frame.height,
+                                                )
+                                                panX = clampPanToCover(
+                                                    panX,
+                                                    frame.width * fit,
+                                                    viewSize.width.toFloat(),
+                                                    newZoom
+                                                )
+                                                panY = clampPanToCover(
+                                                    panY,
+                                                    frame.height * fit,
+                                                    viewSize.height.toFloat(),
+                                                    newZoom
+                                                )
+                                            } else {
+                                                // Two-finger drag = remote wheel. Finger-down
+                                                // (dy>0) → wheel-up so the page tracks the
+                                                // fingers (touchscreen convention). Panning the
+                                                // viewport is the pan-mode gesture now.
+                                                cumulativeScrollY += dy
+                                                if (abs(cumulativeScrollY) > 40f) {
+                                                    canvasInput.scroll(if (cumulativeScrollY < 0) -1 else 1)
+                                                    cumulativeScrollY = 0f
+                                                }
+                                            }
+                                        }
+
+                                        gestureStarted = true
+                                        prevCentroid = centroid
+                                        prevSpan = span
+                                        prevCount = count
+
+                                        pointers.forEach { it.consume() }
+                                    } else if (count == 1 && gesture.maxPointers == 1) {
+                                        val change = pointers.first()
+                                        val deltaScreen = change.positionChange()
+                                        gesture.moveSingle(deltaScreen.getDistance())
+                                        if (panMode) {
+                                            // Pan mode: one finger drags the zoomed viewport.
+                                            // At 1× the content already fits, so there is
+                                            // nothing to pan (same rule the old two-finger
+                                            // pan followed).
+                                            if (zoom > 1f) {
+                                                panX += deltaScreen.x
+                                                panY += deltaScreen.y
+                                                // #738: cover clamp — a drag must not pull
+                                                // the content edge past the viewport.
+                                                val fit = minOf(
+                                                    viewSize.width.toFloat() / frame.width,
+                                                    viewSize.height.toFloat() / frame.height,
+                                                )
+                                                panX = clampPanToCover(
+                                                    panX, frame.width * fit, viewSize.width.toFloat(), zoom,
+                                                )
+                                                panY = clampPanToCover(
+                                                    panY, frame.height * fit, viewSize.height.toFloat(), zoom,
+                                                )
+                                            }
+                                        } else {
+                                            val scale = if (zoom > 0f) zoom else 1f
+                                            // #696: scale the finger delta by the trackpad
+                                            // sensitivity multiplier; keep the position in
+                                            // float space so per-event rounding can't drop
+                                            // sub-pixel steps at low sensitivity.
+                                            val fx = virtualCursorF.x + deltaScreen.x / scale * touchpadSensitivity
+                                            val fy = virtualCursorF.y + deltaScreen.y / scale * touchpadSensitivity
+                                            virtualCursorF = Offset(
+                                                fx.coerceIn(0f, (frame.width - 1).toFloat()),
+                                                fy.coerceIn(0f, (frame.height - 1).toFloat()),
+                                            )
+                                            val nx = fx.toInt().coerceIn(0, frame.width - 1)
+                                            val ny = fy.toInt().coerceIn(0, frame.height - 1)
+                                            virtualCursor = nx to ny
+                                            if (gesture.singleTravel >= touchSlopPx) {
+                                                if (isFollowUpTouch && !dragHold.active) {
+                                                    pendingModifiedClick = null
+                                                    val mods = keyboardModifiers
+                                                    dragHold.start(nx, ny, modifierCodes(mods))
+                                                    gesture.startDrag()
+                                                    if (mods.any) modifierConsumeSignal++
+                                                } else {
+                                                    canvasInput.move(nx, ny)
+                                                }
+                                            }
+                                        }
+                                        change.consume()
+                                    } else {
+                                        // Residual finger after a multi-finger pinch
+                                        // (count == 1 but totalFingers already >= 2), or
+                                        // the final all-up frame. Consume it so the
+                                        // lingering single-finger slide can't leak up to
+                                        // the HorizontalPager and swipe the Haven screen
+                                        // sideways during/after a zoom. It isn't a tap or
+                                        // drag in this state, so consuming costs nothing.
+                                        event.changes.forEach { it.consume() }
+                                    }
+                                } while (event.changes.any { it.pressed })
+                            } finally {
+                                // Runs on up, cancellation, resize, mode change and disposal.
+                                dragHold.finish()
                             }
 
-                            if (totalFingers == 1 && totalMovement < touchSlopPx) {
-                                val mods = keyboardModifiers
-                                val tapClick = {
-                                    clickWithModifiers(mods) {
-                                        onTap(virtualCursor.first, virtualCursor.second)
+                            when (gesture.tapAction()) {
+                                RdpClickAction.LEFT -> {
+                                    val mods = keyboardModifiers
+                                    val position = virtualCursor
+                                    val tapClick = {
+                                        clickWithModifiers(canvasInput, mods, 1, position.first, position.second)
                                     }
+                                    if (mods.any) pendingModifiedClick = tapClick else tapClick()
+                                    lastTapUpMs = if (isFollowUpTouch) 0L else SystemClock.uptimeMillis()
                                 }
-                                if (mods.any) pendingModifiedClick = tapClick else tapClick()
-                                if (!isFollowUpTouch) {
-                                    lastTapUpMs = SystemClock.uptimeMillis()
-                                } else {
+                                RdpClickAction.RIGHT -> {
+                                    clickWithModifiers(
+                                        canvasInput, keyboardModifiers, 3,
+                                        virtualCursor.first, virtualCursor.second,
+                                    )
                                     lastTapUpMs = 0L
                                 }
-                            } else if (totalFingers == 2 && twoFingerMovement < touchSlopPx &&
-                                !twoFingerLongPressFired
-                            ) {
-                                // Two fingers down + up with no travel = right click (#286).
-                                clickWithModifiers(keyboardModifiers) {
-                                    onRightClick(virtualCursor.first, virtualCursor.second)
-                                }
-                                lastTapUpMs = 0L
-                            } else {
-                                lastTapUpMs = 0L
+                                else -> lastTapUpMs = 0L
                             }
                         }
                     },

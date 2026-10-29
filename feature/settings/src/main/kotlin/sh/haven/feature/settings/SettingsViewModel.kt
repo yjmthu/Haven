@@ -1,5 +1,7 @@
 package sh.haven.feature.settings
 
+import sh.haven.core.data.preferences.RdpRightClickGesture
+
 import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
@@ -485,6 +487,13 @@ class SettingsViewModel @Inject constructor(
 
     fun setDesktopBuiltinKeyboard(enabled: Boolean) {
         viewModelScope.launch { preferencesRepository.setDesktopBuiltinKeyboard(enabled) }
+    }
+
+    val rdpRightClickGesture: StateFlow<RdpRightClickGesture> = preferencesRepository.rdpRightClickGesture
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), RdpRightClickGesture.DEFAULT)
+
+    fun setRdpRightClickGesture(gesture: RdpRightClickGesture) {
+        viewModelScope.launch { preferencesRepository.setRdpRightClickGesture(gesture) }
     }
 
     /** Desktop size Haven asks RDP servers for (#422). */
