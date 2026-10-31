@@ -1,0 +1,56 @@
+=== Haven #719 Dynamic Font-Width Verification ===
+밭밭▼▼△△◆◆□□◇◇가가
+Greek (1-cell narrow): ααββγγδδΩΩ
+Symbols (2-cell wide): ▼▼▲▲ ◈◈◆◆ ①①
+
+Unicode Characters Test:
+
+Box Drawing:
+┌─────────┬─────────┐
+│ Cell 1  │ Cell 2  │
+├─────────┼─────────┤
+│ Cell 3  │ Cell 4  │
+└─────────┴─────────┘
+
+Block Elements:
+▀▄█▌▐░▒▓
+
+Connected boxes (light, heavy, double, rounded):
+┌──┬──┐ ┏━━┳━━┓ ╔══╦══╗ ╭────╮
+│  │  │ ┃  ┃  ┃ ║  ║  ║ │    │
+├──┼──┤ ┣━━╋━━┫ ╠══╬══╣ │    │
+│  │  │ ┃  ┃  ┃ ║  ║  ║ │    │
+└──┴──┘ ┗━━┻━━┛ ╚══╩══╝ ╰────╯
+
+Continuous blocks and shades:
+ ██████   ░░░░ ▒▒▒▒ ▓▓▓▓
+██    ██  ░░░░ ▒▒▒▒ ▓▓▓▓
+██    ██  ░░░░ ▒▒▒▒ ▓▓▓▓
+██    ██  ░░░░ ▒▒▒▒ ▓▓▓▓
+ ██████   ░░░░ ▒▒▒▒ ▓▓▓▓
+
+Emoji (if supported):
+😀 😃 😄 😁 😆 😅 😂 🤣
+
+Arrows:
+← ↑ → ↓ ↔ ↕ ⇐ ⇑ ⇒ ⇓ ⇔
+
+Mathematical:
+∀ ∂ ∃ ∅ ∇ ∈ ∉ ∋ ∏ ∑ − ∓ ∔ ∕ ∖ ∗ ∘ √ ∛ ∜ ∝ ∞ ∟
+
+Greek:
+Α Β Γ Δ Ε Ζ Η Θ Ι Κ Λ Μ Ν Ξ Ο Π Ρ Σ Τ Υ Φ Χ Ψ Ω
+α β γ δ ε ζ η θ ι κ λ μ ν ξ ο π ρ ς σ τ υ φ χ ψ ω
+
+CJK Characters (Fullwidth):
+日本語の文字
+中文字符测试
+한글 테스트
+
+Combining Characters:
+á é í ó ú (with accents)
+ñ ç ü ö ä (with diacritics)
+
+=== Haven #719 Test ===
+밭밭▼▼△△◆◆□□◇◇가가
+▼▼▲▲ ◈◈◆◆ ─━ ⅰⅰⅠⅠ ①①

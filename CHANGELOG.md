@@ -7,6 +7,7 @@ compare link is appended automatically — don't add it here.
 
 ## Unreleased
 
+- **The termlib sources are tracked in Haven.** Fresh checkouts include the terminal library and its system selection menu as part of the same repository.
 - **RDP disconnect actions ask for confirmation.** The viewer, tab close button, and connection-list action use the same confirmation dialog.
 - **Terminal selections use the Android copy/paste menu.** Selection handles, the extra-actions menu, and bottom toolbar remain available. The RDP long-press right-click preference now uses the standard aligned settings switch with a subtitle explaining both switch positions.
 - **RDP right-click gestures are configurable.** Choose the existing two-finger tap or a one-finger long press in Settings → Desktop. Two-finger hold continues to send a middle click.

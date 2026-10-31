@@ -1,0 +1,147 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - "[0-9]*.[0-9]*.[0-9]*"
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: "0 5 */3 * *"
+  merge_group:
+    types: [ checks_requested ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout (with history)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+
+      - name: Set up JDK
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          dependency-graph: generate-and-submit
+          cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
+
+      - name: Delete old Android SDK cmdline-tools
+        run: |
+          rm -rf $ANDROID_HOME/cmdline-tools/latest
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+        with:
+          cmdline-tools-version: '13114758'
+          packages: 'cmdline-tools;latest platform-tools'
+
+      - name: Build ConnectBot Terminal
+        # --no-configuration-cache due to net.researchgate.release plugin incompatibility
+        run: ./gradlew build --no-configuration-cache
+
+      - name: Prepare release
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          if git describe --exact-match; then \
+            TAGGED=yes
+          fi
+
+          if [[ -n $TAGGED ]]; then
+            GITHUB_TAG="$(git describe)"
+            echo "${GITHUB_TAG}" > tag.txt
+            echo "Release ${GITHUB_TAG}" > release-title.txt
+          else \
+            GITHUB_TAG="git-$(git describe)"
+            GITHUB_TITLE="$(git log -1 --pretty=%B | head -1)"
+            echo "${GITHUB_TAG}" > tag.txt
+            echo "${GITHUB_TAG}: ${GITHUB_TITLE}" > release-title.txt
+          fi
+          cp ./lib/build/outputs/aar/lib-release.aar ConnectBotTerminal-${GITHUB_TAG}.aar
+
+      - name: Store artifacts for upload
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: aar
+          path: |
+            release-title.txt
+            tag.txt
+            ConnectBotTerminal-*.aar
+
+      - name: Project version
+        id: project-version
+        run: |
+          grep '^version=' gradle.properties >> "$GITHUB_OUTPUT"
+
+      # Publishing is upstream's to do: the coordinates and the signing key
+      # belong to connectbot/termlib, and a fork has neither. Without this
+      # guard the steps ran on every push to a fork's main and failed on the
+      # missing secret, leaving CI permanently red — which hides a real
+      # failure, since a broken build looks identical at a glance. The same
+      # guard is already on the `upload` job below.
+      - name: Publish snapshot to Sonatype
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && endsWith(steps.project-version.outputs.version, '-SNAPSHOT') && github.repository == 'connectbot/termlib'
+        run: ./gradlew publishToMavenCentral --no-configuration-cache -PmavenCentralUsername=${ORG_GRADLE_PROJECT_mavenCentralUsername} -PmavenCentralPassword=${ORG_GRADLE_PROJECT_mavenCentralPassword}
+        env:
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.MAVEN_GPG_KEYID }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.SONATYPE_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SONATYPE_PASSWORD }}
+
+      - name: Publish release to Sonatype
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && github.repository == 'connectbot/termlib'
+        run: ./gradlew publishToMavenCentral --no-configuration-cache -PmavenCentralUsername=${ORG_GRADLE_PROJECT_mavenCentralUsername} -PmavenCentralPassword=${ORG_GRADLE_PROJECT_mavenCentralPassword}
+        env:
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.MAVEN_GPG_KEYID }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.SONATYPE_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SONATYPE_PASSWORD }}
+
+
+  upload:
+    name: Upload to GitHub releases
+    needs: build
+    if: ${{ (github.event_name == 'push') && (github.repository == 'connectbot/termlib') && ((github.ref == 'refs/heads/main') || startsWith(github.ref, 'refs/tags/')) }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifacts from previous job
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: aar
+
+      - name: Set release name
+        id: name
+        run: |
+          echo "RELEASE_TITLE=$(cat release-title.txt)" >> "$GITHUB_OUTPUT"
+          echo "GITHUB_TAG=$(cat tag.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload release
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+        with:
+          body: "Untested build"
+          draft: true
+          tag_name: ${{ steps.name.outputs.GITHUB_TAG }}
+          name: ${{ steps.name.outputs.RELEASE_TITLE }}
+          generate_release_notes: true
+          files: |
+            ConnectBotTerminal-*.aar

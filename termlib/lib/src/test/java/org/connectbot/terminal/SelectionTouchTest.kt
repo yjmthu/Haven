@@ -1,0 +1,187 @@
+/*
+ * ConnectBot Terminal
+ * Copyright 2026 Kenny Root
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.connectbot.terminal
+
+import androidx.compose.ui.geometry.Offset
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+/**
+ * Upstream's SelectionTouchTest for the ported pure functions. The
+ * selectionAutoScrollVelocity and magnifier cases are omitted: this fork
+ * keeps its own edge autoscroll (#94/#661) and magnifier positioning model.
+ */
+class SelectionTouchTest {
+    @Test fun selectionStartsUnderFingerAtEveryEdgeAndStaysThereWhileHeld() {
+        for (point in listOf(Offset(20f, 20f), Offset(380f, 20f), Offset(20f, 580f), Offset(380f, 580f))) {
+            val reach = SelectionEdgeReach(400f, 600f, 24f, 96f)
+            assertEquals(point, reach.position(point))
+            assertEquals(point, reach.position(point))
+            assertEquals(point + Offset(1f, 1f), reach.position(point + Offset(1f, 1f)))
+        }
+    }
+
+    @Test fun selectionEnablesEdgeReachPerAxisAfterLeavingItsTransitionRegion() {
+        val reach = SelectionEdgeReach(400f, 600f, 24f, 96f)
+        assertEquals(Offset(20f, 20f), reach.position(Offset(20f, 20f)))
+        assertEquals(Offset(96f, 20f), reach.position(Offset(96f, 20f)))
+        assertEquals(Offset(0f, 20f), reach.position(Offset(20f, 20f)))
+        assertEquals(Offset(0f, 96f), reach.position(Offset(20f, 96f)))
+        assertEquals(Offset.Zero, reach.position(Offset(20f, 20f)))
+        assertEquals(Offset(400f, 600f), reach.position(Offset(380f, 580f)))
+        // A new gesture must start under the finger again.
+        assertEquals(Offset(20f, 20f), SelectionEdgeReach(400f, 600f, 24f, 96f).position(Offset(20f, 20f)))
+    }
+
+    @Test fun selectionStartingInMiddleCanReachEdgesImmediately() {
+        val reach = SelectionEdgeReach(400f, 600f, 24f, 96f)
+        assertEquals(Offset(200f, 300f), reach.position(Offset(200f, 300f)))
+        assertEquals(Offset.Zero, reach.position(Offset(24f, 24f)))
+        assertEquals(Offset(400f, 600f), reach.position(Offset(376f, 576f)))
+    }
+
+    @Test fun selectionEnablesEdgeReachWhenAMoveCrossesMiddleOfSmallViewport() {
+        val reach = SelectionEdgeReach(100f, 100f, 24f, 96f)
+        assertEquals(Offset(20f, 20f), reach.position(Offset(20f, 20f)))
+        assertEquals(Offset(100f, 100f), reach.position(Offset(80f, 80f)))
+        assertEquals(Offset.Zero, reach.position(Offset(20f, 20f)))
+    }
+
+    @Test fun handleReachesEdgesBeforeFingerHitsCaseWithoutJumpingOnGrab() {
+        val down = Offset(180f, 300f)
+        val anchor = Offset(200f, 270f)
+        fun drag(point: Offset) = selectionHandleDragPosition(point, down, anchor, 400f, 600f, 48f)
+        assertEquals(anchor, drag(down))
+        assertEquals(Offset.Zero, drag(Offset(48f, 48f)))
+        assertEquals(Offset(400f, 600f), drag(Offset(352f, 552f)))
+        assertTrue((drag(down + Offset(0.1f, 0.1f)) - anchor).getDistance() < 1f)
+    }
+
+    @Test fun handleGrabbedNearEdgeStillMovesContinuously() {
+        val down = Offset(20f, 20f)
+        val anchor = Offset(5f, 5f)
+        assertEquals(anchor, selectionHandleDragPosition(down, down, anchor, 400f, 600f, 48f))
+        val moved = selectionHandleDragPosition(Offset(19f, 19f), down, anchor, 400f, 600f, 48f)
+        assertTrue(moved.x > 0f && moved.x < anchor.x)
+        assertTrue(moved.y > 0f && moved.y < anchor.y)
+    }
+
+    @Test fun oneHandleDragCanReverseAcrossBothEdges() {
+        val down = Offset(180f, 300f)
+        val anchor = Offset(250f, 280f)
+        val positions = listOf(352f, 300f, 180f, 100f, 48f, 100f, 180f, 300f, 352f)
+        val targets = positions.map {
+            selectionHandleDragPosition(Offset(it, down.y), down, anchor, 400f, 600f, 48f)
+        }
+        assertEquals(400f, targets.first().x, 0.001f)
+        assertEquals(0f, targets[4].x, 0.001f)
+        assertEquals(400f, targets.last().x, 0.001f)
+        assertEquals(anchor, targets[2])
+        assertEquals(anchor, targets[6])
+        assertTrue(targets.take(5).zipWithNext().all { (a, b) -> a.x >= b.x })
+        assertTrue(targets.drop(4).zipWithNext().all { (a, b) -> a.x <= b.x })
+        assertTrue(targets.all { it.y == anchor.y })
+    }
+
+    @Test fun widerCaseClearanceAppliesToDirectSelection() {
+        assertEquals(Offset.Zero, edgeReachPosition(Offset(48f, 48f), 400f, 600f, 48f, 192f))
+        assertEquals(Offset(400f, 600f), edgeReachPosition(Offset(352f, 552f), 400f, 600f, 48f, 192f))
+    }
+
+    @Test fun edgeReachIsSymmetricAndLeavesMiddleUntouched() {
+        assertEquals(0f, edgeReachAxis(24f, 400f, 24f, 96f), 0.001f)
+        assertEquals(400f, edgeReachAxis(376f, 400f, 24f, 96f), 0.001f)
+        assertEquals(96f, edgeReachAxis(96f, 400f, 24f, 96f), 0.001f)
+        assertEquals(200f, edgeReachAxis(200f, 400f, 24f, 96f), 0.001f)
+        assertEquals(304f, edgeReachAxis(304f, 400f, 24f, 96f), 0.001f)
+        for (x in 0..400 step 5) {
+            assertEquals(400f, edgeReachAxis(x.toFloat(), 400f, 24f, 96f) + edgeReachAxis(400f - x, 400f, 24f, 96f), 0.001f)
+        }
+    }
+
+    @Test fun edgeReachCoversAllFourEdgesAndSmallViews() {
+        val topLeft = edgeReachPosition(Offset(20f, 20f), 400f, 600f, 24f, 96f)
+        val bottomRight = edgeReachPosition(Offset(380f, 580f), 400f, 600f, 24f, 96f)
+        assertEquals(Offset.Zero, topLeft)
+        assertEquals(Offset(400f, 600f), bottomRight)
+        assertEquals(Offset(50f, 50f), edgeReachPosition(Offset(50f, 50f), 100f, 100f, 24f, 96f))
+        assertEquals(0f, edgeReachAxis(24f, 100f, 24f, 96f), 0.001f)
+        assertEquals(100f, edgeReachAxis(76f, 100f, 24f, 96f), 0.001f)
+        assertEquals(0f, edgeReachAxis(5f, 0f, 24f, 96f), 0.001f)
+    }
+
+    @Test fun releaseFilterRestoresSettledSelectionAfterBriefWobble() {
+        val filter = SelectionReleaseFilter<Int>()
+        filter.record(10, 0)
+        filter.record(20, 600)
+        filter.record(21, 1000)
+        assertEquals(20, filter.resultAtRelease(1010))
+    }
+
+    @Test fun releaseFilterKeepsIntentionalOrUnsettledMovement() {
+        val deliberate = SelectionReleaseFilter<Int>()
+        deliberate.record(10, 0)
+        deliberate.record(20, 600)
+        assertEquals(20, deliberate.resultAtRelease(800))
+        val unsettled = SelectionReleaseFilter<Int>()
+        unsettled.record(10, 0)
+        unsettled.record(20, 100)
+        assertEquals(20, unsettled.resultAtRelease(110))
+        assertEquals(null, SelectionReleaseFilter<Int>().resultAtRelease(100))
+    }
+
+    @Test fun updateMaxAvailableHeightSubtractsNavigationBarOverlapWhenSeededWithImeOpen() {
+        // Host applies .systemBarsPadding().imePadding(): when IME hidden, height is 1900px
+        // (already excludes 144px navBar). When IME opens (900px, including the 144px navBar),
+        // the view shrinks by (900 - 144) = 756px to 1144px.
+        // Seeding maxAvailableHeight while IME is open (e.g. tab switch #714 or rotation #715)
+        // must estimate 1144 + (900 - 144) = 1900px, NOT 1144 + 900 = 2044px (which over-estimated
+        // by 3.5 rows and shifted keyboardCoveredPx / cursor row until IME was hidden).
+        val seededWithImeOpen = updateMaxAvailableHeight(
+            currentMaxHeight = 0,
+            measuredHeight = 1144,
+            imeBottomPx = 900,
+            navBottomPx = 144,
+        )
+        assertEquals(1900, seededWithImeOpen)
+    }
+
+    @Test fun updateMaxAvailableHeightUpdatesWhenMeasuredHeightExceedsStaleLandscapeHeight() {
+        // #715: If a stale landscape maxAvailableHeight (e.g. 900px) survives into portrait
+        // while IME is open and portrait's keyboard-open measuredHeight is 1144px (> 900px),
+        // updateMaxAvailableHeight must re-estimate from the taller portrait measurement.
+        val updated = updateMaxAvailableHeight(
+            currentMaxHeight = 900,
+            measuredHeight = 1144,
+            imeBottomPx = 900,
+            navBottomPx = 144,
+        )
+        assertEquals(1900, updated)
+    }
+
+    @Test fun initialLongPressPointDoesNotWarpBeforeDrag() {
+        // #716: With keyboard open on a 1080x900px viewport and 144px (48dp @ 3x) inset,
+        // edgeReachPosition warped y=400 ( inside 576px transition band) to y=300 (2.5 rows up!).
+        // Using selectionHandleDragPosition(raw, down, down, width, height, inset) keeps
+        // the initial long-press at down.position unwarped while still reaching 0 and height on drag.
+        val down = Offset(300f, 400f)
+        assertEquals(down, selectionHandleDragPosition(down, down, down, 1080f, 900f, 144f))
+        assertEquals(0f, selectionHandleDragPosition(Offset(300f, 144f), down, down, 1080f, 900f, 144f).y, 0.001f)
+        assertEquals(900f, selectionHandleDragPosition(Offset(300f, 756f), down, down, 1080f, 900f, 144f).y, 0.001f)
+    }
+}

@@ -26,8 +26,8 @@
 set -uo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
-# The only permitted binary. Gradle's wrapper jar cannot bootstrap itself and is
-# an accepted prebuilt on F-Droid's trusted-source list.
+# Gradle wrapper jars cannot bootstrap themselves and are accepted prebuilts
+# on F-Droid's trusted-source list. Each allowed jar is hash-pinned below.
 #
 # gradle/actions/wrapper-validation in CI proves it is an official Gradle
 # release jar. It does NOT check WHICH release, and that gap is not theoretical:
@@ -38,6 +38,7 @@ cd "$(git rev-parse --show-toplevel)"
 # check_gradle_wrapper below closes that.
 ALLOWLIST=(
     "gradle/wrapper/gradle-wrapper.jar"
+    "termlib/gradle/wrapper/gradle-wrapper.jar"
 )
 
 # Pinned rather than fetched from services.gradle.org on purpose: a gate that
@@ -75,6 +76,19 @@ check_gradle_wrapper() {
         echo "  Regenerate it with the ./gradlew wrapper command in $0 rather than" >&2
         echo "  updating this hash — a jar that does not match its own release is" >&2
         echo "  the failure this check exists for." >&2
+        return 1
+    fi
+}
+
+# Preserve the standalone wrapper from the vendored termlib baseline
+# 5f9c2eb1eefafe55399e4484f211bf4b45598025. Haven uses the root wrapper.
+check_termlib_gradle_wrapper() {
+    local jar="termlib/gradle/wrapper/gradle-wrapper.jar"
+    local expected="3b8a25775a69158b5ad2b1d17a80a88dc7b40a352a73eb27d06c612a7ce68e98"
+    local got
+    got="$(sha256sum "$jar" | cut -d' ' -f1)"
+    if [ "$got" != "$expected" ]; then
+        echo "✗ $jar does not match the vendored termlib baseline" >&2
         return 1
     fi
 }
@@ -178,6 +192,8 @@ EOF
 fi
 
 check_gradle_wrapper || exit 1
+check_termlib_gradle_wrapper || exit 1
 
 echo "✓ no new committed binaries (${#FILES[@]} tracked files checked, ${#GRANDFATHERED[@]} grandfathered)"
 echo "✓ gradle-wrapper.jar is the Gradle $WRAPPER_VERSION wrapper jar"
+echo "✓ termlib/gradle-wrapper.jar matches the vendored baseline"

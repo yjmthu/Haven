@@ -63,9 +63,9 @@ def discover_modules():
     """First-party app/feature/core modules that own a source strings.xml.
 
     Only these three trees are scanned: their strings.xml are tracked in the
-    main repo, so the export is byte-identical in CI. Submodule-provided
-    resources (e.g. termlib) are deliberately excluded — their checkout state
-    varies, which would make the staleness check (git diff) false-fail.
+    main repo, so the export is byte-identical in CI. Library resources
+    (including vendored termlib) retain their own translation files and are
+    excluded from the Haven app/feature/core export.
     """
     mods = []
     for base in ("app", "feature", "core"):

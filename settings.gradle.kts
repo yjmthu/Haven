@@ -35,8 +35,7 @@ dependencyResolutionManagement {
     }
 }
 
-// Build termlib from source (submodule fork with popScrollbackLine fix).
-// Drop this includeBuild once the fix is merged upstream and released.
+// Build the vendored termlib sources with Haven; see termlib/VENDORED.md.
 includeBuild("termlib") {
     dependencySubstitution {
         substitute(module("org.connectbot:termlib")).using(project(":lib"))

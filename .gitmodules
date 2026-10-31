@@ -1,4 +1,0 @@
-[submodule "termlib"]
-	path = termlib
-	url = https://github.com/GlassOnTin/termlib.git
-	branch = main
