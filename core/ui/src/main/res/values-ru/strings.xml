@@ -34,4 +34,7 @@
     <string name="remote_keyboard_use_system">Переключиться на системную клавиатуру</string>
     <string name="remote_nav_rail_hide">Скрыть панель навигации</string>
     <string name="remote_nav_rail_show">Показать панель навигации</string>
+    <string name="rdp_disconnect_title">Отключиться от %1$s?</string>
+    <string name="rdp_disconnect_message">Закрывает соединение без запроса выхода из удалённой учётной записи.</string>
+    <string name="rdp_disconnect_confirm">Отключиться</string>
 </resources>

@@ -869,21 +869,17 @@ fun SettingsScreen(
                         subtitle = stringResource(R.string.settings_rdp_desktop_size_subtitle, rdpW, rdpH),
                         onClick = { showRdpSizeDialog = true },
                     )
-                    SettingsChipsItem(
+                    SettingsToggleItem(
                         icon = Icons.Filled.DesktopWindows,
                         title = stringResource(R.string.settings_rdp_right_click_title),
                         subtitle = stringResource(R.string.settings_rdp_right_click_subtitle),
-                        options = RdpRightClickGesture.entries,
-                        selected = rdpRightClickGesture,
-                        label = { gesture ->
-                            stringResource(
-                                when (gesture) {
-                                    RdpRightClickGesture.TWO_FINGER_TAP -> R.string.settings_rdp_right_click_two_finger
-                                    RdpRightClickGesture.SINGLE_FINGER_LONG_PRESS -> R.string.settings_rdp_right_click_long_press
-                                },
+                        checked = rdpRightClickGesture == RdpRightClickGesture.SINGLE_FINGER_LONG_PRESS,
+                        onCheckedChange = { enabled ->
+                            viewModel.setRdpRightClickGesture(
+                                if (enabled) RdpRightClickGesture.SINGLE_FINGER_LONG_PRESS
+                                else RdpRightClickGesture.TWO_FINGER_TAP,
                             )
                         },
-                        onChange = viewModel::setRdpRightClickGesture,
                     )
                 }
                 if (showRdpSizeDialog) {

@@ -7,6 +7,8 @@ compare link is appended automatically — don't add it here.
 
 ## Unreleased
 
+- **RDP disconnect actions ask for confirmation.** The viewer, tab close button, and connection-list action use the same confirmation dialog.
+- **Terminal selections use the Android copy/paste menu.** Selection handles, the extra-actions menu, and bottom toolbar remain available. The RDP long-press right-click preference now uses the standard aligned settings switch with a subtitle explaining both switch positions.
 - **RDP right-click gestures are configurable.** Choose the existing two-finger tap or a one-finger long press in Settings → Desktop. Two-finger hold continues to send a middle click.
 - **RDP gestures finish cleanly.** Pinch and scroll contacts cannot turn into right-clicks on release. Adding a finger during a drag ends the drag, releases its mouse button and modifiers on the original session, and waits for all fingers to lift before accepting another gesture. Cancelled gestures use the same release path.
 

@@ -51,6 +51,7 @@ fun HavenTerminal(
     forcedSize: Pair<Int, Int>? = null,
     modifierManager: ModifierManager? = null,
     onSelectionControllerAvailable: ((SelectionController) -> Unit)? = null,
+    selectionToolbarEnabled: Boolean = true,
     onHyperlinkClick: (String) -> Unit = {},
     onComposeControllerAvailable: ((ComposeController) -> Unit)? = null,
     onFontSizeChanged: ((TextUnit) -> Unit)? = null,
@@ -88,6 +89,11 @@ fun HavenTerminal(
         forcedSize = forcedSize,
         modifierManager = modifierManager,
         onSelectionControllerAvailable = onSelectionControllerAvailable,
+        selectionToolbarMode = if (selectionToolbarEnabled) {
+            org.connectbot.terminal.SelectionToolbarMode.SYSTEM
+        } else {
+            org.connectbot.terminal.SelectionToolbarMode.HIDDEN
+        },
         onHyperlinkClick = onHyperlinkClick,
         onComposeControllerAvailable = onComposeControllerAvailable,
         onFontSizeChanged = onFontSizeChanged,

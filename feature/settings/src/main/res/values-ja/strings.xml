@@ -418,8 +418,8 @@ Haven にすでに保存されているすべての秘密鍶は、再びイン�
     <string name="settings_builtin_keyboard_subtitle">デスクトップとターミナルのセッションで、システムキーボードの代わりにHavenのフローティングキーボードを表示します</string>
 
     <!-- RDP pointer gestures -->
-    <string name="settings_rdp_right_click_title">RDP の右クリック操作</string>
-    <string name="settings_rdp_right_click_subtitle">2本指で長押しすると中クリックを送信します。</string>
+    <string name="settings_rdp_right_click_title">RDP の右クリック操作を切り替え</string>
     <string name="settings_rdp_right_click_two_finger">2本指でタップ</string>
     <string name="settings_rdp_right_click_long_press">1本指で長押し</string>
+    <string name="settings_rdp_right_click_subtitle">オフ（既定）：2本指タップ／オン：1本指長押し</string>
 </resources>

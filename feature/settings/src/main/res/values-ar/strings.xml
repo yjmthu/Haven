@@ -423,8 +423,8 @@
     <string name="settings_builtin_keyboard_subtitle">إظهار لوحة مفاتيح Haven العائمة في جلسات سطح المكتب والطرفية بدلاً من لوحة مفاتيح النظام</string>
 
     <!-- RDP pointer gestures -->
-    <string name="settings_rdp_right_click_title">إيماءة النقر بزر الفأرة الأيمن في RDP</string>
-    <string name="settings_rdp_right_click_subtitle">الضغط المطول بإصبعين يرسل نقرة بالزر الأوسط.</string>
+    <string name="settings_rdp_right_click_title">تبديل إيماءة النقر الأيمن في RDP</string>
     <string name="settings_rdp_right_click_two_finger">نقرة بإصبعين</string>
     <string name="settings_rdp_right_click_long_press">ضغط مطول بإصبع واحد</string>
+    <string name="settings_rdp_right_click_subtitle">معطل (افتراضي): نقرة بإصبعين؛ مفعل: ضغط مطول بإصبع واحد</string>
 </resources>

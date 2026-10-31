@@ -34,4 +34,7 @@
     <string name="remote_keyboard_use_system">システムキーボードに切り替え</string>
     <string name="remote_nav_rail_hide">ナビゲーションバーを隠す</string>
     <string name="remote_nav_rail_show">ナビゲーションバーを表示</string>
+    <string name="rdp_disconnect_title">%1$s との接続を切断しますか？</string>
+    <string name="rdp_disconnect_message">接続を切断します。リモートアカウントのログアウトは要求しません。</string>
+    <string name="rdp_disconnect_confirm">切断</string>
 </resources>

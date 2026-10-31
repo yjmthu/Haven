@@ -418,8 +418,8 @@ Haven에 이미 저장된 모든 개인 키는 다시 가져오거나 생성해�
     <string name="settings_builtin_keyboard_subtitle">데스크톱 및 터미널 세션에서 시스템 키보드 대신 Haven의 플로팅 키보드를 표시합니다</string>
 
     <!-- RDP pointer gestures -->
-    <string name="settings_rdp_right_click_title">RDP 오른쪽 클릭 제스처</string>
-    <string name="settings_rdp_right_click_subtitle">두 손가락으로 길게 누르면 가운데 클릭을 보냅니다.</string>
+    <string name="settings_rdp_right_click_title">RDP 오른쪽 클릭 동작 전환</string>
     <string name="settings_rdp_right_click_two_finger">두 손가락 탭</string>
     <string name="settings_rdp_right_click_long_press">한 손가락 길게 누르기</string>
+    <string name="settings_rdp_right_click_subtitle">끔(기본값): 두 손가락 탭 / 켬: 한 손가락 길게 누르기</string>
 </resources>

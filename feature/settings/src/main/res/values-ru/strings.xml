@@ -421,8 +421,8 @@
     <string name="settings_builtin_keyboard_subtitle">Показывать плавающую клавиатуру Haven в сеансах рабочего стола и терминала вместо системной клавиатуры</string>
 
     <!-- RDP pointer gestures -->
-    <string name="settings_rdp_right_click_title">Жест правого клика RDP</string>
-    <string name="settings_rdp_right_click_subtitle">Удержание двумя пальцами отправляет нажатие средней кнопки.</string>
+    <string name="settings_rdp_right_click_title">Переключить жест правого щелчка RDP</string>
     <string name="settings_rdp_right_click_two_finger">Касание 2 пальцами</string>
     <string name="settings_rdp_right_click_long_press">Удержание 1 пальцем</string>
+    <string name="settings_rdp_right_click_subtitle">Выкл. (по умолчанию): касание двумя пальцами; вкл.: долгое нажатие одним пальцем</string>
 </resources>

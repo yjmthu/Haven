@@ -1897,6 +1897,7 @@ fun TerminalScreen(
                         }
                         CompositionLocalProvider(LocalClipboardManager provides smartClipboard) {
                             HavenTerminal(
+                                selectionToolbarEnabled = isActive,
                                 terminalEmulator = activeTab.emulator,
                                 // #745: horizontal margin around the grid. The
                                 // padding shrinks the measured width, so termlib

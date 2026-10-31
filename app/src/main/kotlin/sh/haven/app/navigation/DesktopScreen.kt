@@ -39,6 +39,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -52,6 +53,7 @@ import sh.haven.app.desktop.DesktopViewModel
 import sh.haven.core.data.preferences.NavBlockMode
 import sh.haven.core.data.preferences.ToolbarLayout
 import sh.haven.feature.rdp.RdpSessionContent
+import sh.haven.core.ui.RdpDisconnectDialog
 import sh.haven.feature.vnc.VncSessionContent
 import sh.haven.feature.vnc.charToKeySym
 
@@ -113,6 +115,26 @@ fun DesktopScreen(
     val activeTab by desktopViewModel.activeTab.collectAsState()
     val anyConnected by desktopViewModel.activeTabConnected.collectAsState()
     val anyLiveTab by desktopViewModel.anyLiveTab.collectAsState()
+    var pendingDisconnectId by rememberSaveable { mutableStateOf<String?>(null) }
+    val requestClose: (String) -> Unit = { id ->
+        val tab = tabs.firstOrNull { it.id == id }
+        if (tab is DesktopTab.Rdp && tab.error.value == null) {
+            pendingDisconnectId = id
+        } else {
+            desktopViewModel.closeTab(id)
+        }
+    }
+    val pendingTab = tabs.firstOrNull { it.id == pendingDisconnectId }
+    if (pendingTab is DesktopTab.Rdp) {
+        RdpDisconnectDialog(
+            connectionLabel = pendingTab.label,
+            onDismiss = { pendingDisconnectId = null },
+            onConfirm = {
+                pendingDisconnectId = null
+                desktopViewModel.closeTab(pendingTab.id)
+            },
+        )
+    }
 
     LaunchedEffect(anyConnected) { onConnectedChanged(anyConnected) }
 
@@ -216,7 +238,7 @@ fun DesktopScreen(
                     activeTabIndex = activeTabIndex,
                     onSelectTab = { desktopViewModel.selectTab(it) },
                     onMoveTab = { idx, dir -> desktopViewModel.moveTab(idx, dir) },
-                    onCloseTab = { desktopViewModel.closeTab(it) },
+                    onCloseTab = requestClose,
                 )
             }
 
@@ -315,7 +337,7 @@ fun DesktopScreen(
                             },
                             onKeyDown = { scancode -> desktopViewModel.sendRdpKey(scancode, true) },
                             onKeyUp = { scancode -> desktopViewModel.sendRdpKey(scancode, false) },
-                            onDisconnect = { desktopViewModel.closeTab(tab.id) },
+                            onDisconnect = { requestClose(tab.id) },
                             onFullscreenChanged = onFullscreenChanged,
                             cursor = tab.cursor,
                             pointerPos = tab.pointerPos,

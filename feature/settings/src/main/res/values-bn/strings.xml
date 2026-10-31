@@ -419,8 +419,8 @@ Haven-এ ইম্মদ্য সংরক্ষিত প্রত্যে�
     <string name="settings_builtin_keyboard_subtitle">সিস্টেম কীবোর্ডের বদলে ডেস্কটপ ও টার্মিনাল সেশনে Haven-এর নিজস্ব ভাসমান কীবোর্ড দেখান</string>
 
     <!-- RDP pointer gestures -->
-    <string name="settings_rdp_right_click_title">RDP ডান-ক্লিকের অঙ্গভঙ্গি</string>
-    <string name="settings_rdp_right_click_subtitle">দুই আঙুলে দীর্ঘ চাপ দিলে মাঝের বোতামে ক্লিক হয়।</string>
+    <string name="settings_rdp_right_click_title">RDP ডান-ক্লিকের অঙ্গভঙ্গি বদলান</string>
     <string name="settings_rdp_right_click_two_finger">দুই আঙুলে ট্যাপ</string>
     <string name="settings_rdp_right_click_long_press">এক আঙুলে দীর্ঘ চাপ</string>
+    <string name="settings_rdp_right_click_subtitle">বন্ধ (ডিফল্ট): দুই আঙুলে ট্যাপ; চালু: এক আঙুলে দীর্ঘক্ষণ চাপ</string>
 </resources>

@@ -37,4 +37,7 @@
     <string name="remote_keyboard_use_system">시스템 키보드로 전환</string>
     <string name="remote_nav_rail_hide">탐색 표시줄 숨기기</string>
     <string name="remote_nav_rail_show">탐색 표시줄 표시</string>
+    <string name="rdp_disconnect_title">%1$s 연결을 끊을까요?</string>
+    <string name="rdp_disconnect_message">원격 계정의 로그아웃을 요청하지 않고 연결을 종료합니다.</string>
+    <string name="rdp_disconnect_confirm">연결 해제</string>
 </resources>

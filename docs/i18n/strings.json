@@ -3122,6 +3122,68 @@
       "sr": "Prikaži traku za navigaciju",
       "zh": "显示导航栏"
      }
+    },
+    {
+     "name": "rdp_disconnect_title",
+     "en": "Disconnect from %1$s?",
+     "comment": "Built-in desktop keyboard (VNC/RDP)",
+     "args": [
+      "%1$s"
+     ],
+     "t": {
+      "ar": "قطع الاتصال بـ %1$s؟",
+      "bn": "%1$s থেকে সংযোগ বিচ্ছিন্ন করবেন?",
+      "de": "Verbindung zu %1$s trennen?",
+      "es": "¿Desconectar de %1$s?",
+      "fr": "Déconnecter %1$s ?",
+      "hi": "%1$s से कनेक्शन काटें?",
+      "ja": "%1$s との接続を切断しますか？",
+      "ko": "%1$s 연결을 끊을까요?",
+      "pt": "Desconectar de %1$s?",
+      "ru": "Отключиться от %1$s?",
+      "sr": "Прекинути везу са %1$s?",
+      "zh": "断开与 %1$s 的连接？"
+     }
+    },
+    {
+     "name": "rdp_disconnect_message",
+     "en": "This closes the connection without requesting a remote logoff.",
+     "comment": "Built-in desktop keyboard (VNC/RDP)",
+     "args": [],
+     "t": {
+      "ar": "يُغلق الاتصال دون طلب تسجيل الخروج من الحساب البعيد.",
+      "bn": "দূরবর্তী অ্যাকাউন্ট থেকে লগআউটের অনুরোধ না করেই সংযোগ বন্ধ করে।",
+      "de": "Schließt die Verbindung, ohne eine Abmeldung am entfernten Computer anzufordern.",
+      "es": "Cierra la conexión sin solicitar el cierre de sesión de la cuenta remota.",
+      "fr": "Ferme la connexion sans demander la fermeture de la session distante.",
+      "hi": "दूरस्थ खाते से लॉग आउट करने का अनुरोध किए बिना कनेक्शन बंद करता है।",
+      "ja": "接続を切断します。リモートアカウントのログアウトは要求しません。",
+      "ko": "원격 계정의 로그아웃을 요청하지 않고 연결을 종료합니다.",
+      "pt": "Fecha a conexão sem solicitar o encerramento da sessão da conta remota.",
+      "ru": "Закрывает соединение без запроса выхода из удалённой учётной записи.",
+      "sr": "Затвара везу без захтева за одјаву удаљеног налога.",
+      "zh": "仅断开连接，不主动注销远程账户。"
+     }
+    },
+    {
+     "name": "rdp_disconnect_confirm",
+     "en": "Disconnect",
+     "comment": "Built-in desktop keyboard (VNC/RDP)",
+     "args": [],
+     "t": {
+      "ar": "قطع الاتصال",
+      "bn": "সংযোগ বিচ্ছিন্ন করুন",
+      "de": "Trennen",
+      "es": "Desconectar",
+      "fr": "Déconnecter",
+      "hi": "कनेक्शन काटें",
+      "ja": "切断",
+      "ko": "연결 해제",
+      "pt": "Desconectar",
+      "ru": "Отключиться",
+      "sr": "Прекини везу",
+      "zh": "断开"
+     }
     }
    ]
   },
@@ -19987,42 +20049,22 @@
     },
     {
      "name": "settings_rdp_right_click_title",
-     "en": "RDP right-click gesture",
+     "en": "Switch RDP right-click gesture",
      "comment": "RDP pointer gestures",
      "args": [],
      "t": {
-      "ar": "إيماءة النقر بزر الفأرة الأيمن في RDP",
-      "bn": "RDP ডান-ক্লিকের অঙ্গভঙ্গি",
-      "de": "RDP-Rechtsklick-Geste",
-      "es": "Gesto de clic derecho en RDP",
-      "fr": "Geste de clic droit RDP",
-      "hi": "RDP में दायाँ-क्लिक जेस्चर",
-      "ja": "RDP の右クリック操作",
-      "ko": "RDP 오른쪽 클릭 제스처",
-      "pt": "Gesto de clique direito no RDP",
-      "ru": "Жест правого клика RDP",
-      "sr": "Гест за десни клик у RDP-у",
-      "zh": "RDP 右键手势"
-     }
-    },
-    {
-     "name": "settings_rdp_right_click_subtitle",
-     "en": "Two-finger hold sends a middle click.",
-     "comment": "RDP pointer gestures",
-     "args": [],
-     "t": {
-      "ar": "الضغط المطول بإصبعين يرسل نقرة بالزر الأوسط.",
-      "bn": "দুই আঙুলে দীর্ঘ চাপ দিলে মাঝের বোতামে ক্লিক হয়।",
-      "de": "Langes Drücken mit zwei Fingern sendet einen Mittelklick.",
-      "es": "Mantener dos dedos envía un clic central.",
-      "fr": "Un appui prolongé à deux doigts envoie un clic central.",
-      "hi": "दो उँगलियों से देर तक दबाने पर मध्य बटन का क्लिक भेजा जाता है।",
-      "ja": "2本指で長押しすると中クリックを送信します。",
-      "ko": "두 손가락으로 길게 누르면 가운데 클릭을 보냅니다.",
-      "pt": "Manter dois dedos pressionados envia um clique central.",
-      "ru": "Удержание двумя пальцами отправляет нажатие средней кнопки.",
-      "sr": "Дуги притисак са два прста шаље средњи клик.",
-      "zh": "双指长按仍发送中键点击。"
+      "ar": "تبديل إيماءة النقر الأيمن في RDP",
+      "bn": "RDP ডান-ক্লিকের অঙ্গভঙ্গি বদলান",
+      "de": "RDP-Rechtsklick-Geste wechseln",
+      "es": "Cambiar gesto de clic derecho RDP",
+      "fr": "Changer le geste de clic droit RDP",
+      "hi": "RDP राइट-क्लिक जेस्चर बदलें",
+      "ja": "RDP の右クリック操作を切り替え",
+      "ko": "RDP 오른쪽 클릭 동작 전환",
+      "pt": "Alternar gesto de clique direito RDP",
+      "ru": "Переключить жест правого щелчка RDP",
+      "sr": "Промени RDP гест десног клика",
+      "zh": "切换 RDP 右键手势"
      }
     },
     {
@@ -20063,6 +20105,26 @@
       "ru": "Удержание 1 пальцем",
       "sr": "Дуги притисак једним",
       "zh": "单指长按"
+     }
+    },
+    {
+     "name": "settings_rdp_right_click_subtitle",
+     "en": "Off (default): two-finger tap; on: one-finger long press",
+     "comment": "RDP pointer gestures",
+     "args": [],
+     "t": {
+      "ar": "معطل (افتراضي): نقرة بإصبعين؛ مفعل: ضغط مطول بإصبع واحد",
+      "bn": "বন্ধ (ডিফল্ট): দুই আঙুলে ট্যাপ; চালু: এক আঙুলে দীর্ঘক্ষণ চাপ",
+      "de": "Aus (Standard): mit zwei Fingern tippen; ein: mit einem Finger lange drücken",
+      "es": "Desactivado (predeterminado): toque con dos dedos; activado: pulsación larga con un dedo",
+      "fr": "Désactivé (par défaut) : toucher à deux doigts ; activé : appui long à un doigt",
+      "hi": "बंद (डिफ़ॉल्ट): दो उँगलियों से टैप; चालू: एक उँगली से देर तक दबाएँ",
+      "ja": "オフ（既定）：2本指タップ／オン：1本指長押し",
+      "ko": "끔(기본값): 두 손가락 탭 / 켬: 한 손가락 길게 누르기",
+      "pt": "Desativado (padrão): toque com dois dedos; ativado: toque longo com um dedo",
+      "ru": "Выкл. (по умолчанию): касание двумя пальцами; вкл.: долгое нажатие одним пальцем",
+      "sr": "Искључено (подразумевано): додир са два прста; укључено: дуг притисак једним прстом",
+      "zh": "关闭（默认）：双指轻点；开启：单指长按"
      }
     }
    ]

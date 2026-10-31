@@ -1368,6 +1368,20 @@ private fun ConnectionTreeItem(
     var showRenameDialog by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showForgetPasswordConfirm by remember { mutableStateOf(false) }
+    var showDisconnectConfirm by androidx.compose.runtime.saveable.rememberSaveable(profile.id) {
+        mutableStateOf(false)
+    }
+
+    if (showDisconnectConfirm) {
+        sh.haven.core.ui.RdpDisconnectDialog(
+            connectionLabel = profile.label.ifBlank { profile.host },
+            onDismiss = { showDisconnectConfirm = false },
+            onConfirm = {
+                showDisconnectConfirm = false
+                if (profileStatus == ProfileStatus.CONNECTED) onDisconnect()
+            },
+        )
+    }
 
     if (showRenameDialog) {
         RenameDialog(
@@ -1589,7 +1603,10 @@ private fun ConnectionTreeItem(
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.connections_menu_disconnect)) },
                     leadingIcon = { Icon(Icons.Filled.LinkOff, null) },
-                    onClick = { showMenu = false; onDisconnect() },
+                    onClick = {
+                        showMenu = false
+                        if (profile.isRdp) showDisconnectConfirm = true else onDisconnect()
+                    },
                 )
             }
             if (profile.isSsh && hasKeys) {

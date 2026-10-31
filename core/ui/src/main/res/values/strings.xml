@@ -37,4 +37,7 @@
     <string name="remote_keyboard_use_system">Switch to system keyboard</string>
     <string name="remote_nav_rail_hide">Hide navigation bar</string>
     <string name="remote_nav_rail_show">Show navigation bar</string>
+    <string name="rdp_disconnect_title">Disconnect from %1$s?</string>
+    <string name="rdp_disconnect_message">This closes the connection without requesting a remote logoff.</string>
+    <string name="rdp_disconnect_confirm">Disconnect</string>
 </resources>

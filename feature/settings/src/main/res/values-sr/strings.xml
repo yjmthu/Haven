@@ -349,8 +349,8 @@
     <string name="settings_builtin_keyboard_subtitle">Прикажи Haven-ову плутајућу тастатуру у сесијама радне површи и терминала уместо системске тастатуре</string>
 
     <!-- RDP pointer gestures -->
-    <string name="settings_rdp_right_click_title">Гест за десни клик у RDP-у</string>
-    <string name="settings_rdp_right_click_subtitle">Дуги притисак са два прста шаље средњи клик.</string>
+    <string name="settings_rdp_right_click_title">Промени RDP гест десног клика</string>
     <string name="settings_rdp_right_click_two_finger">Додир са два прста</string>
     <string name="settings_rdp_right_click_long_press">Дуги притисак једним</string>
+    <string name="settings_rdp_right_click_subtitle">Искључено (подразумевано): додир са два прста; укључено: дуг притисак једним прстом</string>
 </resources>

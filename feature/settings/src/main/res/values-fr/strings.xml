@@ -419,8 +419,8 @@ Chaque clé privée déjà stockée dans Haven devra être importée ou génér�
     <string name="settings_builtin_keyboard_subtitle">Afficher le clavier flottant de Haven dans les sessions bureau et terminal au lieu du clavier système</string>
 
     <!-- RDP pointer gestures -->
-    <string name="settings_rdp_right_click_title">Geste de clic droit RDP</string>
-    <string name="settings_rdp_right_click_subtitle">Un appui prolongé à deux doigts envoie un clic central.</string>
+    <string name="settings_rdp_right_click_title">Changer le geste de clic droit RDP</string>
     <string name="settings_rdp_right_click_two_finger">Toucher à deux doigts</string>
     <string name="settings_rdp_right_click_long_press">Appui long à un doigt</string>
+    <string name="settings_rdp_right_click_subtitle">Désactivé (par défaut) : toucher à deux doigts ; activé : appui long à un doigt</string>
 </resources>
